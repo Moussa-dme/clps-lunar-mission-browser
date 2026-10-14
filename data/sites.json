@@ -1,0 +1,148 @@
+[
+ {
+  "id": "im1",
+  "name": "IM-1 Odysseus",
+  "group": "CLPS landed",
+  "lat": -80.13,
+  "lon": 1.44,
+  "note": "Intuitive Machines, landed 2024-02-22 23:23 UTC near Malapert A.",
+  "source": "LRO/LROC confirmed position (Intuitive Machines; en.wikipedia.org/wiki/IM-1)"
+ },
+ {
+  "id": "im2",
+  "name": "IM-2 Athena",
+  "group": "CLPS landed",
+  "lat": -84.7906,
+  "lon": 29.1957,
+  "note": "Intuitive Machines, landed 2025-03-06 on Mons Mouton (tipped over).",
+  "source": "en.wikipedia.org/wiki/IM-2; LROC image 1401"
+ },
+ {
+  "id": "bg1",
+  "name": "Blue Ghost Mission 1",
+  "group": "CLPS landed",
+  "lat": 18.56,
+  "lon": 61.81,
+  "note": "Firefly, landed 2025-03-02 in Mare Crisium near Mons Latreille. Outside polar DEM: smooth horizon.",
+  "source": "en.wikipedia.org/wiki/Mons_Latreille"
+ },
+ {
+  "id": "nobile2",
+  "name": "Nobile Rim 2",
+  "group": "Artemis III region",
+  "lat": -84.20156,
+  "lon": 60.69989,
+  "note": "Representative point (top-ranked point 358). Griffin Mission One also targets the Nobile area.",
+  "source": "Peña-Asensio et al., arXiv:2406.19863, Table 3",
+  "snap_m": 1000
+ },
+ {
+  "id": "pns",
+  "name": "Peak near Shackleton",
+  "group": "Artemis III region",
+  "lat": -89.00506,
+  "lon": 125.3093,
+  "note": "Representative point (point 1223).",
+  "source": "Peña-Asensio et al., arXiv:2406.19863, Table 3",
+  "snap_m": 1000
+ },
+ {
+  "id": "dg2",
+  "name": "de Gerlache Rim 2",
+  "group": "Artemis III region",
+  "lat": -88.51566,
+  "lon": -61.16732,
+  "note": "Representative point (point 726).",
+  "source": "Peña-Asensio et al., arXiv:2406.19863, Table 3",
+  "snap_m": 1000
+ },
+ {
+  "id": "mouton",
+  "name": "Mons Mouton",
+  "group": "Artemis III region",
+  "lat": -84.6,
+  "lon": 31.0,
+  "note": "IAU feature centre of the massif.",
+  "source": "USGS Gazetteer of Planetary Nomenclature, feature 16070",
+  "snap_m": 2000
+ },
+ {
+  "id": "ptA",
+  "name": "Shackleton rim (A)",
+  "group": "High-illumination point",
+  "lat": -89.68,
+  "lon": -166.0,
+  "note": "Published illumination ~81% of a lunar year.",
+  "source": "en.wikipedia.org/wiki/Peak_of_eternal_light (Bussey et al. 2010, Kaguya topography)",
+  "snap_m": 2000
+ },
+ {
+  "id": "ptB",
+  "name": "Connecting ridge (B)",
+  "group": "High-illumination point",
+  "lat": -89.44,
+  "lon": -141.8,
+  "note": "Published illumination ~82%.",
+  "source": "en.wikipedia.org/wiki/Peak_of_eternal_light",
+  "snap_m": 2000
+ },
+ {
+  "id": "ptD",
+  "name": "Peak near Shackleton (D)",
+  "group": "High-illumination point",
+  "lat": -88.79,
+  "lon": 124.5,
+  "note": "Published illumination ~86%.",
+  "source": "en.wikipedia.org/wiki/Peak_of_eternal_light",
+  "snap_m": 2000
+ },
+ {
+  "id": "ptC",
+  "name": "de Gerlache rim (C)",
+  "group": "High-illumination point",
+  "lat": -88.71,
+  "lon": -68.7,
+  "note": "Published illumination ~85%.",
+  "source": "en.wikipedia.org/wiki/Peak_of_eternal_light",
+  "snap_m": 2000
+ },
+ {
+  "id": "m1",
+  "name": "Malapert Mountain (M1)",
+  "group": "High-illumination point",
+  "lat": -86.04,
+  "lon": 2.7,
+  "note": "Published illumination ~74%.",
+  "source": "en.wikipedia.org/wiki/Peak_of_eternal_light",
+  "snap_m": 2000
+ },
+ {
+  "id": "faustini",
+  "name": "Faustini Rim A",
+  "group": "Earlier Artemis candidate",
+  "lat": -88.08695,
+  "lon": 98.35549,
+  "note": "2022 candidate region, representative point 744.",
+  "source": "Peña-Asensio et al., arXiv:2406.19863, Table 3",
+  "snap_m": 1000
+ },
+ {
+  "id": "amundsen",
+  "name": "Amundsen Rim",
+  "group": "Earlier Artemis candidate",
+  "lat": -84.19184,
+  "lon": 67.22904,
+  "note": "2022 candidate region, representative point 1121.",
+  "source": "Peña-Asensio et al., arXiv:2406.19863, Table 3",
+  "snap_m": 1000
+ },
+ {
+  "id": "ch3",
+  "name": "Chandrayaan-3 (Shiv Shakti)",
+  "group": "Other missions",
+  "lat": -69.373,
+  "lon": 32.319,
+  "note": "ISRO, landed 2023-08-23. Reference for a lower-latitude polar site.",
+  "source": "ISRO"
+ }
+]

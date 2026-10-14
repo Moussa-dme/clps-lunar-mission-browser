@@ -1,0 +1,213 @@
+<title>CLPS Lunar Mission Browser</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Compare lunar south-pole landing sites and dates: Sun and Earth above the real LOLA terrain horizon, power and direct-to-Earth communication windows.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/*__STYLE__*/
+</style>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19 Q10 13 16 18 T29 16" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="8" r="3" fill="var(--sun)"/></svg>
+      <div>
+        <h1>CLPS Lunar Mission Browser</h1>
+        <p class="sub" data-i18n="tagline">Sun and Earth over the real south-pole horizon</p>
+      </div>
+    </div>
+    <div class="range" role="group" aria-label="Time range">
+      <label><span data-i18n="from">From (UTC)</span><input type="date" id="start"></label>
+      <label><span data-i18n="to">To (UTC)</span><input type="date" id="end"></label>
+      <label><span data-i18n="step">Step</span>
+        <select id="step">
+          <option value="auto">Auto</option><option value="10">10 min</option><option value="20">20 min</option>
+          <option value="30">30 min</option><option value="60">1 h</option><option value="180">3 h</option>
+        </select></label>
+      <button class="btn ghost" id="lang" type="button" aria-label="Langue / Language">FR</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <aside class="side" aria-label="Sites and constraints">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 data-i18n="sites">Sites</h2>
+        <span class="muted small" id="selCount"></span>
+      </div>
+      <p class="muted small" data-i18n="sitesHelp">Tick up to 8 sites to compare. Click a name to focus it.</p>
+      <div id="siteList" class="site-list"></div>
+      <details class="add-site" id="addSiteBox">
+        <summary data-i18n="addSite">Add a site</summary>
+        <form id="addSiteForm" class="form-grid" novalidate>
+          <label class="full"><span data-i18n="name">Name</span><input id="newName" type="text" placeholder="My site" maxlength="40"></label>
+          <label><span data-i18n="lat">Latitude (°)</span><input id="newLat" type="number" step="0.0001" min="-90" max="90" value="-89.45"></label>
+          <label><span data-i18n="lon">Longitude (°E)</span><input id="newLon" type="number" step="0.0001" min="-180" max="360" value="-138"></label>
+          <label class="full check"><input id="newSnap" type="checkbox"> <span data-i18n="snap">Move to the highest point within 500 m</span></label>
+          <button class="btn primary full" type="submit" data-i18n="addBtn">Add and compute horizon</button>
+          <p class="muted small full" data-i18n="addHelp">Tip: click anywhere on the Map tab to fill these in.</p>
+          <p class="form-msg full" id="addMsg" role="status"></p>
+        </form>
+      </details>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="rules">Mission rules</h2>
+      <label class="rule"><span data-i18n="sunRule">Counts as sunlit when</span>
+        <select id="sunFrac">
+          <option value="0.001" data-i18n="anyDisk">any part of the Sun is visible</option>
+          <option value="0.5" selected data-i18n="halfDisk">half the solar disk is visible</option>
+          <option value="1" data-i18n="fullDisk">the whole disk is visible</option>
+        </select></label>
+      <label class="rule"><span data-i18n="earthRule">Earth must clear the horizon by</span>
+        <span class="inline"><input id="earthMargin" type="number" min="0" max="10" step="0.5" value="0"><span class="unit">°</span></span></label>
+      <label class="rule check"><input id="reqDSN" type="checkbox" checked> <span data-i18n="dsnRule">Direct-to-Earth also needs a Deep Space Network dish to see the Moon</span></label>
+      <label class="rule"><span data-i18n="dsnMin">DSN minimum elevation</span>
+        <span class="inline"><input id="dsnMin" type="number" min="0" max="30" step="1" value="10"><span class="unit">°</span></span></label>
+    </section>
+
+    <section class="panel legend-panel">
+      <h2 data-i18n="legend">Legend</h2>
+      <ul class="legend">
+        <li><i class="sw st-ops"></i><span data-i18n="lgOps">Power and direct-to-Earth link</span></li>
+        <li><i class="sw st-sun"></i><span data-i18n="lgSun">Sunlit, no Earth link</span></li>
+        <li><i class="sw st-comm"></i><span data-i18n="lgComm">Earth link, in shadow</span></li>
+        <li><i class="sw st-none"></i><span data-i18n="lgNone">Dark and out of contact</span></li>
+      </ul>
+    </section>
+  </aside>
+
+  <main class="main">
+    <div class="cursor-bar panel">
+      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
+      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
+      <output id="cursorLabel" class="mono"></output>
+      <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button role="tab" id="tab-compare" aria-selected="true" data-tab="compare" data-i18n="tCompare">Compare</button>
+      <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
+      <button role="tab" id="tab-sky" aria-selected="false" data-tab="sky" data-i18n="tSky">Horizon view</button>
+      <button role="tab" id="tab-plan" aria-selected="false" data-tab="plan" data-i18n="tPlan">Pick a landing date</button>
+      <button role="tab" id="tab-map" aria-selected="false" data-tab="map" data-i18n="tMap">Map</button>
+      <button role="tab" id="tab-method" aria-selected="false" data-tab="method" data-i18n="tMethod">Method</button>
+    </nav>
+
+    <!-- COMPARE -->
+    <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare">
+      <div class="panel">
+        <div class="panel-head">
+          <h2 data-i18n="cmpTitle">Site comparison over the selected period</h2>
+          <div class="actions">
+            <button class="btn ghost" id="copyCsv" type="button" data-i18n="copyCsv">Copy CSV</button>
+            <button class="btn ghost" id="dlCsv" type="button" data-i18n="dlCsv">Download CSV</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="cmp" id="cmpTable"></table>
+        </div>
+        <p class="muted small" id="cmpNote"></p>
+      </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2 data-i18n="stripTitle">When each site has power and a link to Earth</h2>
+        </div>
+        <div class="canvas-box" id="stripBox"><canvas id="strip"></canvas></div>
+      </div>
+    </section>
+
+    <!-- TIMELINE -->
+    <section class="view" id="view-timeline" role="tabpanel" aria-labelledby="tab-timeline" hidden>
+      <div class="panel">
+        <h2 data-i18n="sunClearTitle">Sun height above the terrain horizon</h2>
+        <p class="muted small" data-i18n="sunClearHelp">Above 0° the centre of the Sun clears the local terrain. At the pole the Sun skims the horizon, so a degree of terrain decides between power and darkness.</p>
+        <div class="canvas-box tall" id="sunBox"><canvas id="sunChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="earthClearTitle">Earth height above the terrain horizon</h2>
+        <p class="muted small" data-i18n="earthClearHelp">Earth hangs almost still in the lunar sky and wobbles a few degrees each month (libration). Below 0° no direct-to-Earth link is possible.</p>
+        <div class="canvas-box tall" id="earthBox"><canvas id="earthChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="dsnTitle">Deep Space Network: stations that see the Moon</h2>
+        <div class="canvas-box short" id="dsnBox"><canvas id="dsnChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- SKY -->
+    <section class="view" id="view-sky" role="tabpanel" aria-labelledby="tab-sky" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2><span data-i18n="skyTitle">360° horizon from</span> <span id="skySiteName"></span></h2>
+          <label class="inline-label"><span data-i18n="exag">Vertical stretch</span>
+            <select id="exag"><option value="1">1×</option><option value="3" selected>3×</option><option value="6">6×</option></select></label>
+        </div>
+        <div class="readouts" id="skyReadouts"></div>
+        <div class="canvas-box pano" id="panoBox"><canvas id="pano"></canvas></div>
+        <p class="muted small" data-i18n="skyHelp">The grey band is the terrain horizon computed from LOLA elevation data. Dotted tracks show where the Sun and Earth travel during the whole period; the disks show the cursor time. Disks are enlarged so they stay visible.</p>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="nextEvents">Upcoming events at this site</h2>
+        <div class="table-scroll"><table class="events" id="eventsTable"></table></div>
+      </div>
+    </section>
+
+    <!-- PLAN -->
+    <section class="view" id="view-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
+      <div class="panel">
+        <h2 data-i18n="planTitle">Find the best landing date for each site</h2>
+        <form class="plan-form" id="planForm" novalidate>
+          <label><span data-i18n="duration">Surface mission (days)</span><input id="planDays" type="number" min="1" max="60" step="1" value="10"></label>
+          <label><span data-i18n="score">Rank by</span>
+            <select id="planScore">
+              <option value="ops" data-i18n="scOps">time with power and Earth link</option>
+              <option value="lit" data-i18n="scLit">time in sunlight</option>
+              <option value="dte" data-i18n="scDte">time with Earth link</option>
+            </select></label>
+          <label class="check"><input id="planLitTD" type="checkbox" checked> <span data-i18n="tdLit">Sunlit at touchdown</span></label>
+          <label class="check"><input id="planCommTD" type="checkbox" checked> <span data-i18n="tdComm">Earth link at touchdown</span></label>
+          <label><span data-i18n="minSun">Min. Sun height at touchdown</span><span class="inline"><input id="planSunMin" type="number" min="-5" max="20" step="0.5" value="0.5"><span class="unit">°</span></span></label>
+        </form>
+        <div class="canvas-box" id="heatBox"><canvas id="heat"></canvas></div>
+        <div class="heat-legend" id="heatLegend"></div>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="bestTitle">Best landing opportunities</h2>
+        <div class="table-scroll"><table class="cmp" id="bestTable"></table></div>
+        <p class="muted small" data-i18n="bestHelp">Click a row to move the time cursor to that touchdown.</p>
+      </div>
+    </section>
+
+    <!-- MAP -->
+    <section class="view" id="view-map" role="tabpanel" aria-labelledby="tab-map" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2 data-i18n="mapTitle">South pole, 80°S to 90°S</h2>
+          <span class="muted small" data-i18n="mapHelp">LOLA shaded relief. Click to place a new site.</span>
+        </div>
+        <div class="canvas-box map" id="mapBox"><canvas id="map"></canvas></div>
+        <p class="muted small" data-i18n="mapNote">Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.</p>
+      </div>
+    </section>
+
+    <!-- METHOD -->
+    <section class="view prose" id="view-method" role="tabpanel" aria-labelledby="tab-method" hidden>
+      <div class="panel" id="methodText"></div>
+    </section>
+  </main>
+</div>
+
+<div class="tooltip" id="tip" role="tooltip" hidden></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>window.__DATA__ = /*__DATA__*/;</script>
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<script>
+/*__ENGINE__*/
+</script>
+<script>
+/*__APP__*/
+</script>

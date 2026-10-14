@@ -1,0 +1,14 @@
+{
+  "name": "clps-lunar-mission-browser",
+  "version": "1.0.0",
+  "description": "Compare lunar south-pole landing sites and dates: Sun and Earth over the real LOLA terrain horizon.",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "test": "node tests/engine.test.js",
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "astronomy-engine": "2.1.19"
+  }
+}

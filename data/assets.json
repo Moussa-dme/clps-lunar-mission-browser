@@ -1,0 +1,20 @@
+{
+ "basemap": {
+  "half_m": 304005.6080198808,
+  "n": 1024,
+  "lat_edge": -80.0
+ },
+ "dem_coarse": {
+  "half_m": 457500.0,
+  "n": 915,
+  "px_m": 1000.0,
+  "lat_edge": -75.0
+ },
+ "dem_fine": {
+  "half_m": 75840.0,
+  "n": 632,
+  "px_m": 240.0,
+  "lat_edge": -87.5
+ },
+ "source": "LDEM_60S_240M.IMG"
+}
