@@ -320,7 +320,6 @@ tr.click:hover td { background: color-mix(in srgb, var(--accent) 7%, transparent
           <h2 data-i18n="cmpTitle">Site comparison over the selected period</h2>
           <div class="actions">
             <button class="btn ghost" id="copyCsv" type="button" data-i18n="copyCsv">Copy CSV</button>
-            <button class="btn ghost" id="dlCsv" type="button" data-i18n="dlCsv">Download CSV</button>
           </div>
         </div>
         <div class="table-scroll">
@@ -1859,7 +1858,7 @@ tr.click:hover td { background: color-mix(in srgb, var(--accent) 7%, transparent
     const csv = buildCSV();
     navigator.clipboard.writeText(csv).then(() => toast(t('copied')), () => fallbackText(csv));
   });
-  $('#dlCsv').addEventListener('click', () => {
+  if ($('#dlCsv')) $('#dlCsv').addEventListener('click', () => {
     const blob = new Blob([buildCSV()], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = `clps-sites-${utc(state.start, false)}.csv`; document.body.appendChild(a); a.click(); a.remove();

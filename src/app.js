@@ -1148,7 +1148,7 @@
     const csv = buildCSV();
     navigator.clipboard.writeText(csv).then(() => toast(t('copied')), () => fallbackText(csv));
   });
-  $('#dlCsv').addEventListener('click', () => {
+  if ($('#dlCsv')) $('#dlCsv').addEventListener('click', () => {
     const blob = new Blob([buildCSV()], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = `clps-sites-${utc(state.start, false)}.csv`; document.body.appendChild(a); a.click(); a.remove();
