@@ -38,19 +38,23 @@ R_MOON = 1737400.0  # m, LOLA reference sphere
 def read_label(lbl_path):
     txt = open(lbl_path, encoding="latin-1").read()
 
-    def val(key, cast=float):
+    def val(key, cast=float):  # noqa: E306
         m = re.search(r"^\s*" + key + r"\s*=\s*\"?([-\w.]+)", txt, re.M)
         if not m:
             raise ValueError(f"{key} missing in {lbl_path}")
         return cast(m.group(1))
 
     p = dict(lines=val("LINES", int), samples=val("LINE_SAMPLES", int),
-             scale=val("MAP_SCALE"), l0=val("LINE_PROJECTION_OFFSET"),
+             scale=(val("MAP_SCALE") if re.search(r"^\s*MAP_SCALE\s*=", txt, re.M) else 0.0), l0=val("LINE_PROJECTION_OFFSET"),
              s0=val("SAMPLE_PROJECTION_OFFSET"), center_lat=val("CENTER_LATITUDE"),
              factor=val("SCALING_FACTOR"), bits=val("SAMPLE_BITS", int),
              max_lat=val("MAXIMUM_LATITUDE"), min_lat=val("MINIMUM_LATITUDE"))
-    if "POLAR STEREOGRAPHIC" not in txt:
-        raise ValueError("Only LOLA polar stereographic products are supported")
+    p["cylindrical"] = "SIMPLE CYLINDRICAL" in txt
+    if not p["cylindrical"] and "POLAR STEREOGRAPHIC" not in txt:
+        raise ValueError("Only LOLA polar stereographic and simple cylindrical products are supported")
+    if p["cylindrical"]:
+        p["res"] = val("MAP_RESOLUTION")
+        p["center_lon"] = val("CENTER_LONGITUDE")
     return p
 
 
@@ -92,11 +96,44 @@ class PolarDEM:
         return lat <= self.edge_lat if self.south else lat >= self.edge_lat
 
 
+class CylDEM:
+    """LOLA simple cylindrical (global) DEM, e.g. LDEM_64 (64 px/deg, ~474 m at the equator)."""
+
+    def __init__(self, img_path, p):
+        self.p = p
+        dtype = "<i2" if p["bits"] == 16 else "<f4"
+        self.h = np.memmap(img_path, dtype=dtype, mode="r").reshape(p["lines"], p["samples"])
+        self.name = os.path.basename(img_path)
+        self.south = False
+        self.edge_lat = None
+        # metres per pixel at the equator, used for ray sampling
+        self.p["scale"] = 2 * math.pi * R_MOON / (360 * p["res"])
+
+    def height(self, lat, lon):
+        p = self.p
+        lat = np.atleast_1d(np.asarray(lat, float)); lon = np.atleast_1d(np.asarray(lon, float))
+        lonw = np.mod(lon - p["center_lon"] + 180, 360) - 180          # -180..180 around the centre
+        samp = p["s0"] + lonw * p["res"]
+        line = p["l0"] - lat * p["res"]
+        # wrap in longitude by padding indices
+        samp = np.mod(samp, p["samples"])
+        v = map_coordinates(self.h, [line, samp], order=1, mode="nearest") * p["factor"]
+        return v
+
+    def covers(self, lat):
+        return True
+
+
+def open_dem(path):
+    p = read_label(os.path.splitext(path)[0] + ".LBL")
+    return CylDEM(path, p) if p["cylindrical"] else PolarDEM(path)
+
+
 class DEMStack:
     """Several DEMs, finest first; each sample comes from the finest one covering it."""
 
     def __init__(self, paths):
-        self.dems = [PolarDEM(p) for p in paths]
+        self.dems = [open_dem(p) for p in paths]
         self.name = "+".join(d.name for d in self.dems)
         self.finest = min(d.p["scale"] for d in self.dems)
 

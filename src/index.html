@@ -83,17 +83,26 @@
     <div class="cursor-bar panel">
       <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
       <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
-      <output id="cursorLabel" class="mono"></output>
+      <output id="cursorLabel" class="mono" hidden></output>
+      <div class="cursor-tools">
+        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
+        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
+        <span class="utc-tag">UTC</span>
+        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
+        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+      </div>
       <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
     </div>
 
     <nav class="tabs" role="tablist" aria-label="Views">
       <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
       <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
+      <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-i18n="tScen">Scenarios</button>
       <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
       <button role="tab" id="tab-sky" aria-selected="false" data-tab="sky" data-i18n="tSky">Horizon view</button>
       <button role="tab" id="tab-plan" aria-selected="false" data-tab="plan" data-i18n="tPlan">Pick a landing date</button>
       <button role="tab" id="tab-map" aria-selected="false" data-tab="map" data-i18n="tMap">Map</button>
+      <button role="tab" id="tab-learn" aria-selected="false" data-tab="learn" data-i18n="tLearn">Why it’s hard</button>
       <button role="tab" id="tab-method" aria-selected="false" data-tab="method" data-i18n="tMethod">Method</button>
     </nav>
 
@@ -159,6 +168,32 @@
           <h2 data-i18n="stripTitle">When each site has power and a link to Earth</h2>
         </div>
         <div class="canvas-box" id="stripBox"><canvas id="strip"></canvas></div>
+      </div>
+    </section>
+
+    <!-- SCENARIOS -->
+    <section class="view" id="view-scen" role="tabpanel" aria-labelledby="tab-scen" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2 data-i18n="scenTitle">Compare landing scenarios: site, date and mission length</h2>
+          <div class="actions">
+            <button class="btn ghost" type="button" id="scenHistory" data-i18n="scenHistory">Load historical landings</button>
+            <button class="btn ghost" type="button" id="scenCopy" data-i18n="scenCopy">Copy summary</button>
+          </div>
+        </div>
+        <p class="muted small" data-i18n="scenHelp">When a launch slips, add the new date or another site and compare. Each row is computed for its own mission window.</p>
+        <form class="scen-form" id="scenForm" novalidate>
+          <label><span data-i18n="colSite">Site</span><select id="scenSite"></select></label>
+          <label><span data-i18n="touchdown">Touchdown (UTC)</span><input type="datetime-local" id="scenTime" step="600"></label>
+          <label><span data-i18n="duration">Surface mission (days)</span><input type="number" id="scenDays" min="1" max="60" step="1" value="10"></label>
+          <button class="btn primary" type="submit" data-i18n="scenAdd">Add scenario</button>
+        </form>
+        <p class="muted small" id="scenNote"></p>
+        <div class="table-scroll"><table class="cmp" id="scenTable"></table></div>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="scenStripTitle">Each mission, from touchdown to the end</h2>
+        <div class="canvas-box" id="scenStripBox"><canvas id="scenStrip"></canvas></div>
       </div>
     </section>
 
@@ -233,6 +268,22 @@
         </div>
         <div class="canvas-box map" id="mapBox"><canvas id="map"></canvas></div>
         <p class="muted small" data-i18n="mapNote">Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.</p>
+      </div>
+    </section>
+
+    <!-- LEARN -->
+    <section class="view" id="view-learn" role="tabpanel" aria-labelledby="tab-learn" hidden>
+      <div class="panel learn-intro">
+        <h2 data-i18n="learnTitle">Why the lunar south pole is so hard</h2>
+        <p data-i18n="learnLead">Six facts, computed live from the same data as the rest of the tool. They explain why a few hundred metres or a few days can decide whether a lander survives.</p>
+      </div>
+      <div class="learn-grid" id="learnGrid">
+        <article class="panel card" id="lc1"><h3 id="lc1t"></h3><p id="lc1p"></p><div class="canvas-box short-card"><canvas id="lc1c"></canvas></div></article>
+        <article class="panel card" id="lc2"><h3 id="lc2t"></h3><p id="lc2p"></p><div class="canvas-box mid-card"><canvas id="lc2c"></canvas></div><div class="legend-row" id="lc2l"></div></article>
+        <article class="panel card" id="lc3"><h3 id="lc3t"></h3><p id="lc3p"></p><div class="canvas-box short-card"><canvas id="lc3c"></canvas></div></article>
+        <article class="panel card" id="lc4"><h3 id="lc4t"></h3><p id="lc4p"></p><div class="canvas-box mid-card"><canvas id="lc4c"></canvas></div></article>
+        <article class="panel card" id="lc5"><h3 id="lc5t"></h3><p id="lc5p"></p><div class="canvas-box mid-card"><canvas id="lc5c"></canvas></div><p class="muted small" id="lc5s"></p></article>
+        <article class="panel card" id="lc6"><h3 id="lc6t"></h3><p id="lc6p"></p><div class="canvas-box short-card"><canvas id="lc6c"></canvas></div></article>
       </div>
     </section>
 

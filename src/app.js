@@ -54,6 +54,17 @@
       maxSel: 'You can compare up to 8 sites at once.', remove: 'Remove', h: 'h', d: 'd', now: 'now',
       smooth: 'smooth sphere', lolaPre: 'LOLA 40 m / 240 m', lolaBrowser: 'LOLA 240 m / 1 km', imported: 'imported CSV',
       fit: 'fitted', stretchNote: 'vertical stretch',
+      tScen: 'Scenarios', tLearn: 'Why it’s hard', goTo: 'Go to (UTC)', nextSunrise: 'Next sunrise', nextSunset: 'Next sunset',
+      outOfRange: 'That time is outside the period. Change the dates at the top first.', noSunrise: 'No sunrise at this site before the end of the period.', noSunset: 'No sunset at this site before the end of the period.',
+      sunsetIn: 'Sunset in', sunriseIn: 'Sunrise in', earthsetIn: 'Earthset in', earthriseIn: 'Earthrise in', linkEndsIn: 'Link ends in', linkStartsIn: 'Link opens in',
+      st_ops: 'Power + link', st_sun: 'Sun only', st_comm: 'Link only', st_none: 'Dark, no link', countdown: 'Time left',
+      colNow: 'Now', colSunNow: 'Sun height', colSunNext: 'Sun', colEarthNext: 'Earth', nowNote: 'Now = cursor time,',
+      scenTitle: 'Compare landing scenarios: site, date and mission length', scenHistory: 'Load historical landings', scenCopy: 'Copy summary',
+      scenHelp: 'When a launch slips, add the new date or another site and compare. Each row is computed for its own mission window.',
+      scenAdd: 'Add scenario', scenStripTitle: 'Each mission, from touchdown to the end', scenExample: 'Example scenarios: replace them with your own, or load the historical landings.',
+      scenEmpty: 'No scenario yet. Add one above.', daysShort: 'Days', atTouchdown: 'At touchdown', firstLoss: 'First loss of power or link',
+      never: 'never', atOnce: 'at touchdown', actual: 'actual', slipTitle: 'Copy this scenario shifted in time', badTime: 'Enter a touchdown date and time.',
+      copiedText: 'Summary copied. Paste it into an e-mail or a chat.',
       t3d: '3D view', v3dRegion: 'Area', v3dPole: 'Pole, 87.5–90°S (240 m)', v3dSouth: 'South polar region, 75–90°S (1 km)',
       v3dShow: 'Show', mSun: 'Sunlight now', mPlan: 'Power and Earth link now', mAvgSun: 'Sunlight, share of the period',
       mAvgEarth: 'Earth link, share of the period', mAvgOps: 'Power + link, share of the period',
@@ -112,6 +123,17 @@
       maxSel: 'Vous pouvez comparer 8 sites au maximum.', remove: 'Supprimer', h: 'h', d: 'j', now: 'maintenant',
       smooth: 'sphère lisse', lolaPre: 'LOLA 40 m / 240 m', lolaBrowser: 'LOLA 240 m / 1 km', imported: 'CSV importé',
       fit: 'ajusté', stretchNote: 'étirement vertical',
+      tScen: 'Scénarios', tLearn: 'Pourquoi c’est difficile', goTo: 'Aller à (UTC)', nextSunrise: 'Prochain lever', nextSunset: 'Prochain coucher',
+      outOfRange: 'Cette date est hors de la période. Changez d’abord les dates en haut.', noSunrise: 'Pas de lever du Soleil sur ce site avant la fin de la période.', noSunset: 'Pas de coucher du Soleil sur ce site avant la fin de la période.',
+      sunsetIn: 'Coucher dans', sunriseIn: 'Lever dans', earthsetIn: 'Coucher de la Terre dans', earthriseIn: 'Lever de la Terre dans', linkEndsIn: 'Fin de liaison dans', linkStartsIn: 'Liaison dans',
+      st_ops: 'Énergie + liaison', st_sun: 'Soleil seul', st_comm: 'Liaison seule', st_none: 'Noir, sans liaison', countdown: 'Temps restant',
+      colNow: 'Maintenant', colSunNow: 'Hauteur du Soleil', colSunNext: 'Soleil', colEarthNext: 'Terre', nowNote: 'Maintenant = instant du curseur,',
+      scenTitle: 'Comparer des scénarios : site, date et durée de mission', scenHistory: 'Charger les alunissages historiques', scenCopy: 'Copier le résumé',
+      scenHelp: 'Quand un lancement glisse, ajoutez la nouvelle date ou un autre site et comparez. Chaque ligne est calculée sur sa propre fenêtre de mission.',
+      scenAdd: 'Ajouter le scénario', scenStripTitle: 'Chaque mission, de l’atterrissage à la fin', scenExample: 'Scénarios d’exemple : remplacez-les par les vôtres ou chargez les alunissages historiques.',
+      scenEmpty: 'Aucun scénario. Ajoutez-en un ci-dessus.', daysShort: 'Jours', atTouchdown: 'À l’atterrissage', firstLoss: 'Première perte d’énergie ou de liaison',
+      never: 'jamais', atOnce: 'dès l’atterrissage', actual: 'réel', slipTitle: 'Copier ce scénario décalé dans le temps', badTime: 'Entrez une date et une heure d’atterrissage.',
+      copiedText: 'Résumé copié. Collez-le dans un e-mail ou une discussion.',
       t3d: 'Vue 3D', v3dRegion: 'Zone', v3dPole: 'Pôle, 87,5–90°S (240 m)', v3dSouth: 'Région polaire sud, 75–90°S (1 km)',
       v3dShow: 'Afficher', mSun: 'Ensoleillement maintenant', mPlan: 'Énergie et liaison maintenant', mAvgSun: 'Ensoleillement, part de la période',
       mAvgEarth: 'Liaison Terre, part de la période', mAvgOps: 'Énergie + liaison, part de la période',
@@ -146,7 +168,7 @@
       const h = DATA.horizons[s.id];
       const ll = h && h.snapped ? h.snapped : [s.lat, s.lon];
       return {
-        id: s.id, name: s.name, group: s.group, note: s.note, source: s.source,
+        id: s.id, name: s.name, group: s.group, note: s.note, source: s.source, landed: s.landed,
         lat: ll[0], lon: ll[1], pubLat: s.lat, pubLon: s.lon, snapped: !!(h && h.snapped),
         heightM: h ? h.elev_m : 0, mask: h ? h.mask : null, hsrc: h ? 'lolaPre' : 'smooth', custom: false
       };
@@ -288,9 +310,7 @@
     state.sites.forEach(s => { const g = s.custom ? 'My sites' : s.group; if (!groups.includes(g)) groups.push(g); });
     let html = '';
     for (const g of groups) {
-      const GFR = { 'My sites': 'Mes sites', 'CLPS landed': 'CLPS posés', 'Artemis III region': 'Régions Artemis III',
-        'High-illumination point': 'Points très éclairés', 'Earlier Artemis candidate': 'Anciens candidats Artemis', 'Other missions': 'Autres missions' };
-      html += `<div class="grp">${esc(lang === 'fr' ? (GFR[g] || g) : g)}</div>`;
+      html += `<div class="grp">${esc(groupLabel(g))}</div>`;
       for (const s of state.sites.filter(x => (x.custom ? 'My sites' : x.group) === g)) {
         const sel = state.selected.includes(s.id);
         const col = sel ? colorOf(s.id) : 'transparent';
@@ -452,15 +472,34 @@
   function renderCursorLabel() {
     if (!state.grid) return;
     $('#cursorLabel').textContent = utc(timeOf(state.cursor)) + ' UTC';
+    const ct = $('#cursorTime');
+    if (document.activeElement !== ct) ct.value = utc(timeOf(state.cursor)).replace(' ', 'T');
+    ct.min = utc(state.grid.start).replace(' ', 'T'); ct.max = utc(timeOf(state.grid.n - 1)).replace(' ', 'T');
   }
+  $('#cursorTime').addEventListener('change', e => {
+    const ms = Date.parse(e.target.value + ':00Z');
+    if (!isFinite(ms) || !state.grid) return;
+    if (ms < state.start || ms > timeOf(state.grid.n - 1)) { toast(t('outOfRange')); renderCursorLabel(); return; }
+    setCursor(indexOf(ms));
+  });
+  function jump(rise) {
+    const ser = state.series[state.focus]; if (!ser) return;
+    for (let j = state.cursor + 1; j < state.grid.n; j++) {
+      if (ser.lit[j] !== ser.lit[j - 1] && !!ser.lit[j] === rise) { setCursor(j); return; }
+    }
+    toast(t(rise ? 'noSunrise' : 'noSunset'));
+  }
+  $('#jumpSunrise').addEventListener('click', () => jump(true));
+  $('#jumpSunset').addEventListener('click', () => jump(false));
   function renderCursorDependent() {
     renderCursorLabel();
     if (state.tab === '3d') update3D();
-    else if (state.tab === 'compare') drawStrip();
+    else if (state.tab === 'compare') { renderTable(); drawStrip(); }
     else if (state.tab === 'timeline') drawTimeline();
     else if (state.tab === 'sky') renderSky();
     else if (state.tab === 'map') drawMap();
     else if (state.tab === 'plan') drawHeat();
+    else if (state.tab === 'learn') renderLearn(true);
   }
   function renderTab() {
     const tab = state.tab;
@@ -472,6 +511,8 @@
     else if (tab === 'sky') renderSky();
     else if (tab === 'plan') renderPlan();
     else if (tab === 'map') drawMap();
+    else if (tab === 'scen') renderScenarios();
+    else if (tab === 'learn') renderLearn();
   }
 
   /* time axis */
@@ -526,6 +567,19 @@
   }
   function hideTip() { tip.hidden = true; }
 
+  /* ---------- countdowns: time left before sunset / Earthset (or until sunrise / Earthrise) */
+  function changeInfo(c, kind) {
+    const on = kind === 'sun' ? c.sunlit : kind === 'earth' ? c.earthUp : c.link;
+    const hrs = kind === 'sun' ? c.sunChangeH : kind === 'earth' ? c.earthChangeH : c.linkChangeH;
+    const label = t(kind === 'sun' ? (on ? 'sunsetIn' : 'sunriseIn') : kind === 'earth' ? (on ? 'earthsetIn' : 'earthriseIn') : (on ? 'linkEndsIn' : 'linkStartsIn'));
+    return { label, val: hrs == null ? `> ${dur(c.remainingH)}` : dur(hrs), warn: on && hrs != null && hrs < 24, on };
+  }
+  const cdHtml = ci => `<span class="cd${ci.warn ? ' warn' : ''}">${ci.label} ${ci.val}</span>`;
+  function stPill(c) {
+    const k = c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none';
+    return `<span class="st ${k}">${t('st_' + k)}</span>`;
+  }
+
   /* ---------- compare table */
   const COLS = [
     { k: 'litPct', l: 'colLit', f: v => fmt(v, 0) + '%' },
@@ -543,16 +597,20 @@
     const rows = state.selected.map(id => Object.assign({ id, heightM: site(id).heightM }, state.sums[id]));
     rows.sort((a, b) => state.sortDir * ((a[state.sortKey] ?? 0) - (b[state.sortKey] ?? 0)));
     const arrow = k => k === state.sortKey ? (state.sortDir < 0 ? ' ↓' : ' ↑') : '';
+    const nowT = utc(timeOf(state.cursor));
     let html = `<thead><tr><th class="nosort">${t('colSite')}</th>` +
+      `<th class="nosort grp-now" title="${nowT} UTC">${t('colNow')}</th><th class="nosort grp-now">${t('colSunNow')}</th><th class="nosort grp-now">${t('colSunNext')}</th><th class="nosort grp-now">${t('colEarthNext')}</th>` +
       COLS.map(c => `<th data-k="${c.k}" scope="col">${t(c.l)}${arrow(c.k)}</th>`).join('') + `</tr></thead><tbody>`;
     for (const r of rows) {
       const s = site(r.id);
+      const c = E.conditionsAt(state.series[r.id], state.grid, state.cursor);
       html += `<tr class="click" data-id="${esc(r.id)}"><td class="nm"><i class="dot" style="background:${colorOf(r.id)}"></i>${esc(s.name)}</td>` +
+        `<td class="now">${stPill(c)}</td><td class="num now">${fmt(c.sunClearance, 1)}°</td><td class="now">${cdHtml(changeInfo(c, 'sun'))}</td><td class="now">${cdHtml(changeInfo(c, 'earth'))}</td>` +
         COLS.map(c => `<td class="num">${c.f(r[c.k])}${c.bar ? `<i class="bar" style="width:${(r[c.k] * 0.5).toFixed(0)}px"></i>` : ''}</td>`).join('') + `</tr>`;
     }
     tb.innerHTML = html + '</tbody>';
     const g = state.grid;
-    $('#cmpNote').textContent = `${utc(g.start, false)} → ${utc(timeOf(g.n - 1), false)} · ${g.n} × ${g.stepMin} min. ` +
+    $('#cmpNote').textContent = `${t('nowNote')} ${nowT} UTC. ${utc(g.start, false)} → ${utc(timeOf(g.n - 1), false)} · ${g.n} × ${g.stepMin} min. ` +
       (lang === 'fr' ? 'Énergie solaire : fraction moyenne du disque solaire visible (panneau vertical orienté vers le Soleil).'
         : 'Solar energy: mean visible fraction of the solar disk (sun-tracking vertical panel).');
   }
@@ -567,9 +625,9 @@
   function stateColor(ops, lit, dte) {
     return ops ? cssv('--ops') : lit ? cssv('--sun') : dte ? cssv('--earth') : cssv('--none');
   }
-  function rowLayout(w, rows) {
+  function rowLayout(w, rows, wide) {
     const narrow = w < 560;
-    const lw = narrow ? 8 : Math.min(170, w * 0.3);
+    const lw = narrow ? 8 : wide ? Math.min(250, w * 0.34) : Math.min(170, w * 0.3);
     const rh = 22, gap = narrow ? 24 : 8, top = narrow ? 18 : 4;
     return { narrow, x0: lw, x1: w - 8, rh, gap, top, height: top + rows * (rh + gap) - gap + 24 };
   }
@@ -747,6 +805,7 @@
       <div class="ro"><span class="k">${utc(timeOf(i))} UTC</span><span class="d">${pill(ser.lit[i], t('power'), t('dark'), 'on-sun')} ${pill(ser.dte[i], t('link'), t('noLink'), 'on-earth')}</span></div>
       <div class="ro"><span class="k">${t('sunNow')}</span><span class="v">${fmt(sunClr, 2)}°</span><span class="d">${t('clearance')} · ${fmt(ser.sunFrac[i] * 100, 0)}% ${t('visibleDisk')}</span><span class="d mono">el ${fmt(ser.sunEl[i], 2)}° az ${fmt(ser.sunAz[i], 1)}°</span></div>
       <div class="ro"><span class="k">${t('earthNow')}</span><span class="v">${fmt(eClr, 2)}°</span><span class="d">${t('clearance')} · ${t('phase')} ${fmt(g.earthIllum[i] * 100, 0)}%</span><span class="d mono">el ${fmt(ser.earthEl[i], 2)}° az ${fmt(ser.earthAz[i], 1)}°</span></div>
+      <div class="ro"><span class="k">${t('countdown')}</span>${(() => { const c = E.conditionsAt(ser, g, i); return ['sun', 'earth', 'link'].map(k => `<span class="d">${cdHtml(changeInfo(c, k))}</span>`).join(''); })()}</div>
       <div class="ro"><span class="k">${t('dsnNow')}</span><span class="v" style="font-size:17px">${dsnIn.length ? dsnIn.join(', ') : t('none')}</span><span class="d">≥ ${state.cfg.dsnMinDeg}°</span></div>
       <div class="ro"><span class="k">${t('siteElev')}</span><span class="v">${fmt(s.heightM, 0)} m</span><span class="d mono">${latS}</span><span class="d">${t('hzSrc')}: ${t(s.hsrc)}${s.snapped ? ' (' + t('fit') + ')' : ''}</span></div>`;
     drawPano();
@@ -1182,7 +1241,9 @@
     const poleE = [S.earth[0], S.earth[1], S.earth[2] + 1737.4];
     const dsnIn = E.DSN.filter((d, k) => g.dsn[i * 3 + k] >= state.cfg.dsnMinDeg).map(d => d.name);
     $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E<br>` +
-      `${t('hudEarth')} ${fmt(el(poleE), 2)}° · ${t('phase')} ${fmt(S.earthIllum * 100, 0)}%<br>DSN: ${dsnIn.length ? dsnIn.join(', ') : t('none')}`;
+      `${t('hudEarth')} ${fmt(el(poleE), 2)}° · ${t('phase')} ${fmt(S.earthIllum * 100, 0)}%<br>DSN: ${dsnIn.length ? dsnIn.join(', ') : t('none')}` +
+      (state.series[state.focus] ? (() => { const c = E.conditionsAt(state.series[state.focus], g, i), a1 = changeInfo(c, 'sun'), a2 = changeInfo(c, 'earth');
+        return `<br><b style="font-size:13px">${esc(site(state.focus).name)}</b>: ${t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))} · ${a1.label} ${a1.val} · ${a2.label} ${a2.val}`; })() : '');
   }
   function set3DMode(mode) {
     $('#v3dMode').value = mode;
@@ -1278,6 +1339,301 @@
   }
   $('#v3dTour').addEventListener('click', () => (tour ? stopTour() : startTour()));
 
+  /* ---------- scenarios: site x touchdown x mission length */
+  const SCEN_EXAMPLE = [
+    { siteId: 'ptB', t: Date.UTC(2026, 10, 18, 18), days: 10 },
+    { siteId: 'ptB', t: Date.UTC(2026, 10, 21, 18), days: 10 },
+    { siteId: 'dg2', t: Date.UTC(2026, 10, 18, 18), days: 10 },
+    { siteId: 'nobile2', t: Date.UTC(2026, 10, 18, 18), days: 10 }
+  ];
+  let scenarios = store.get('scenarios', null);
+  let scenIsExample = !scenarios;
+  if (!scenarios) scenarios = SCEN_EXAMPLE.map(x => Object.assign({}, x));
+  scenarios = scenarios.filter(x => state.sites.some(s => s.id === x.siteId));
+  const scenCache = new Map();
+  let scenBusy = false, scenAgain = false;
+  const scenKey = x => { const s = site(x.siteId); return [x.siteId, x.t, x.days, s.lat, s.lon, s.hsrc, JSON.stringify(state.cfg)].join('|'); };
+  function saveScen() { scenIsExample = false; store.set('scenarios', scenarios); }
+  function fillScenSites() {
+    const sel = $('#scenSite'), cur = sel.value || state.focus;
+    const groups = [];
+    state.sites.forEach(s => { const g = s.custom ? 'My sites' : s.group; if (!groups.includes(g)) groups.push(g); });
+    sel.innerHTML = groups.map(g => `<optgroup label="${esc(groupLabel(g))}">` +
+      state.sites.filter(s => (s.custom ? 'My sites' : s.group) === g).map(s => `<option value="${esc(s.id)}">${esc(s.name)}</option>`).join('') + '</optgroup>').join('');
+    sel.value = state.sites.some(s => s.id === cur) ? cur : state.sites[0].id;
+    if (!$('#scenTime').value && state.grid) $('#scenTime').value = utc(timeOf(state.cursor)).replace(' ', 'T');
+  }
+  async function renderScenarios() {
+    fillScenSites();
+    const tb = $('#scenTable');
+    $('#scenNote').textContent = scenIsExample ? t('scenExample') : '';
+    if (!scenarios.length) { tb.innerHTML = `<tr><td>${t('scenEmpty')}</td></tr>`; drawScenStrip(); return; }
+    const missing = scenarios.filter(x => !scenCache.has(scenKey(x)));
+    if (missing.length) {
+      if (scenBusy) { scenAgain = true; return; }
+      scenBusy = true;
+      tb.innerHTML = `<tr><td>${t('computing')}</td></tr>`;
+      for (const x of missing) { await frame(); scenCache.set(scenKey(x), E.scenario(site(x.siteId), x.t, x.days, state.cfg)); }
+      scenBusy = false;
+      if (scenAgain || scenarios.some(x => !scenCache.has(scenKey(x)))) { scenAgain = false; return renderScenarios(); }
+    }
+    let html = `<thead><tr><th class="nosort">#</th><th class="nosort l">${t('colSite')}</th><th class="nosort">${t('touchdown')}</th><th class="nosort">${t('daysShort')}</th>` +
+      `<th class="nosort grp-now">${t('atTouchdown')}</th><th class="nosort grp-now">${t('colSunNow')}</th><th class="nosort grp-now">${t('colSunNext')}</th><th class="nosort grp-now">${t('colEarthNext')}</th>` +
+      `<th class="nosort">${t('colLit')}</th><th class="nosort">${t('colOps')}</th><th class="nosort">${t('colNight')}</th><th class="nosort">${t('colGap')}</th><th class="nosort">${t('firstLoss')}</th><th class="nosort"></th></tr></thead><tbody>`;
+    scenarios.forEach((x, k) => {
+      const r = scenCache.get(scenKey(x)), c = r.touchdown, sm = r.summary, s = site(x.siteId);
+      const hist = s.landed && Date.parse(s.landed) === x.t ? `<span class="tag">${t('actual')}</span>` : '';
+      html += `<tr class="click" data-k="${k}"><td class="num">S${k + 1}</td><td class="nm l">${esc(s.name)}${hist}</td><td class="num">${utc(x.t)}</td><td class="num">${x.days}</td>` +
+        `<td class="now">${stPill(c)}</td><td class="num now">${fmt(c.sunClearance, 1)}°</td><td class="now">${cdHtml(changeInfo(c, 'sun'))}</td><td class="now">${cdHtml(changeInfo(c, 'earth'))}</td>` +
+        `<td class="num">${fmt(sm.litPct, 0)}%</td><td class="num">${fmt(sm.opsPct, 0)}%<i class="bar" style="width:${(sm.opsPct * 0.5).toFixed(0)}px"></i></td>` +
+        `<td class="num">${dur(sm.longestNightH)}</td><td class="num">${dur(sm.longestBlackoutH)}</td>` +
+        `<td class="num">${r.firstPowerOrLinkLossH == null ? t('never') : r.firstPowerOrLinkLossH === 0 ? t('atOnce') : dur(r.firstPowerOrLinkLossH)}</td>` +
+        `<td><div class="row-actions"><button type="button" data-act="slip" data-d="-1" data-k="${k}" title="${t('slipTitle')}">−1 ${t('d')}</button><button type="button" data-act="slip" data-d="1" data-k="${k}" title="${t('slipTitle')}">+1 ${t('d')}</button><button type="button" data-act="slip" data-d="3" data-k="${k}">+3 ${t('d')}</button><button type="button" data-act="slip" data-d="7" data-k="${k}">+7 ${t('d')}</button><button type="button" data-act="del" data-k="${k}" aria-label="${t('remove')} S${k + 1}">×</button></div></td></tr>`;
+    });
+    tb.innerHTML = html + '</tbody>';
+    drawScenStrip();
+  }
+  const scenGeom = {};
+  function drawScenStrip() {
+    const box = $('#scenStripBox'), rows = scenarios.length;
+    const L0 = rowLayout(box.clientWidth, rows, true);
+    box.style.height = Math.max(90, L0.height) + 'px';
+    const { ctx, w } = canvasSetup($('#scenStrip'));
+    if (!rows) return;
+    const L = rowLayout(w, rows, true), maxD = Math.max(...scenarios.map(x => x.days));
+    Object.assign(scenGeom, L, { maxD });
+    const colors = { ops: cssv('--ops'), sun: cssv('--sun'), earth: cssv('--earth'), none: cssv('--none') };
+    scenarios.forEach((x, k) => {
+      const r = scenCache.get(scenKey(x)); if (!r) return;
+      const y = L.top + k * (L.rh + L.gap), s = r.series, g = r.grid;
+      const label = `S${k + 1} · ${site(x.siteId).name} · ${utc(x.t, false)}`;
+      ctx.font = '12px ' + cssv('--f-body'); ctx.textBaseline = 'middle';
+      if (L.narrow) { ctx.fillStyle = cssv('--fg'); ctx.textAlign = 'left'; ctx.fillText(label, L.x0, y - 9); }
+      else { ctx.fillStyle = cssv('--fg'); ctx.textAlign = 'right'; let lb = label; while (lb.length > 4 && ctx.measureText(lb).width > L.x0 - 16) lb = lb.slice(0, -2); if (lb !== label) lb = lb.slice(0, -1) + '…'; ctx.fillText(lb, L.x0 - 10, y + L.rh / 2); }
+      const pxPerStep = (L.x1 - L.x0) * (g.stepMs / (maxD * DAY));
+      let run = 0, col = null;
+      const flush = i1 => { ctx.fillStyle = col; ctx.fillRect(L.x0 + run * pxPerStep, y, Math.max(0.6, (i1 - run) * pxPerStep), L.rh); };
+      for (let i = 0; i < g.n; i++) {
+        const c = s.ops[i] ? colors.ops : s.lit[i] ? colors.sun : s.dte[i] ? colors.earth : colors.none;
+        if (c !== col) { if (col) flush(i); run = i; col = c; }
+      }
+      flush(g.n);
+    });
+    // day axis
+    const yb = L.top + rows * (L.rh + L.gap) - L.gap + 4;
+    ctx.fillStyle = cssv('--muted'); ctx.font = '11px ' + cssv('--f-mono'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const stepD = maxD <= 10 ? 1 : maxD <= 30 ? 5 : 10;
+    for (let d = 0; d <= maxD; d += stepD) ctx.fillText(`${lang === 'fr' ? 'J' : 'D'}+${d}`, L.x0 + d / maxD * (L.x1 - L.x0), yb);
+  }
+  $('#scenForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const ms = Date.parse($('#scenTime').value + ':00Z'), days = Math.max(1, Math.min(60, +$('#scenDays').value || 10));
+    if (!isFinite(ms)) { toast(t('badTime')); return; }
+    if (scenIsExample) scenarios = [];
+    scenarios.push({ siteId: $('#scenSite').value, t: ms, days }); saveScen(); renderScenarios();
+  });
+  $('#scenTable').addEventListener('click', e => {
+    const b = e.target.closest('button[data-act]');
+    if (b) {
+      const k = +b.dataset.k;
+      if (b.dataset.act === 'del') scenarios.splice(k, 1);
+      else scenarios.splice(k + 1, 0, Object.assign({}, scenarios[k], { t: scenarios[k].t + (+b.dataset.d) * DAY }));
+      saveScen(); renderScenarios(); return;
+    }
+    const tr = e.target.closest('tr[data-k]'); if (!tr) return;
+    const x = scenarios[+tr.dataset.k];
+    if (state.grid && x.t >= state.start && x.t <= timeOf(state.grid.n - 1)) setCursor(indexOf(x.t));
+    setFocus(x.siteId);
+  });
+  $('#scenHistory').addEventListener('click', () => {
+    scenarios = state.sites.filter(s => s.landed).sort((a, b) => Date.parse(a.landed) - Date.parse(b.landed))
+      .map(s => ({ siteId: s.id, t: Date.parse(s.landed), days: 14 }));
+    saveScen(); renderScenarios();
+  });
+  $('#scenCopy').addEventListener('click', () => {
+    const lines = scenarios.map((x, k) => {
+      const r = scenCache.get(scenKey(x)); if (!r) return '';
+      const c = r.touchdown, sm = r.summary, a1 = changeInfo(c, 'sun'), a2 = changeInfo(c, 'earth');
+      return `S${k + 1} · ${site(x.siteId).name} · ${utc(x.t)} UTC · ${x.days} ${t('d')} — ${t('atTouchdown')}: ${t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))}, ` +
+        `${t('colSunNow').toLowerCase()} ${fmt(c.sunClearance, 1)}°, ${a1.label.toLowerCase()} ${a1.val}, ${a2.label.toLowerCase()} ${a2.val}. ` +
+        `${t('colOps')} ${fmt(sm.opsPct, 0)}%, ${t('colNight').toLowerCase()} ${dur(sm.longestNightH)}, ${t('colGap').toLowerCase()} ${dur(sm.longestBlackoutH)}.`;
+    }).filter(Boolean).join('\n');
+    navigator.clipboard.writeText(lines).then(() => toast(t('copiedText')), () => fallbackText(lines));
+  });
+  function groupLabel(g) {
+    const GFR = { 'My sites': 'Mes sites', 'CLPS landed': 'CLPS posés', 'Artemis III region': 'Régions Artemis III',
+      'High-illumination point': 'Points très éclairés', 'Earlier Artemis candidate': 'Anciens candidats Artemis',
+      'Upcoming targets': 'Cibles à venir', 'Apollo': 'Apollo', 'Other countries': 'Autres pays', 'Other missions': 'Autres missions' };
+    return lang === 'fr' ? (GFR[g] || g) : g;
+  }
+
+  /* ---------- learn: why the south pole is hard (live numbers) */
+  const learn = { key: '', sens: null, sensKey: '', tracks: null };
+  const polarFocus = () => { const s = site(state.focus); return s && s.lat <= -84 && s.mask ? s : site('ptB'); };
+  function hbars(cv, items, unit) {
+    const { ctx, w, h } = canvasSetup(cv);
+    const max = Math.max(...items.map(i => i.v)), lw = Math.min(200, w * 0.42), x0 = lw, x1 = w - 112;
+    const rh = Math.min(26, (h - 8) / items.length - 8);
+    items.forEach((it, k) => {
+      const y = 6 + k * (rh + 10);
+      ctx.fillStyle = cssv('--fg2'); ctx.font = '12px ' + cssv('--f-body'); ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(it.label, x0 - 8, y + rh / 2);
+      ctx.fillStyle = it.color || cssv('--accent');
+      const bw = Math.max(2, (x1 - x0) * it.v / max);
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y, bw, rh, [0, 4, 4, 0]) : ctx.rect(x0, y, bw, rh); ctx.fill();
+      ctx.fillStyle = cssv('--fg'); ctx.font = '600 12px ' + cssv('--f-mono'); ctx.textAlign = 'left';
+      ctx.fillText(it.text, x0 + bw + 6, y + rh / 2);
+    });
+  }
+  function lineChart(cv, series, opt) {
+    const { ctx, w, h } = canvasSetup(cv);
+    const x0 = 40, x1 = w - 10, y0 = 10, y1 = h - 24;
+    const X = v => x0 + (v - opt.xmin) / (opt.xmax - opt.xmin) * (x1 - x0), Y = v => y1 - (v - opt.ymin) / (opt.ymax - opt.ymin) * (y1 - y0);
+    if (opt.below != null) { ctx.fillStyle = cssv('--none'); ctx.globalAlpha = .35; ctx.fillRect(x0, Y(opt.below), x1 - x0, y1 - Y(opt.below)); ctx.globalAlpha = 1; }
+    ctx.font = '11px ' + cssv('--f-mono'); ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (const v of opt.yticks) { ctx.strokeStyle = v === 0 ? cssv('--fg2') : cssv('--line'); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, Math.round(Y(v)) + .5); ctx.lineTo(x1, Math.round(Y(v)) + .5); ctx.stroke(); ctx.fillStyle = cssv('--muted'); ctx.fillText(v + '°', x0 - 5, Y(v)); }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (const [v, l] of opt.xticks) { ctx.fillStyle = cssv('--muted'); ctx.fillText(l, X(v), y1 + 5); }
+    for (const sr of series) {
+      ctx.strokeStyle = sr.color; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.beginPath();
+      let pen = false, prevX = null;
+      for (const [xv, yv] of sr.pts) {
+        const px = X(xv), py = Y(Math.max(opt.ymin, Math.min(opt.ymax, yv)));
+        if (pen && prevX != null && Math.abs(px - prevX) > (x1 - x0) / 2) pen = false;   // azimuth wrap
+        if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
+        prevX = px;
+      }
+      ctx.stroke();
+    }
+  }
+  function renderLearn(cursorOnly) {
+    if (!state.grid) return;
+    const g = state.grid, i = state.cursor, P = polarFocus(), fr = lang === 'fr';
+    const cfg = state.cfg;
+    const ser = id => state.series[id] || E.siteSeries(g, site(id), cfg);
+    // 3. shadows (depends on the cursor)
+    const sunPole = Math.asin(-g.sun[i * 3 + 2] / Math.hypot(g.sun[i * 3], g.sun[i * 3 + 1], g.sun[i * 3 + 2])) * 180 / Math.PI;
+    const elUse = Math.max(0.3, Math.abs(sunPole)), shadowKm = 1 / Math.tan(elUse * Math.PI / 180);
+    $('#lc3t').textContent = fr ? `Une colline de 1 km projette une ombre de ${fmt(shadowKm, 0)} km` : `A 1 km hill casts a shadow ${fmt(shadowKm, 0)} km long`;
+    $('#lc3p').innerHTML = fr
+      ? `Au pôle, à ${utc(timeOf(i))} UTC, le Soleil est à <b>${fmt(sunPole, 2)}°</b> au-dessus de l’horizon. Une ombre mesure 1/tan(hauteur) fois la taille de l’objet. Au fond de certains cratères, le Soleil n’arrive jamais : ces régions en ombre permanente gardent de la glace d’eau.`
+      : `At the pole at ${utc(timeOf(i))} UTC the Sun is <b>${fmt(sunPole, 2)}°</b> above the horizon. A shadow is 1/tan(Sun height) times the object's height. Some crater floors never see the Sun at all: these permanently shadowed regions keep water ice.`;
+    { const { ctx, w, h } = canvasSetup($('#lc3c'));
+      const gy = h - 30, hx = 40, hh = 46, scale = Math.min((w - hx - 40) / shadowKm, 60);
+      const len = shadowKm * scale;
+      ctx.fillStyle = cssv('--none'); ctx.fillRect(hx, gy, Math.min(len, w - hx - 20), 10);
+      ctx.fillStyle = cssv('--sun'); ctx.fillRect(Math.min(hx + len, w - 20), gy, w - Math.min(hx + len, w - 20), 4);
+      ctx.fillStyle = cssv('--fg2'); ctx.beginPath(); ctx.moveTo(hx - 30, gy); ctx.lineTo(hx, gy - hh); ctx.lineTo(hx + 30, gy); ctx.closePath(); ctx.fill();
+      ctx.font = '11px ' + cssv('--f-mono'); ctx.fillStyle = cssv('--muted'); ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+      ctx.fillText(fr ? '1 km' : '1 km', hx + 8, gy - hh);
+      ctx.fillText(`${fr ? 'ombre' : 'shadow'} ${fmt(shadowKm, 0)} km${len > w - hx - 20 ? (fr ? ' (coupée)' : ' (cut)') : ''}`, hx + 40, gy + 14);
+      ctx.fillStyle = cssv('--sun'); ctx.beginPath(); ctx.arc(w - 18, gy - 6, 7, 0, 7); ctx.fill(); }
+    if (cursorOnly && learn.key) return;
+
+    const key = [g.start, g.n, P.id, JSON.stringify(cfg), lang].join('|');
+    if (key === learn.key) return;
+    learn.key = key;
+    // 1. day length
+    const sP = state.sums[P.id] || E.summarize(ser(P.id), g);
+    const a11 = site('a11'), sA = E.summarize(ser('a11'), g);
+    $('#lc1t').textContent = fr ? 'Une journée lunaire dure un mois' : 'A day on the Moon lasts a month';
+    $('#lc1p').innerHTML = fr
+      ? `La Lune fait un tour sur elle-même par orbite : le Soleil revient tous les <b>29,5 jours</b>. Au site d’Apollo 11, la nuit dure <b>${dur(sA.longestNightH)}</b>, à environ −170 °C. Près du pôle, certaines crêtes restent éclairées bien plus longtemps : sur votre période, la plus longue nuit à ${esc(P.name)} dure <b>${dur(sP.longestNightH)}</b>.`
+      : `The Moon turns once per orbit, so the Sun comes back every <b>29.5 days</b>. At the Apollo 11 site the night lasts <b>${dur(sA.longestNightH)}</b>, at about −170 °C. Near the pole some ridges stay lit far longer: in your period the longest night at ${esc(P.name)} lasts <b>${dur(sP.longestNightH)}</b>.`;
+    const short = n => n.length > 18 ? n.slice(0, 17) + '…' : n;
+    hbars($('#lc1c'), [
+      { label: fr ? 'Jour sur Terre' : 'Day on Earth', v: 24, text: '24 h', color: cssv('--earth') },
+      { label: fr ? 'Nuit · Apollo 11' : 'Night · Apollo 11', v: Math.max(1, sA.longestNightH), text: dur(sA.longestNightH), color: cssv('--fg2') },
+      { label: (fr ? 'Nuit · ' : 'Night · ') + short(P.name), v: Math.max(1, sP.longestNightH), text: dur(sP.longestNightH), color: cssv('--sun') }
+    ]);
+    // 2. Sun tracks: Apollo 11 vs pole over one lunar day
+    const g30 = E.buildGrid(g.start, g.start + 29.6 * DAY, 120);
+    const tA = E.siteSeries(g30, a11, cfg), tP = E.siteSeries(g30, P, cfg);
+    const pts = sr => Array.from({ length: g30.n }, (_, k) => [k * g30.stepMs / DAY, sr.sunEl[k]]);
+    let maxA = -90, maxP = -90, minP = 90;
+    for (let k = 0; k < g30.n; k++) { maxA = Math.max(maxA, tA.sunEl[k]); maxP = Math.max(maxP, tP.sunEl[k]); minP = Math.min(minP, tP.sunEl[k]); }
+    $('#lc2t').textContent = fr ? 'Au pôle, le Soleil rase l’horizon' : 'At the pole the Sun skims the horizon';
+    $('#lc2p').innerHTML = fr
+      ? `L’axe de la Lune n’est incliné que de <b>1,54°</b> (Terre : 23,4°). Sur un jour lunaire, le Soleil monte à <b>${fmt(maxA, 0)}°</b> au site d’Apollo 11 puis disparaît deux semaines ; à ${esc(P.name)}, il reste entre <b>${fmt(minP, 1)}°</b> et <b>${fmt(maxP, 1)}°</b> et fait le tour de l’horizon. Les panneaux solaires y sont verticaux et suivent le Soleil.`
+      : `The Moon's axis is tilted only <b>1.54°</b> (Earth: 23.4°). Over one lunar day the Sun climbs to <b>${fmt(maxA, 0)}°</b> at the Apollo 11 site, then is gone for two weeks; at ${esc(P.name)} it stays between <b>${fmt(minP, 1)}°</b> and <b>${fmt(maxP, 1)}°</b> and circles the horizon. Solar panels there stand vertical and track the Sun.`;
+    lineChart($('#lc2c'), [{ pts: pts(tA), color: cssv('--earth') }, { pts: pts(tP), color: cssv('--sun') }],
+      { xmin: 0, xmax: 29.6, ymin: -10, ymax: 90, yticks: [0, 30, 60, 90], below: 0, xticks: [0, 7, 14, 21, 28].map(d => [d, `${fr ? 'J' : 'D'}+${d}`]) });
+    $('#lc2l').innerHTML = `<span><i class="sw" style="background:var(--earth)"></i> Apollo 11 (0.7°N)</span><span><i class="sw" style="background:var(--sun)"></i> ${esc(P.name)} (${fmt(Math.abs(P.lat), 1)}°S)</span><span class="muted">${fr ? 'hauteur du Soleil sur un jour lunaire' : 'Sun height over one lunar day'}</span>`;
+    // 4. Earth bobbing
+    const sPe = ser(P.id), ea = E.summarize(ser('a11'), g), ec = E.summarize(ser('ce4'), g);
+    $('#lc4t').textContent = fr ? 'Au pôle, la Terre se lève et se couche chaque mois' : 'At the pole, Earth rises and sets every month';
+    $('#lc4p').innerHTML = fr
+      ? `Vue de la Lune, la Terre reste presque fixe mais oscille jusqu’à 6,8° (libration). Près du pôle, cela suffit à la faire passer sous l’horizon : elle est visible <b>${fmt(sP.earthPct, 0)}%</b> du temps à ${esc(P.name)}, <b>${fmt(ea.earthPct, 0)}%</b> à Apollo 11, et <b>${fmt(ec.earthPct, 0)}%</b> depuis Chang’e 4 sur la face cachée.`
+      : `Seen from the Moon, Earth hardly moves but wobbles by up to 6.8° (libration). Near the pole that is enough to drop it below the horizon: it is visible <b>${fmt(sP.earthPct, 0)}%</b> of the time at ${esc(P.name)}, <b>${fmt(ea.earthPct, 0)}%</b> at Apollo 11 and <b>${fmt(ec.earthPct, 0)}%</b> from Chang'e 4 on the far side.`;
+    { const stride = Math.max(1, Math.floor(g.n / 600)), pe = [];
+      for (let k = 0; k < g.n; k += stride) pe.push([k, sPe.earthEl[k] - sPe.earthHz[k]]);
+      const days = g.n * g.stepMs / DAY, xt = [];
+      for (let d = 0; d <= days; d += days > 60 ? 30 : 7) xt.push([d * DAY / g.stepMs, `${fr ? 'J' : 'D'}+${Math.round(d)}`]);
+      lineChart($('#lc4c'), [{ pts: pe, color: cssv('--earth') }], { xmin: 0, xmax: g.n - 1, ymin: -12, ymax: 12, yticks: [-10, -5, 0, 5, 10], below: 0, xticks: xt }); }
+    // 6. date sensitivity
+    const t0 = timeOf(i), sc = [0, 3, 7].map(d => E.scenario(P, t0 + d * DAY, 10, cfg));
+    $('#lc6t').textContent = fr ? 'Trois jours plus tard, une autre mission' : 'Three days later, a different mission';
+    $('#lc6p').innerHTML = fr
+      ? `Mission de 10 jours à ${esc(P.name)} : en se posant le ${utc(t0, false)}, on a énergie et liaison <b>${fmt(sc[0].summary.opsPct, 0)}%</b> du temps ; 3 jours plus tard <b>${fmt(sc[1].summary.opsPct, 0)}%</b> ; 7 jours plus tard <b>${fmt(sc[2].summary.opsPct, 0)}%</b>. L’onglet Scénarios compare ces reports en détail.`
+      : `A 10-day mission at ${esc(P.name)}: landing on ${utc(t0, false)} gives power and a link <b>${fmt(sc[0].summary.opsPct, 0)}%</b> of the time; 3 days later <b>${fmt(sc[1].summary.opsPct, 0)}%</b>; 7 days later <b>${fmt(sc[2].summary.opsPct, 0)}%</b>. The Scenarios tab compares such slips in detail.`;
+    hbars($('#lc6c'), [0, 3, 7].map((d, k) => ({ label: d ? `+${d} ${t('d')}` : (fr ? 'Date choisie' : 'Chosen date'), v: Math.max(0.5, sc[k].summary.opsPct), text: fmt(sc[k].summary.opsPct, 0) + '%', color: k ? cssv('--fg2') : cssv('--ops') })));
+    // 5. location sensitivity (terrain ray casting, async)
+    renderSensitivity(P);
+  }
+  async function renderSensitivity(P) {
+    const fr = lang === 'fr', g = state.grid, cfg = state.cfg;
+    const key = [P.id, g.start, g.n, JSON.stringify(cfg)].join('|');
+    $('#lc5t').textContent = fr ? 'À 500 m près, tout peut changer' : 'Moving 500 m can change everything';
+    if (learn.sensKey !== key) {
+      learn.sensKey = key; learn.sens = null;
+      $('#lc5p').textContent = fr ? 'Calcul de l’horizon autour du site…' : 'Computing the horizon around the site…';
+      canvasSetup($('#lc5c'));
+      const T = await loadTerrain();
+      const pts = [{ r: 0, az: 0, lat: P.lat, lon: P.lon, mask: P.mask, h: P.heightM }];
+      for (const r of [250, 500]) for (let a = 0; a < 360; a += 45) {
+        const th = r / LT.RM, la1 = P.lat * Math.PI / 180, az = a * Math.PI / 180;
+        const s2 = Math.sin(la1) * Math.cos(th) + Math.cos(la1) * Math.sin(th) * Math.cos(az);
+        const la2 = Math.asin(s2), lo2 = P.lon * Math.PI / 180 + Math.atan2(Math.sin(az) * Math.sin(th) * Math.cos(la1), Math.cos(th) - Math.sin(la1) * s2);
+        pts.push({ r, az: a, lat: la2 * 180 / Math.PI, lon: lo2 * 180 / Math.PI });
+      }
+      for (const p of pts) {
+        if (learn.sensKey !== key) return;
+        if (!p.mask) { await frame(); const hz = T.horizon(p.lat, p.lon); p.mask = hz.mask; p.h = hz.heightM; }
+        p.lit = E.summarize(E.siteSeries(g, { lat: p.lat, lon: p.lon, heightM: p.h, mask: p.mask }, cfg), g).litPct;
+      }
+      learn.sens = pts;
+    }
+    const pts = learn.sens; if (!pts) return;
+    const vals = pts.map(p => p.lit), lo = Math.min(...vals), hi = Math.max(...vals);
+    $('#lc5t').textContent = fr ? `À 500 m près, l’ensoleillement va de ${fmt(lo, 0)}% à ${fmt(hi, 0)}%` : `Within 500 m, sunlight ranges from ${fmt(lo, 0)}% to ${fmt(hi, 0)}%`;
+    $('#lc5p').innerHTML = fr
+      ? `Part du temps au soleil sur la période, calculée avec le relief LOLA pour ${esc(P.name)} (centre) et 16 points à 250 m et 500 m. Au pôle, le Soleil est si bas qu’un petit relief voisin suffit à le cacher.`
+      : `Share of the period in sunlight, computed with LOLA terrain at ${esc(P.name)} (centre) and 16 points 250 m and 500 m away. At the pole the Sun is so low that a small nearby rise is enough to hide it.`;
+    const { ctx, w, h } = canvasSetup($('#lc5c'));
+    const cx = w / 2, cy = h / 2 + 2, R = Math.min(w, h) / 2 - 26, ramp = [cssv('--heat0'), cssv('--heat1'), cssv('--heat2'), cssv('--heat3')].map(hex2rgb);
+    ctx.strokeStyle = cssv('--line'); ctx.lineWidth = 1;
+    for (const r of [0.5, 1]) { ctx.beginPath(); ctx.arc(cx, cy, R * r, 0, 7); ctx.stroke(); }
+    ctx.font = '11px ' + cssv('--f-mono'); ctx.fillStyle = cssv('--muted'); ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    const d225 = 225 * Math.PI / 180;
+    ctx.fillText('250 m', cx + R * 0.5 * Math.sin(d225) - 14, cy - R * 0.5 * Math.cos(d225) + 12);
+    ctx.fillText('500 m', cx + R * Math.sin(d225) - 14, cy - R * Math.cos(d225) + 12);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(fr ? 'N (opposé au pôle)' : 'N (away from pole)', cx, cy - R - 14);
+    // legend
+    const lgW = Math.min(120, w * 0.3), lgx = 8, lgy = h - 16;
+    const grad = ctx.createLinearGradient(lgx, 0, lgx + lgW, 0); ramp.forEach((c, k) => grad.addColorStop(k / (ramp.length - 1), `rgb(${c[0]},${c[1]},${c[2]})`));
+    ctx.fillStyle = grad; ctx.fillRect(lgx, lgy, lgW, 8);
+    ctx.fillStyle = cssv('--muted'); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(fmt(lo, 0) + '%', lgx, lgy - 2);
+    ctx.textAlign = 'right'; ctx.fillText(fmt(hi, 0) + '%', lgx + lgW, lgy - 2);
+    for (const p of pts) {
+      const rr = p.r / 500 * R, a = p.az * Math.PI / 180, x = cx + rr * Math.sin(a), y = cy - rr * Math.cos(a);
+      ctx.fillStyle = rampColor(ramp, (p.lit - lo) / Math.max(1, hi - lo));
+      ctx.strokeStyle = cssv('--fg2'); ctx.lineWidth = p.r ? 1 : 2;
+      ctx.beginPath(); ctx.arc(x, y, p.r ? 11 : 14, 0, 7); ctx.fill(); ctx.stroke();
+      if (!p.r) { ctx.fillStyle = cssv('--fg'); ctx.font = '600 11px ' + cssv('--f-mono'); ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillText(fmt(p.lit, 0) + '%', x, y + 17); }
+    }
+    $('#lc5s').textContent = fr ? 'Chaque point : part de la période au soleil. Valeur affichée : le site lui-même.' : 'Each dot: share of the period in sunlight. Number shown: the site itself.';
+  }
+
   /* ---------- CSV export */
   function buildCSV() {
     const g = state.grid, ids = state.selected;
@@ -1359,6 +1715,7 @@
     <h3>Terrain horizon</h3>
     <ul>
       <li>Preset sites: 360 rays (1° apart) cast over 600 km of LOLA terrain, using the 40 m/px model within 80°S and 240 m/px beyond it (<code>tools/horizon_from_dem.py</code>). The curvature of the Moon is included; the observer stands 2 m above the ground (a lander's solar array or antenna).</li>
+      <li>Sites away from the pole (Apollo, Chang’e, SLIM, Blue Ghost…) use the global LOLA model at 64 pixels per degree (about 470 m); its heights match published landing elevations to within 30 m.</li>
       <li>Sites you add: the same ray casting runs in your browser on a compact copy of the LOLA model (240 m/px near the pole, 1 km/px down to 75°S).</li>
       <li>Published coordinates of high-illumination points and Artemis regions are rounded or region-level, so these points are moved to the highest terrain within 1 to 2 km (marked “fitted”). Landed spacecraft keep their exact coordinates.</li>
       <li>You can import any horizon as a CSV of <code>azimuth,elevation</code> rows, for example from a finer DEM.</li>
@@ -1373,6 +1730,7 @@
     <h3>Validation</h3>
     <p>Annual illumination of the classic south-pole high-illumination points, 2020, Sun centre above terrain, compared with Bussey et al. (2010, Icarus 208), who used Kaguya topography. Their point coordinates come from that older terrain model, which is why the points are fitted to the local LOLA summit:</p>
     ${vtable()}
+    <p><b>Against NASA JPL Horizons</b>: Sun and Earth azimuth and elevation agree to within 0.44 arcminute (0.007°) over 848 positions at 13 sites (south pole, Apollo, far side), from 1969 to 2028 (<code>tests/horizons.test.js</code>).</p>
     <p>Mean difference ${DATA.validationMean.toFixed(1)} percentage points. Other checks, run by <code>tests/engine.test.js</code>: Chandrayaan-3 and Blue Ghost 1 touched down a few degrees after local sunrise; Blue Ghost 1's site goes dark on 2025-03-16, the day its mission ended; Odysseus' site stays in daylight until after its last contact on 2024-02-29.</p>
     <h3>Limits</h3>
     <ul>
@@ -1397,6 +1755,7 @@
     <h3>Horizon du relief</h3>
     <ul>
       <li>Sites prédéfinis : 360 rayons (tous les 1°) lancés sur 600 km de relief LOLA, avec le modèle à 40 m/pixel jusqu’à 80°S et à 240 m/pixel au-delà (<code>tools/horizon_from_dem.py</code>). La courbure de la Lune est incluse ; l’observateur est à 2 m du sol (panneau ou antenne d’un atterrisseur).</li>
+      <li>Les sites loin du pôle (Apollo, Chang’e, SLIM, Blue Ghost…) utilisent le modèle LOLA global à 64 pixels par degré (environ 470 m) ; ses altitudes concordent à 30 m près avec les altitudes d’alunissage publiées.</li>
       <li>Sites ajoutés : le même calcul tourne dans le navigateur sur une copie compacte du relief LOLA (240 m/pixel près du pôle, 1 km/pixel jusqu’à 75°S).</li>
       <li>Les coordonnées publiées des points très éclairés et des régions Artemis sont arrondies ou valables pour une région : ces points sont déplacés vers le relief le plus haut à moins de 1 à 2 km (mention « ajusté »). Les sondes posées gardent leurs coordonnées exactes.</li>
       <li>Vous pouvez importer n’importe quel horizon sous forme de CSV <code>azimut,élévation</code>, par exemple issu d’un relief plus fin.</li>
@@ -1411,6 +1770,7 @@
     <h3>Validation</h3>
     <p>Ensoleillement annuel (2020, centre du Soleil au-dessus du relief) des points très éclairés du pôle Sud, comparé à Bussey et al. (2010, Icarus 208), qui utilisaient le relief Kaguya. Leurs coordonnées viennent de ce modèle plus ancien, d’où l’ajustement des points sur le sommet local LOLA :</p>
     ${vtable()}
+    <p><b>Face à JPL Horizons (NASA)</b> : azimut et hauteur du Soleil et de la Terre concordent à 0,44 minute d’arc près (0,007°) sur 848 positions, 13 sites (pôle Sud, Apollo, face cachée), de 1969 à 2028 (<code>tests/horizons.test.js</code>).</p>
     <p>Écart moyen : ${DATA.validationMean.toFixed(1).replace('.', ',')} points. Autres vérifications (<code>tests/engine.test.js</code>) : Chandrayaan-3 et Blue Ghost 1 se sont posés quelques degrés après le lever du Soleil local ; le site de Blue Ghost 1 passe dans la nuit le 16/03/2025, jour de la fin de sa mission ; celui d’Odysseus reste au soleil après son dernier contact du 29/02/2024.</p>
     <h3>Limites</h3>
     <ul>
@@ -1445,7 +1805,7 @@
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
-  const okTabs = ['3d', 'compare', 'timeline', 'sky', 'plan', 'map', 'method'];
+  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();

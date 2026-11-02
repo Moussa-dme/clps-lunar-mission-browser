@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: CLPS Lunar Mission Browser API
-  version: 1.1.0
+  version: 1.2.0
   description: |
     Sun and Earth visibility over the real LOLA terrain horizon for lunar
     landing sites, with power and direct-to-Earth communication windows,

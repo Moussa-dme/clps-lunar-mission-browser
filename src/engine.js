@@ -312,6 +312,46 @@
     return out;
   }
 
+  /** Index of the next change of arr after i (arr[j] !== arr[i]), or -1 if none before i1. */
+  function nextChange(arr, i, i1) {
+    i1 = i1 == null ? arr.length : i1;
+    for (let j = i + 1; j < i1; j++) if (arr[j] !== arr[i]) return j;
+    return -1;
+  }
+
+  /**
+   * Conditions at index i: what is up now and how long until it changes.
+   * Hours are null when the state does not change before the end of the grid.
+   */
+  function conditionsAt(series, grid, i) {
+    const h = grid.stepMs / 3600000;
+    const nl = nextChange(series.lit, i), ne = nextChange(series.earthUp, i), nd = nextChange(series.dte, i);
+    return {
+      sunlit: series.lit[i] === 1, earthUp: series.earthUp[i] === 1, link: series.dte[i] === 1, ops: series.ops[i] === 1,
+      sunEl: series.sunEl[i], sunAz: series.sunAz[i], sunClearance: series.sunEl[i] - series.sunHz[i], sunFrac: series.sunFrac[i],
+      earthEl: series.earthEl[i], earthAz: series.earthAz[i], earthClearance: series.earthEl[i] - series.earthHz[i],
+      // time until sunset if sunlit, else until sunrise; same for Earth and the link
+      sunChangeH: nl < 0 ? null : (nl - i) * h, earthChangeH: ne < 0 ? null : (ne - i) * h, linkChangeH: nd < 0 ? null : (nd - i) * h,
+      remainingH: (grid.n - 1 - i) * h
+    };
+  }
+
+  /**
+   * One landing scenario: site, touchdown time and surface mission length.
+   * Returns touchdown conditions and mission statistics. grid is optional
+   * (built from the scenario when absent). cfg = rules as for siteSeries.
+   */
+  function scenario(site, touchdownMs, days, cfg, grid) {
+    const step = days <= 15 ? 10 : days <= 45 ? 20 : 30;
+    const g = grid || buildGrid(touchdownMs, touchdownMs + days * 86400000, step, { dsn: true });
+    const s = siteSeries(g, site, cfg);
+    const at = conditionsAt(s, g, 0);
+    const sum = summarize(s, g);
+    const firstLoss = nextChange(s.ops, 0);
+    return { grid: g, series: s, touchdown: at, summary: sum,
+      firstPowerOrLinkLossH: s.ops[0] ? (firstLoss < 0 ? null : firstLoss * g.stepMs / 3600000) : 0 };
+  }
+
   /** Best feasible touchdowns, at least `spacingDays` apart. */
   function bestLandings(cands, count, grid, spacingDays) {
     const sp = (spacingDays == null ? 3 : spacingDays) * 86400000;
@@ -359,6 +399,7 @@
   }
 
   return {
+    nextChange, conditionsAt, scenario,
     windowList, landingDates, bestLandings, toICS, siteEvents,
     MOON_R, AU_KM, SUN_R, EARTH_R, DSN,
     stateAt, siteFrame, topo, diskFraction, horizonDip, makeHorizon,

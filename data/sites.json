@@ -6,7 +6,8 @@
   "lat": -80.13,
   "lon": 1.44,
   "note": "Intuitive Machines, landed 2024-02-22 23:23 UTC near Malapert A.",
-  "source": "LRO/LROC confirmed position (Intuitive Machines; en.wikipedia.org/wiki/IM-1)"
+  "source": "LRO/LROC confirmed position (Intuitive Machines; en.wikipedia.org/wiki/IM-1)",
+  "landed": "2024-02-22T23:23:00Z"
  },
  {
   "id": "im2",
@@ -15,7 +16,8 @@
   "lat": -84.7906,
   "lon": 29.1957,
   "note": "Intuitive Machines, landed 2025-03-06 on Mons Mouton (tipped over).",
-  "source": "en.wikipedia.org/wiki/IM-2; LROC image 1401"
+  "source": "en.wikipedia.org/wiki/IM-2; LROC image 1401",
+  "landed": "2025-03-06T17:28:50Z"
  },
  {
   "id": "bg1",
@@ -23,8 +25,9 @@
   "group": "CLPS landed",
   "lat": 18.56,
   "lon": 61.81,
-  "note": "Firefly, landed 2025-03-02 in Mare Crisium near Mons Latreille. Outside polar DEM: smooth horizon.",
-  "source": "en.wikipedia.org/wiki/Mons_Latreille"
+  "note": "Firefly, landed 2025-03-02 in Mare Crisium near Mons Latreille.",
+  "source": "en.wikipedia.org/wiki/Mons_Latreille",
+  "landed": "2025-03-02T08:34:00Z"
  },
  {
   "id": "nobile2",
@@ -137,12 +140,122 @@
   "snap_m": 1000
  },
  {
+  "id": "im3",
+  "name": "IM-3 target: Reiner Gamma",
+  "group": "Upcoming targets",
+  "lat": 7.5,
+  "lon": -59.0,
+  "note": "Intuitive Machines CLPS mission, launch no earlier than early 2027. Region centre, not the exact landing point.",
+  "source": "Reiner Gamma (7.5°N, 59°W); en.wikipedia.org/wiki/IM-3"
+ },
+ {
+  "id": "a11",
+  "name": "Apollo 11",
+  "group": "Apollo",
+  "lat": 0.67416,
+  "lon": 23.47314,
+  "landed": "1969-07-20T20:17:40Z",
+  "note": "Tranquility Base, Mare Tranquillitatis.",
+  "source": "NASA NSSDC lunar_sites (LROC lunar module position)"
+ },
+ {
+  "id": "a12",
+  "name": "Apollo 12",
+  "group": "Apollo",
+  "lat": -3.0128,
+  "lon": -23.4219,
+  "landed": "1969-11-19T06:54:35Z",
+  "note": "Oceanus Procellarum, next to Surveyor 3.",
+  "source": "NASA NSSDC lunar_sites (LROC lunar module position)"
+ },
+ {
+  "id": "a14",
+  "name": "Apollo 14",
+  "group": "Apollo",
+  "lat": -3.64589,
+  "lon": -17.47194,
+  "landed": "1971-02-05T09:18:11Z",
+  "note": "Fra Mauro highlands.",
+  "source": "NASA NSSDC lunar_sites (LROC lunar module position)"
+ },
+ {
+  "id": "a15",
+  "name": "Apollo 15",
+  "group": "Apollo",
+  "lat": 26.13239,
+  "lon": 3.6333,
+  "landed": "1971-07-30T22:16:29Z",
+  "note": "Hadley Rille, at the foot of the Apennine mountains: the terrain raises the horizon.",
+  "source": "NASA NSSDC lunar_sites (LROC lunar module position)"
+ },
+ {
+  "id": "a16",
+  "name": "Apollo 16",
+  "group": "Apollo",
+  "lat": -8.9734,
+  "lon": 15.5011,
+  "landed": "1972-04-21T02:23:35Z",
+  "note": "Descartes highlands.",
+  "source": "NASA NSSDC lunar_sites (LROC lunar module position)"
+ },
+ {
+  "id": "a17",
+  "name": "Apollo 17",
+  "group": "Apollo",
+  "lat": 20.1911,
+  "lon": 30.7723,
+  "landed": "1972-12-11T19:54:57Z",
+  "note": "Taurus-Littrow valley between 2 km high massifs.",
+  "source": "NASA NSSDC lunar_sites (LROC lunar module position)"
+ },
+ {
   "id": "ch3",
   "name": "Chandrayaan-3 (Shiv Shakti)",
-  "group": "Other missions",
+  "group": "Other countries",
   "lat": -69.373,
   "lon": 32.319,
-  "note": "ISRO, landed 2023-08-23. Reference for a lower-latitude polar site.",
-  "source": "ISRO"
+  "note": "ISRO, Shiv Shakti point, 69°S.",
+  "source": "ISRO",
+  "landed": "2023-08-23T12:32:00Z"
+ },
+ {
+  "id": "ce4",
+  "name": "Chang'e 4",
+  "group": "Other countries",
+  "lat": -45.457,
+  "lon": 177.589,
+  "landed": "2019-01-03T02:26:00Z",
+  "note": "CNSA, Von Kármán crater, far side: Earth is never visible, contact goes through the Queqiao relay.",
+  "source": "LROC, Chang'e 4 Lander Coordinates (image 1087)"
+ },
+ {
+  "id": "ce5",
+  "name": "Chang'e 5",
+  "group": "Other countries",
+  "lat": 43.0576,
+  "lon": -51.9161,
+  "landed": "2020-12-01T15:11:00Z",
+  "note": "CNSA sample return, near Mons Rümker.",
+  "source": "LROC, First Look: Chang'e 5 (image 1172)"
+ },
+ {
+  "id": "ce6",
+  "name": "Chang'e 6",
+  "group": "Other countries",
+  "lat": -41.6385,
+  "lon": -153.9852,
+  "landed": "2024-06-01T22:23:00Z",
+  "note": "CNSA far-side sample return, Apollo basin: no direct Earth link.",
+  "source": "en.wikipedia.org/wiki/Chang'e_6"
+ },
+ {
+  "id": "slim",
+  "name": "SLIM",
+  "group": "Other countries",
+  "lat": -13.316,
+  "lon": 25.251,
+  "landed": "2024-01-19T15:20:00Z",
+  "note": "JAXA precision lander, near Shioli crater.",
+  "source": "LROC, JAXA SLIM Landing (image 1358)"
  }
 ]
