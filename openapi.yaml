@@ -1,0 +1,169 @@
+openapi: 3.0.3
+info:
+  title: CLPS Lunar Mission Browser API
+  version: 1.1.0
+  description: |
+    Sun and Earth visibility over the real LOLA terrain horizon for lunar
+    landing sites, with power and direct-to-Earth communication windows,
+    landing-date ranking and calendar export.
+
+    All times are UTC (ISO 8601). Angles are degrees. A site is either a preset
+    (`site=<id>`, horizons precomputed from LOLA 40 m / 240 m) or any point
+    (`lat`, `lon`; horizon ray-cast on request from LOLA 240 m / 1 km).
+  license:
+    name: MIT
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/health:
+    get:
+      summary: Service status
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { status: { type: string }, version: { type: string }, sites: { type: integer } } } } } }
+  /api/sites:
+    get:
+      summary: Preset sites (CLPS landers, Artemis III regions, high-illumination points)
+      responses:
+        '200':
+          description: OK
+          content: { application/json: { schema: { type: object, properties: { sites: { type: array, items: { $ref: '#/components/schemas/Site' } } } } } }
+  /api/horizon:
+    get:
+      summary: Terrain horizon mask (360 values, 1 degree apart)
+      parameters: [ { $ref: '#/components/parameters/site' }, { $ref: '#/components/parameters/lat' }, { $ref: '#/components/parameters/lon' }, { $ref: '#/components/parameters/snap_m' }, { $ref: '#/components/parameters/format_csv' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { site: { $ref: '#/components/schemas/Site' }, mask_deg: { type: array, items: { type: number }, minItems: 360, maxItems: 360 } } } }, text/csv: {} } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /api/summary:
+    get:
+      summary: Illumination and communication statistics for one site
+      parameters: [ { $ref: '#/components/parameters/site' }, { $ref: '#/components/parameters/lat' }, { $ref: '#/components/parameters/lon' }, { $ref: '#/components/parameters/snap_m' },
+                    { $ref: '#/components/parameters/start' }, { $ref: '#/components/parameters/end' }, { $ref: '#/components/parameters/days' }, { $ref: '#/components/parameters/step_min' },
+                    { $ref: '#/components/parameters/sun_frac' }, { $ref: '#/components/parameters/earth_margin' }, { $ref: '#/components/parameters/dsn' }, { $ref: '#/components/parameters/dsn_min' } ]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { site: { $ref: '#/components/schemas/Site' }, range: { $ref: '#/components/schemas/Range' }, summary: { $ref: '#/components/schemas/Summary' } } } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/BadRequest' }
+  /api/compare:
+    get:
+      summary: Compare preset sites, sorted by a summary field
+      parameters:
+        - { name: sites, in: query, required: true, schema: { type: string }, example: 'ptB,pns,dg2,m1', description: Comma-separated preset site ids }
+        - { name: sort, in: query, schema: { type: string, default: power_and_link_pct } }
+        - { $ref: '#/components/parameters/start' }
+        - { $ref: '#/components/parameters/end' }
+        - { $ref: '#/components/parameters/days' }
+        - { $ref: '#/components/parameters/step_min' }
+        - { $ref: '#/components/parameters/sun_frac' }
+        - { $ref: '#/components/parameters/earth_margin' }
+        - { $ref: '#/components/parameters/dsn' }
+        - { $ref: '#/components/parameters/dsn_min' }
+        - { $ref: '#/components/parameters/format_csv' }
+      responses:
+        '200': { description: OK }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /api/windows:
+    get:
+      summary: Time windows of one state (power and link, sunlit, Earth link, Earth visible)
+      parameters:
+        - { $ref: '#/components/parameters/site' }
+        - { $ref: '#/components/parameters/lat' }
+        - { $ref: '#/components/parameters/lon' }
+        - { name: kind, in: query, schema: { type: string, enum: [power_and_link, sunlit, earth_link, earth_visible], default: power_and_link } }
+        - { name: min_hours, in: query, schema: { type: number, default: 0 } }
+        - { name: format, in: query, schema: { type: string, enum: [json, csv, ics], default: json }, description: '`ics` returns an iCalendar file for Outlook / Google Calendar' }
+        - { $ref: '#/components/parameters/start' }
+        - { $ref: '#/components/parameters/end' }
+        - { $ref: '#/components/parameters/days' }
+        - { $ref: '#/components/parameters/step_min' }
+        - { $ref: '#/components/parameters/sun_frac' }
+        - { $ref: '#/components/parameters/earth_margin' }
+        - { $ref: '#/components/parameters/dsn' }
+        - { $ref: '#/components/parameters/dsn_min' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { count: { type: integer }, windows: { type: array, items: { $ref: '#/components/schemas/Window' } } } } }, text/csv: {}, text/calendar: {} } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /api/timeseries:
+    get:
+      summary: Sun and Earth elevation, azimuth, horizon and states at every step
+      parameters: [ { $ref: '#/components/parameters/site' }, { $ref: '#/components/parameters/lat' }, { $ref: '#/components/parameters/lon' },
+                    { $ref: '#/components/parameters/start' }, { $ref: '#/components/parameters/end' }, { $ref: '#/components/parameters/days' }, { $ref: '#/components/parameters/step_min' },
+                    { $ref: '#/components/parameters/sun_frac' }, { $ref: '#/components/parameters/earth_margin' }, { $ref: '#/components/parameters/dsn' }, { $ref: '#/components/parameters/dsn_min' },
+                    { $ref: '#/components/parameters/format_csv' } ]
+      responses:
+        '200': { description: OK, content: { application/json: {}, text/csv: {} } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /api/landing-dates:
+    get:
+      summary: Rank touchdown times for a surface mission
+      parameters:
+        - { $ref: '#/components/parameters/site' }
+        - { $ref: '#/components/parameters/lat' }
+        - { $ref: '#/components/parameters/lon' }
+        - { name: mission_days, in: query, schema: { type: number, default: 10 } }
+        - { name: goal, in: query, schema: { type: string, enum: [power_and_link, sunlit, earth_link], default: power_and_link } }
+        - { name: sunlit_at_touchdown, in: query, schema: { type: boolean, default: true } }
+        - { name: link_at_touchdown, in: query, schema: { type: boolean, default: true } }
+        - { name: min_sun_deg, in: query, schema: { type: number, default: 0.5 }, description: Minimum Sun height above the terrain horizon at touchdown }
+        - { name: candidate_step_h, in: query, schema: { type: number, default: 6 } }
+        - { name: spacing_days, in: query, schema: { type: number, default: 3 } }
+        - { name: count, in: query, schema: { type: integer, default: 10 } }
+        - { $ref: '#/components/parameters/start' }
+        - { $ref: '#/components/parameters/end' }
+        - { $ref: '#/components/parameters/days' }
+        - { $ref: '#/components/parameters/step_min' }
+        - { $ref: '#/components/parameters/sun_frac' }
+        - { $ref: '#/components/parameters/earth_margin' }
+        - { $ref: '#/components/parameters/dsn' }
+        - { $ref: '#/components/parameters/dsn_min' }
+        - { $ref: '#/components/parameters/format_csv' }
+      responses:
+        '200': { description: OK }
+        '400': { $ref: '#/components/responses/BadRequest' }
+components:
+  parameters:
+    site: { name: site, in: query, schema: { type: string }, example: ptB, description: Preset site id (see /api/sites). Either site or lat+lon. }
+    lat: { name: lat, in: query, schema: { type: number, minimum: -90, maximum: 90 }, description: Latitude, degrees (south negative) }
+    lon: { name: lon, in: query, schema: { type: number, minimum: -180, maximum: 360 }, description: Longitude, degrees east }
+    snap_m: { name: snap_m, in: query, schema: { type: number, default: 0, maximum: 3000 }, description: Move a lat/lon site to the highest terrain within this radius }
+    start: { name: start, in: query, schema: { type: string, example: '2026-11-14' }, description: Start, ISO 8601 UTC. Default now. }
+    end: { name: end, in: query, schema: { type: string }, description: End, ISO 8601 UTC. Overrides days. }
+    days: { name: days, in: query, schema: { type: number, default: 30 } }
+    step_min: { name: step_min, in: query, schema: { type: number }, description: Time step in minutes (default depends on the range) }
+    sun_frac: { name: sun_frac, in: query, schema: { type: number, default: 0.5 }, description: Visible fraction of the solar disk that counts as sunlit }
+    earth_margin: { name: earth_margin, in: query, schema: { type: number, default: 0 }, description: Degrees Earth must clear the terrain horizon }
+    dsn: { name: dsn, in: query, schema: { type: boolean, default: true }, description: Earth link also requires a Deep Space Network complex to see the Moon }
+    dsn_min: { name: dsn_min, in: query, schema: { type: number, default: 10 }, description: DSN minimum antenna elevation }
+    format_csv: { name: format, in: query, schema: { type: string, enum: [json, csv], default: json } }
+  responses:
+    BadRequest:
+      description: Invalid request
+      content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } }
+  schemas:
+    Site:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        lat: { type: number }
+        lon: { type: number }
+        heightM: { type: number, nullable: true }
+        horizon: { type: string, description: Source of the terrain horizon }
+        source: { type: string }
+    Range:
+      type: object
+      properties: { start: { type: string }, end: { type: string }, step_min: { type: number }, steps: { type: integer } }
+    Window:
+      type: object
+      properties: { start: { type: string }, end: { type: string }, hours: { type: number } }
+    Summary:
+      type: object
+      properties:
+        sunlit_pct: { type: number }
+        solar_energy_pct: { type: number }
+        earth_visible_pct: { type: number }
+        earth_link_pct: { type: number }
+        power_and_link_pct: { type: number }
+        longest_night_h: { type: number }
+        longest_link_gap_h: { type: number }
+        longest_power_and_link_h: { type: number }

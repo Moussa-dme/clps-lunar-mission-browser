@@ -48,13 +48,15 @@ const put = (marker, text) => {
 put('/*__STYLE__*/', r('src/styles.css').toString());
 put('/*__DATA__*/', JSON.stringify(DATA));
 put('/*__ENGINE__*/', r('src/engine.js').toString());
+put('/*__TERRAIN__*/', r('src/terrain.js').toString());
+put('/*__VIEW3D__*/', r('src/view3d.js').toString());
 put('/*__APP__*/', r('src/app.js').toString());
 
 fs.mkdirSync(path.join(__dirname, 'dist'), { recursive: true });
 // artifact.html: body fragment for hosts that supply the document skeleton (claude.ai artifacts)
 // (no Download button there: the artifact viewer does not allow page-initiated downloads; Copy CSV remains)
 fs.writeFileSync(path.join(__dirname, 'dist/artifact.html'),
-  html.replace(/\s*<button class="btn ghost" id="dlCsv"[^>]*>[^<]*<\/button>/, ''));
+  html.replace(/\s*<button class="btn ghost" id="dl(Csv|Ics)"[^>]*>[^<]*<\/button>/g, ''));
 // index.html: complete standalone page (GitHub Pages, any static host, or open from disk)
 const standalone = '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' +
   '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n' +

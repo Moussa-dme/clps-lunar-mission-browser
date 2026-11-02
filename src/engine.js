@@ -275,7 +275,91 @@
     return out;
   }
 
+  /* ------------------------------------------------------------------
+   * Planning helpers shared by the web app, the REST API and the CLI
+   * ------------------------------------------------------------------ */
+
+  /** Windows of one state as [{start, end, hours}] (ms timestamps, end exclusive). */
+  function windowList(series, grid, key, i0, i1) {
+    i0 = i0 || 0; i1 = i1 == null ? grid.n : i1;
+    return windows(series[key], i0, i1).map(([a, b]) => ({
+      start: grid.start + a * grid.stepMs,
+      end: grid.start + b * grid.stepMs,
+      hours: (b - a) * grid.stepMs / 3600000
+    }));
+  }
+
+  /**
+   * Score every touchdown time for a surface mission of `days`.
+   * opts: { days, goal: 'ops'|'lit'|'dte', sunlitAtTouchdown, linkAtTouchdown,
+   *         minSunClearanceDeg, candidateStepH }
+   * Returns [{ i, time, score (0-100), ok }].
+   */
+  function landingDates(series, grid, opts) {
+    const o = Object.assign({ days: 10, goal: 'ops', sunlitAtTouchdown: true, linkAtTouchdown: true,
+      minSunClearanceDeg: 0.5, candidateStepH: 6 }, opts || {});
+    const win = Math.round(o.days * 86400000 / grid.stepMs);
+    const step = Math.max(1, Math.round(o.candidateStepH * 3600000 / grid.stepMs));
+    const arr = series[o.goal === 'lit' ? 'lit' : o.goal === 'dte' ? 'dte' : 'ops'];
+    const pre = new Float64Array(grid.n + 1);
+    for (let i = 0; i < grid.n; i++) pre[i + 1] = pre[i] + arr[i];
+    const out = [];
+    for (let i = 0; i + win < grid.n; i += step) {
+      const ok = (!o.sunlitAtTouchdown || series.lit[i] === 1) && (!o.linkAtTouchdown || series.dte[i] === 1) &&
+        (series.sunEl[i] - series.sunHz[i] >= o.minSunClearanceDeg);
+      out.push({ i, time: grid.start + i * grid.stepMs, score: 100 * (pre[i + win] - pre[i]) / win, ok });
+    }
+    return out;
+  }
+
+  /** Best feasible touchdowns, at least `spacingDays` apart. */
+  function bestLandings(cands, count, grid, spacingDays) {
+    const sp = (spacingDays == null ? 3 : spacingDays) * 86400000;
+    const ok = cands.filter(c => c.ok).sort((a, b) => b.score - a.score);
+    const picked = [];
+    for (const c of ok) {
+      if (picked.length >= count) break;
+      if (picked.some(p => Math.abs(p.time - c.time) < sp)) continue;
+      picked.push(c);
+    }
+    return picked;
+  }
+
+  const icsDate = ms => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const icsText = s => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  /**
+   * iCalendar (RFC 5545) export of windows.
+   * events: [{ start, end, title, description, uid }]
+   */
+  function toICS(events, calName) {
+    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//CLPS Lunar Mission Browser//EN', 'CALSCALE:GREGORIAN',
+      'X-WR-CALNAME:' + icsText(calName || 'Lunar surface windows')];
+    const stamp = icsDate(Date.now());
+    for (const e of events) {
+      L.push('BEGIN:VEVENT', 'UID:' + e.uid, 'DTSTAMP:' + stamp, 'DTSTART:' + icsDate(e.start), 'DTEND:' + icsDate(e.end),
+        'SUMMARY:' + icsText(e.title), 'DESCRIPTION:' + icsText(e.description || ''), 'TRANSP:TRANSPARENT', 'END:VEVENT');
+    }
+    L.push('END:VCALENDAR');
+    // RFC 5545: CRLF line endings, lines folded at 75 octets
+    return L.map(l => l.length <= 74 ? l : l.match(/.{1,73}/g).join('\r\n ')).join('\r\n') + '\r\n';
+  }
+
+  /** Calendar events for a site's windows. kinds: subset of ['lit','dte','ops']. */
+  function siteEvents(siteName, siteId, series, grid, kinds) {
+    const label = { lit: 'Sunlit', dte: 'Direct-to-Earth link', ops: 'Power + Earth link' };
+    const ev = [];
+    for (const k of kinds || ['ops']) {
+      for (const w of windowList(series, grid, k)) {
+        ev.push({ start: w.start, end: w.end, uid: `${siteId}-${k}-${w.start}@clps-lunar-mission-browser`,
+          title: `${siteName}: ${label[k]}`,
+          description: `${label[k]} at ${siteName} for ${w.hours.toFixed(1)} h (computed with LOLA terrain horizon).` });
+      }
+    }
+    return ev.sort((a, b) => a.start - b.start);
+  }
+
   return {
+    windowList, landingDates, bestLandings, toICS, siteEvents,
     MOON_R, AU_KM, SUN_R, EARTH_R, DSN,
     stateAt, siteFrame, topo, diskFraction, horizonDip, makeHorizon,
     buildGrid, siteSeries, summarize, windows, longestRun, parseMask, moonFixedAxes

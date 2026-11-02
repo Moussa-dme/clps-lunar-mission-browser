@@ -2,79 +2,85 @@
 
 **NASA Space Apps Challenge 2026 — "CLPS Lunar Mission Browser"**
 
-A browser tool that lets mission planners, educators and the public compare lunar
-south-pole landing sites and dates in seconds. For every site it computes where the
-Sun and the Earth stand **relative to the real terrain horizon** (from NASA LRO/LOLA
-elevation data), then shows when a lander has solar power, when it can talk directly
-to Earth, and how long the nights and communication gaps last.
+Compare lunar south-pole landing sites and dates in seconds. For any site and any
+date, the tool shows whether a lander has **sunlight** and a **direct line of sight to
+Earth**, measured against the **real terrain horizon** from NASA LRO laser altimetry
+(LOLA), and turns that into power and communication windows a mission team can use.
 
-Open `dist/index.html` in any modern browser. No install, no server.
+- **Web app**: open `dist/index.html` (no install), or the GitHub Pages link.
+- **REST API + CLI + Docker**: the same calculation, ready to plug into a planning pipeline.
 
 ## What you can do
 
 | View | Question it answers |
 |---|---|
-| **Compare** | Which site has the most power, the most Earth contact, the shortest night? Sortable table + a colour timeline of power/link states for up to 8 sites. |
-| **Elevation** | How high are the Sun and Earth above the terrain, hour by hour? Plus which Deep Space Network complex can see the Moon. |
-| **Horizon view** | What would I see standing there? 360° panorama of the LOLA horizon with the Sun and Earth tracks, Earth phase, live readouts and the next sunrise/sunset/Earth-rise events. |
-| **Pick a landing date** | For a mission of N days, which touchdown dates give the most power + link time? Heatmap of every touchdown (every 6 h) per site, with touchdown rules (sunlit, Earth in view, minimum Sun height), and a ranked list. |
-| **Map** | Shaded-relief LOLA map of 80–90°S with all sites, live Sun/Earth direction arrows, and **click-to-add any new site** — its terrain horizon is ray-traced in the browser. |
-| **Method** | Models, validation, limits and data sources (EN/FR). |
+| **3D view** | What is lit, and what sees Earth, right now? LOLA terrain with shadows ray-traced live on the GPU; planning map (power + link / sun only / Earth only / neither); share of the period lit or in contact; first-person view from any site; a 29-second guided tour. |
+| **Compare** | Which site has the most power, the most Earth contact, the shortest night? Sortable table, state timeline, CSV and calendar (.ics) export. |
+| **Elevation** | Sun and Earth height above the terrain horizon, hour by hour, plus which Deep Space Network complex sees the Moon. |
+| **Horizon view** | 360° panorama of the LOLA horizon with Sun and Earth tracks and upcoming sunrise/sunset/Earth-rise events. |
+| **Pick a landing date** | For a mission of N days, which touchdowns give the most power + link time, under touchdown rules. |
+| **Map** | LOLA shaded relief of 80–90°S. Click anywhere (or on the 3D terrain) to add a site: its horizon is ray-cast in the browser. |
+| **Method** | Models, validation, limits, sources (EN/FR). |
 
-Also: time cursor with playback, mission rules (Sun disk threshold, Earth margin,
-DSN requirement and elevation), CSV export of all time series, import/export of
-horizon masks as CSV, English/French interface, light and dark themes.
+## Use it from your own software
+
+```bash
+npm ci && npm start                      # web app + API on http://localhost:8080
+docker build -t clps-browser . && docker run -p 8080:8080 clps-browser
+```
+
+| Endpoint | Returns |
+|---|---|
+| `GET /api/sites` | Preset sites (CLPS landers, Artemis III regions, high-illumination points) |
+| `GET /api/summary?site=ptB&start=2027-01-01&days=90` | Sunlit %, Earth link %, power + link %, longest night and link gap |
+| `GET /api/compare?sites=ptB,pns,dg2,nobile2&days=90` | The same for several sites, ranked |
+| `GET /api/windows?site=pns&kind=power_and_link&format=ics` | Windows as JSON, CSV or **iCalendar** (Outlook, Google Calendar) |
+| `GET /api/landing-dates?site=ptB&mission_days=10` | Ranked touchdown times |
+| `GET /api/timeseries?lat=-89.45&lon=-138&snap_m=500` | Any point: horizon ray-cast on request, full time series |
+| `GET /api/horizon?site=m1&format=csv` | 360° terrain horizon mask |
+
+Full description: [`openapi.yaml`](openapi.yaml) (generate a client in any language).
+Python example (standard library only): [`examples/python_client.py`](examples/python_client.py).
+Command line, same parameters: `node cli.js windows --site pns --format ics > windows.ics`.
 
 ## How it works
 
-1. **Ephemerides** — geocentric Moon and Sun from [Astronomy Engine](https://github.com/cosinekitty/astronomy)
-   (MIT, ~1′ for the Moon). The Moon-fixed frame comes from the IAU/WGCCRE lunar
-   rotation model, cross-checked against an independent physical-libration series
-   (sub-Earth point agrees to 0.03° over a year).
-2. **Site geometry** — topocentric elevation/azimuth from the site's true position
-   (1737.4 km sphere + LOLA height), so Earth's 0.26° parallax is included.
-3. **Terrain horizon** — 360 rays over 600 km of LOLA terrain (40 m/px within 80°S,
-   240 m/px beyond), Moon curvature included, observer 2 m above ground
-   (`tools/horizon_from_dem.py`).
-4. **Rules** — sunlit = visible fraction of the 0.53° solar disk ≥ threshold;
-   Earth link = Earth clears the horizon + a DSN complex (Goldstone/Madrid/Canberra)
-   sees the Moon ≥ 10°.
+1. **Ephemerides**: geocentric Moon and Sun from [Astronomy Engine](https://github.com/cosinekitty/astronomy) (MIT); Moon-fixed frame from the IAU/WGCCRE rotation model.
+2. **Site geometry**: topocentric elevation and azimuth from the site's true position (1737.4 km sphere + LOLA height).
+3. **Terrain horizon**: 360 rays over 600 km of LOLA terrain (40 m/px within 80°S, 240 m/px beyond), lunar curvature included, observer 2 m above ground (`tools/horizon_from_dem.py`).
+4. **3D view**: for every terrain texel, a GPU shader marches along the great circle toward the Sun and the Earth over the same terrain, with the finite solar disk. Vertical stretch is visual only.
+5. **Rules**: sunlit = visible fraction of the 0.53° solar disk ≥ threshold; Earth link = Earth clears the horizon by a margin and a DSN complex (Goldstone, Madrid, Canberra) sees the Moon ≥ 10°.
 
-### Validation (`npm test`)
+### Validation (`npm test`, 33 checks)
 
 | Check | Result |
 |---|---|
 | Sub-Earth point vs. independent libration series, 1 year | worst 0.027° |
-| Max sub-solar latitude (lunar axis tilt 1.54° + libration) | 1.59° |
-| Max libration in latitude | 6.86° |
-| Annual illumination 2020 of Shackleton rim A / ridge B / point D / de Gerlache C / Malapert M1 vs. Bussey et al. 2010 | 85/89/83/82/76 % vs 81/82/86/85/74 % (mean diff 3.6 pts) |
-| Chandrayaan-3, Blue Ghost 1 touchdown Sun elevation | a few degrees after local sunrise, as flown |
+| Annual illumination 2020, five high-illumination points vs. Bussey et al. 2010 | mean difference 3.6 percentage points |
 | Blue Ghost 1 site sunset | 2025-03-16, the day the mission ended |
+| Chandrayaan-3, Blue Ghost 1 touchdown | a few degrees after local sunrise, as flown |
+| GPU (3D view) vs. CPU engine, sunlit state (`tests/gpu_consistency.py`) | 99% agreement near the pole (240 m), 90% on the 1 km regional view |
+| REST API: every route, formats, error messages | `tests/api.test.js` |
 
 ## Repository layout
 
 ```
-src/engine.js          computation engine (pure JS, runs in Node and the browser)
-src/app.js             user interface (canvas charts, no framework)
-src/styles.css         design tokens, light + dark themes
-src/index.html         page template
-data/sites.json        site list with coordinates and sources
-data/horizons.json     LOLA horizon masks (generated)
-data/*.gz, basemap.jpg compact DEM and shaded relief for the browser (generated)
-tools/horizon_from_dem.py  horizon masks from any LOLA polar DEM
-tools/make_assets.py       basemap + compact DEM for the browser
-tests/engine.test.js   validation suite
-build.js               assembles dist/index.html (standalone) and dist/artifact.html
+src/engine.js        ephemerides, visibility, windows, landing dates, iCalendar (Node + browser)
+src/terrain.js       compact LOLA DEM + horizon ray casting (Node + browser)
+src/view3d.js        WebGL 3D view (three.js) with GPU illumination
+src/app.js           web app; src/styles.css, src/index.html
+server/core.js       API operations; server/server.js HTTP server; cli.js command line
+openapi.yaml         API description
+data/                sites, LOLA horizon masks, compact DEM, basemap (generated by tools/)
+tools/               horizon_from_dem.py, make_assets.py (from LOLA .IMG files)
+tests/               engine, API, GPU consistency
+docs/                hackathon backlog, submission draft
+build.js             assembles dist/index.html (standalone) and dist/artifact.html
 ```
 
-## Build from scratch
+## Rebuild the terrain data (optional, ~580 MB of LOLA files)
 
 ```bash
-npm install                      # astronomy-engine
-npm test                         # validation
-npm run build                    # -> dist/index.html
-
-# regenerate terrain data (optional, ~580 MB of LOLA files)
 pip install numpy scipy pillow
 curl -O https://imbrium.mit.edu/DATA/LOLA_GDR/POLAR/IMG/LDEM_80S_40M.{IMG,LBL}
 curl -O https://imbrium.mit.edu/DATA/LOLA_GDR/POLAR/IMG/LDEM_60S_240M.{IMG,LBL}
@@ -83,21 +89,17 @@ python tools/make_assets.py LDEM_60S_240M.IMG data
 npm run build
 ```
 
-Add a site permanently: append it to `data/sites.json` (`snap_m` only for rounded
-published coordinates, never for landed spacecraft), rerun the horizon script, rebuild.
-
 ## Limits
 
 - 40–240 m terrain smooths small rims and boulders; certify a final site with the 5 m LOLA products through the Python tool.
 - The Earth link test is geometric: no antenna patterns, link budget, DSN scheduling or relay satellites.
 - Published high-illumination coordinates come from older Kaguya topography, so those points are moved to the local LOLA summit (≤ 2 km, shown as "fitted").
 
-## Data and credits
+## Data, credits, AI
 
-- LOLA GDR polar DEMs — NASA LRO / PDS Geosciences Node (imbrium.mit.edu).
-- Site coordinates — IM-1, IM-2, Blue Ghost 1 (LRO/LROC confirmations), Artemis III
-  representative points (Peña-Asensio et al., arXiv:2406.19863), high-illumination
-  points (Bussey et al. 2010 via Wikipedia), Chandrayaan-3 (ISRO).
-- Astronomy Engine © Don Cross, MIT licence.
+- LOLA GDR polar DEMs — NASA LRO / PDS Geosciences Node.
+- Site coordinates: see `data/sites.json` (LRO/LROC confirmations, Peña-Asensio et al. arXiv:2406.19863, Bussey et al. 2010, ISRO).
+- Astronomy Engine © Don Cross, three.js © three.js authors, both MIT.
+- Built with the help of an AI assistant: see [`AI_DISCLOSURE.md`](AI_DISCLOSURE.md).
 
 Licence: MIT (see `LICENSE`).

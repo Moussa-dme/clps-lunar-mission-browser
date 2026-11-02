@@ -1,0 +1,6 @@
+node_modules
+.git
+*.IMG
+*.LBL
+tests
+tools/__pycache__

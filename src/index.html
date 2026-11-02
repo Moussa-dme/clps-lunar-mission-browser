@@ -88,7 +88,8 @@
     </div>
 
     <nav class="tabs" role="tablist" aria-label="Views">
-      <button role="tab" id="tab-compare" aria-selected="true" data-tab="compare" data-i18n="tCompare">Compare</button>
+      <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
+      <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
       <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
       <button role="tab" id="tab-sky" aria-selected="false" data-tab="sky" data-i18n="tSky">Horizon view</button>
       <button role="tab" id="tab-plan" aria-selected="false" data-tab="plan" data-i18n="tPlan">Pick a landing date</button>
@@ -96,14 +97,56 @@
       <button role="tab" id="tab-method" aria-selected="false" data-tab="method" data-i18n="tMethod">Method</button>
     </nav>
 
+    <!-- 3D -->
+    <section class="view" id="view-3d" role="tabpanel" aria-labelledby="tab-3d">
+      <div class="panel v3d-panel">
+        <div class="v3d-toolbar">
+          <label><span data-i18n="v3dRegion">Area</span>
+            <select id="v3dRegion">
+              <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
+              <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
+            </select></label>
+          <label><span data-i18n="v3dShow">Show</span>
+            <select id="v3dMode">
+              <option value="sun" data-i18n="mSun">Sunlight now</option>
+              <option value="plan" data-i18n="mPlan">Power and Earth link now</option>
+              <option value="avgSun" data-i18n="mAvgSun">Sunlight, share of the period</option>
+              <option value="avgEarth" data-i18n="mAvgEarth">Earth link, share of the period</option>
+              <option value="avgOps" data-i18n="mAvgOps">Power + link, share of the period</option>
+            </select></label>
+          <label class="v3d-range"><span data-i18n="exag">Vertical stretch</span>
+            <input type="range" id="v3dExag" min="1" max="8" step="0.5" value="3"><output id="v3dExagOut" class="mono">3×</output></label>
+          <div class="actions">
+            <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
+            <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
+            <button class="btn ghost" type="button" id="v3dStand"></button>
+            <button class="btn primary" type="button" id="v3dTour" data-i18n="vTour">Guided tour</button>
+          </div>
+        </div>
+        <div class="v3d-stage" id="v3dStage">
+          <canvas class="v3d-labels" id="v3dLabels" aria-hidden="true"></canvas>
+          <div class="v3d-hud mono" id="v3dHud"></div>
+          <div class="v3d-status" id="v3dStatus" role="status"></div>
+          <div class="v3d-caption" id="v3dCaption" hidden></div>
+          <div class="v3d-fallback" id="v3dFallback" hidden></div>
+        </div>
+        <div class="v3d-foot">
+          <div class="legend-row" id="v3dLegend"></div>
+          <p class="muted small" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
+        </div>
+      </div>
+    </section>
+
     <!-- COMPARE -->
-    <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare">
+    <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
       <div class="panel">
         <div class="panel-head">
           <h2 data-i18n="cmpTitle">Site comparison over the selected period</h2>
           <div class="actions">
             <button class="btn ghost" id="copyCsv" type="button" data-i18n="copyCsv">Copy CSV</button>
             <button class="btn ghost" id="dlCsv" type="button" data-i18n="dlCsv">Download CSV</button>
+            <button class="btn ghost" id="copyIcs" type="button" data-i18n="copyIcs">Copy calendar (.ics)</button>
+            <button class="btn ghost" id="dlIcs" type="button" data-i18n="dlIcs">Download calendar (.ics)</button>
           </div>
         </div>
         <div class="table-scroll">
@@ -205,8 +248,15 @@
 
 <script>window.__DATA__ = /*__DATA__*/;</script>
 <script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /*__ENGINE__*/
+</script>
+<script>
+/*__TERRAIN__*/
+</script>
+<script>
+/*__VIEW3D__*/
 </script>
 <script>
 /*__APP__*/

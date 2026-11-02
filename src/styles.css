@@ -19,6 +19,9 @@
   --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
   --s5: #e87ba4; --s6: #008300; --s7: #6250d6; --s8: #e34948;
   --heat0: #e8f0fb; --heat1: #9ec5f4; --heat2: #3987e5; --heat3: #104281;
+  /* the 3D stage is space: always black, in both themes (deliberate) */
+  --space: #000000; --space-ink: #eef1f5; --space-mut: #a7afbb;
+  --st-ops: #2fbf8c; --st-sun: #f2b84b; --st-comm: #5fa2f0; --st-none: #343a43;
   --f-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -215,3 +218,32 @@ tr.click:hover td { background: color-mix(in srgb, var(--accent) 7%, transparent
   h1 { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* 3D view */
+.v3d-panel { gap: 10px; }
+.v3d-toolbar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-end; }
+.v3d-toolbar label { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--fg2); min-width: 0; }
+.v3d-toolbar .actions { margin-left: auto; }
+.v3d-range { flex-direction: row !important; align-items: center; gap: 8px !important; }
+.v3d-range span { margin-right: 2px; }
+.v3d-range input { width: 110px; accent-color: var(--accent); }
+.v3d-stage { position: relative; width: 100%; height: min(68vh, 720px); min-height: 360px; background: var(--space); border-radius: 6px; overflow: hidden; touch-action: none; }
+.v3d-canvas { position: absolute; inset: 0; display: block; cursor: grab; }
+.v3d-canvas:active { cursor: grabbing; }
+.v3d-labels { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.v3d-hud { position: absolute; left: 10px; top: 10px; color: var(--space-ink); font-size: 12px; line-height: 1.5; background: rgb(0 0 0 / .55); padding: 6px 9px; border-radius: 5px; pointer-events: none; max-width: calc(100% - 20px); }
+.v3d-hud b { font-family: var(--f-display); font-size: 15px; font-weight: 600; letter-spacing: .02em; }
+.v3d-status { position: absolute; right: 10px; top: 10px; color: var(--space-ink); font-size: 12px; background: rgb(0 0 0 / .55); padding: 4px 8px; border-radius: 5px; pointer-events: none; }
+.v3d-status:empty { display: none; }
+.v3d-caption { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); width: min(680px, calc(100% - 32px)); color: var(--space-ink); background: rgb(0 0 0 / .72); border-left: 3px solid var(--st-sun); padding: 10px 14px; font-size: 15px; line-height: 1.4; border-radius: 4px; pointer-events: none; }
+.v3d-caption small { display: block; color: var(--space-mut); font-size: 11px; margin-top: 4px; text-transform: uppercase; letter-spacing: .08em; }
+.v3d-fallback { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--space-ink); }
+.v3d-foot { display: flex; flex-direction: column; gap: 6px; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 12.5px; color: var(--fg2); }
+.legend-row .sw { width: 18px; }
+.legend-row .ramp { width: 150px; height: 10px; border-radius: 3px; display: inline-block; }
+@media (max-width: 700px) {
+  .v3d-stage { height: 60vh; min-height: 300px; }
+  .v3d-toolbar .actions { margin-left: 0; }
+  .v3d-caption { font-size: 13px; bottom: 10px; }
+}

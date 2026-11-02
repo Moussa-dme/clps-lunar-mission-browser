@@ -53,7 +53,23 @@
       importMask: 'Import horizon CSV', copyMask: 'Copy horizon CSV', maskImported: 'Horizon imported for',
       maxSel: 'You can compare up to 8 sites at once.', remove: 'Remove', h: 'h', d: 'd', now: 'now',
       smooth: 'smooth sphere', lolaPre: 'LOLA 40 m / 240 m', lolaBrowser: 'LOLA 240 m / 1 km', imported: 'imported CSV',
-      fit: 'fitted', stretchNote: 'vertical stretch'
+      fit: 'fitted', stretchNote: 'vertical stretch',
+      t3d: '3D view', v3dRegion: 'Area', v3dPole: 'Pole, 87.5–90°S (240 m)', v3dSouth: 'South polar region, 75–90°S (1 km)',
+      v3dShow: 'Show', mSun: 'Sunlight now', mPlan: 'Power and Earth link now', mAvgSun: 'Sunlight, share of the period',
+      mAvgEarth: 'Earth link, share of the period', mAvgOps: 'Power + link, share of the period',
+      vOverview: 'Overview', vSun: 'Look toward the Sun', vStand: 'Stand at', vTour: 'Guided tour', vTourStop: 'Stop the tour',
+      v3dNote: 'Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.',
+      hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
+      lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
+      ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
+      noWebGLHelp: 'Every other tab works without it.', copyIcs: 'Copy calendar (.ics)', dlIcs: 'Download calendar (.ics)',
+      icsCopied: 'Calendar copied. Paste it into a .ics file to import into Outlook or Google Calendar.',
+      tour1: 'The lunar south pole, measured by NASA’s Lunar Reconnaissance Orbiter. Every shadow is computed live from the real terrain.',
+      tour2: 'Here the Sun never rises more than a few degrees. It circles the horizon, and crater rims cast shadows tens of kilometres long.',
+      tour3: 'The planning map: green has power and a direct link to Earth, yellow has sunlight only, blue sees Earth only.',
+      tour4: 'Averaged over the whole period, the brightest ridges are where a solar-powered lander keeps power and contact longest.',
+      tour5: 'Standing on the Shackleton connecting ridge: the Sun skims the horizon, Earth hangs low in the sky.',
+      tour6: 'Pick any site and date: the same calculation is available as an API, a command-line tool and a calendar export.'
     },
     fr: {
       tagline: 'Le Soleil et la Terre au-dessus du vrai horizon du pôle Sud', from: 'Du (UTC)', to: 'Au (UTC)', step: 'Pas',
@@ -95,7 +111,23 @@
       importMask: 'Importer un horizon CSV', copyMask: 'Copier l’horizon CSV', maskImported: 'Horizon importé pour',
       maxSel: 'Vous pouvez comparer 8 sites au maximum.', remove: 'Supprimer', h: 'h', d: 'j', now: 'maintenant',
       smooth: 'sphère lisse', lolaPre: 'LOLA 40 m / 240 m', lolaBrowser: 'LOLA 240 m / 1 km', imported: 'CSV importé',
-      fit: 'ajusté', stretchNote: 'étirement vertical'
+      fit: 'ajusté', stretchNote: 'étirement vertical',
+      t3d: 'Vue 3D', v3dRegion: 'Zone', v3dPole: 'Pôle, 87,5–90°S (240 m)', v3dSouth: 'Région polaire sud, 75–90°S (1 km)',
+      v3dShow: 'Afficher', mSun: 'Ensoleillement maintenant', mPlan: 'Énergie et liaison maintenant', mAvgSun: 'Ensoleillement, part de la période',
+      mAvgEarth: 'Liaison Terre, part de la période', mAvgOps: 'Énergie + liaison, part de la période',
+      vOverview: 'Vue d’ensemble', vSun: 'Regarder vers le Soleil', vStand: 'Se placer sur', vTour: 'Visite guidée', vTourStop: 'Arrêter la visite',
+      v3dNote: 'Glissez pour tourner, clic droit ou Maj + glisser pour déplacer, molette pour zoomer. Cliquez sur le relief pour y ajouter un site. Ombres et visibilité de la Terre sont calculées par votre carte graphique à partir du relief LOLA ; l’étirement vertical est seulement visuel.',
+      hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
+      lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
+      ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
+      noWebGLHelp: 'Tous les autres onglets fonctionnent sans.', copyIcs: 'Copier le calendrier (.ics)', dlIcs: 'Télécharger le calendrier (.ics)',
+      icsCopied: 'Calendrier copié. Collez-le dans un fichier .ics pour l’importer dans Outlook ou Google Agenda.',
+      tour1: 'Le pôle Sud de la Lune, mesuré par la sonde LRO de la NASA. Chaque ombre est calculée en direct à partir du vrai relief.',
+      tour2: 'Ici, le Soleil ne monte jamais à plus de quelques degrés. Il tourne autour de l’horizon et les bords des cratères projettent des ombres de dizaines de kilomètres.',
+      tour3: 'La carte de planification : en vert, énergie et liaison directe avec la Terre ; en jaune, soleil seul ; en bleu, Terre seule.',
+      tour4: 'En moyenne sur toute la période, les crêtes les plus claires sont celles où un atterrisseur solaire garde le plus longtemps énergie et contact.',
+      tour5: 'Debout sur la crête qui relie Shackleton : le Soleil rase l’horizon, la Terre reste basse dans le ciel.',
+      tour6: 'Choisissez n’importe quel site et date : le même calcul est disponible en API, en ligne de commande et en export calendrier.'
     }
   };
 
@@ -310,8 +342,10 @@
     })));
   }
 
-  /* --------------------------------------------------- in-browser terrain */
-  let demPromise = null;
+  /* ------------------------------------------- terrain (shared module) */
+  const LT = window.LunarTerrain;
+  const RM = LT.RM, polarXY = LT.polarXY;
+  let terrainPromise = null;
   async function inflate(b64) {
     const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
     if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot decompress the terrain model.');
@@ -319,76 +353,12 @@
     const buf = await new Response(ds).arrayBuffer();
     return new Int16Array(buf);
   }
-  function loadDEM() {
-    if (!demPromise) {
-      demPromise = Promise.all([inflate(DATA.demFine), inflate(DATA.demCoarse)]).then(([fine, coarse]) => ({
-        fine: Object.assign({ h: fine }, DATA.assets.dem_fine),
-        coarse: Object.assign({ h: coarse }, DATA.assets.dem_coarse)
-      }));
+  function loadTerrain() {
+    if (!terrainPromise) {
+      terrainPromise = Promise.all([inflate(DATA.demFine), inflate(DATA.demCoarse)])
+        .then(([fine, coarse]) => LT.create(fine, coarse, DATA.assets));
     }
-    return demPromise;
-  }
-  const RM = 1737400;
-  function polarXY(lat, lon) {
-    const r = 2 * RM * Math.tan(Math.PI / 4 + lat * Math.PI / 360);
-    return [r * Math.sin(lon * Math.PI / 180), r * Math.cos(lon * Math.PI / 180)];
-  }
-  function sampleGrid(G, x, y) {
-    const c = (x + G.half_m) / G.px_m - 0.5, r = (G.half_m - y) / G.px_m - 0.5;
-    const c0 = Math.floor(c), r0 = Math.floor(r);
-    if (c0 < 0 || r0 < 0 || c0 >= G.n - 1 || r0 >= G.n - 1) return NaN;
-    const fc = c - c0, fr = r - r0, n = G.n, h = G.h;
-    const i = r0 * n + c0;
-    return (h[i] * (1 - fc) + h[i + 1] * fc) * (1 - fr) + (h[i + n] * (1 - fc) + h[i + n + 1] * fc) * fr;
-  }
-  function demHeight(dem, lat, lon) {
-    if (lat > -75) return NaN;
-    const [x, y] = polarXY(lat, lon);
-    if (lat <= -87.5) { const v = sampleGrid(dem.fine, x, y); if (isFinite(v)) return v; }
-    return sampleGrid(dem.coarse, x, y);
-  }
-  function horizonFromDEM(dem, lat, lon, mastM = 2) {
-    const h0 = demHeight(dem, lat, lon);
-    const r0 = RM + h0 + mastM;
-    const D2R = Math.PI / 180;
-    const la1 = lat * D2R, lo1 = lon * D2R;
-    const sl1 = Math.sin(la1), cl1 = Math.cos(la1);
-    const dist = [];
-    for (let d = 120; d < 600000; d += Math.max(120, d * 0.004)) dist.push(d);
-    const mask = new Array(360);
-    for (let a = 0; a < 360; a++) {
-      const az = a * D2R, ca = Math.cos(az), sa = Math.sin(az);
-      let best = -90;
-      for (const d of dist) {
-        const th = d / RM, ct = Math.cos(th), st = Math.sin(th);
-        const s2 = sl1 * ct + cl1 * st * ca;
-        const la2 = Math.asin(s2);
-        const lo2 = lo1 + Math.atan2(sa * st * cl1, ct - sl1 * s2);
-        const hh = demHeight(dem, la2 / D2R, lo2 / D2R);
-        if (!isFinite(hh)) continue;
-        const r1 = RM + hh;
-        const el = Math.atan2(r1 * ct - r0, r1 * st) / D2R;
-        if (el > best) best = el;
-      }
-      mask[a] = Math.round(best * 1000) / 1000;
-    }
-    return { h0, mask };
-  }
-  function snapHigh(dem, lat, lon, radiusM) {
-    let best = [demHeight(dem, lat, lon), lat, lon];
-    const D2R = Math.PI / 180;
-    for (let d = 60; d <= radiusM; d += 60) {
-      const th = d / RM, n = Math.max(12, Math.round(2 * Math.PI * d / 60));
-      for (let k = 0; k < n; k++) {
-        const az = 2 * Math.PI * k / n, la1 = lat * D2R;
-        const s2 = Math.sin(la1) * Math.cos(th) + Math.cos(la1) * Math.sin(th) * Math.cos(az);
-        const la2 = Math.asin(s2);
-        const lo2 = lon * D2R + Math.atan2(Math.sin(az) * Math.sin(th) * Math.cos(la1), Math.cos(th) - Math.sin(la1) * s2);
-        const h = demHeight(dem, la2 / D2R, lo2 / D2R);
-        if (h > best[0]) best = [h, la2 / D2R, lo2 / D2R];
-      }
-    }
-    return best;
+    return terrainPromise;
   }
 
   $('#addSiteForm').addEventListener('submit', async e => {
@@ -402,11 +372,11 @@
     if (lat <= -75) {
       msg.textContent = t('demLoading');
       try {
-        const dem = await loadDEM();
+        const T = await loadTerrain();
         await frame();
-        if ($('#newSnap').checked) { const b = snapHigh(dem, lat, lon, 500); s.lat = b[1]; s.lon = b[2]; }
-        const hz = horizonFromDEM(dem, s.lat, s.lon);
-        s.heightM = Math.round(hz.h0); s.mask = hz.mask; s.hsrc = 'lolaBrowser';
+        if ($('#newSnap').checked) { const b = T.snapHigh(lat, lon, 500); s.lat = b[1]; s.lon = b[2]; }
+        const hz = T.horizon(s.lat, s.lon);
+        s.heightM = Math.round(hz.heightM); s.mask = hz.mask; s.hsrc = 'lolaBrowser';
       } catch (err) { msg.textContent = err.message; msg.classList.add('err'); }
     } else {
       s.note = t('outsideDem');
@@ -426,6 +396,7 @@
     state.cfg.requireDSN = $('#reqDSN').checked;
     state.cfg.dsnMinDeg = +$('#dsnMin').value || 0;
     $('#dsnMin').disabled = !state.cfg.requireDSN;
+    if (v3d) v3d.setRules(state.cfg);
     computeSeries();
   }
   ['#sunFrac', '#earthMargin', '#reqDSN', '#dsnMin'].forEach(s => $(s).addEventListener('change', readRules));
@@ -448,11 +419,7 @@
 
   /* cursor + play */
   $('#cursor').addEventListener('input', e => { state.cursor = +e.target.value; renderCursorDependent(); });
-  $('#play').addEventListener('click', () => {
-    state.playing = !state.playing;
-    $('#playIcon').setAttribute('d', state.playing ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4 2.5v11l9-5.5z');
-    if (state.playing) requestAnimationFrame(tick);
-  });
+  $('#play').addEventListener('click', () => setPlaying(!state.playing));
   let lastTick = 0;
   function tick(ts) {
     if (!state.playing || !state.grid) return;
@@ -481,14 +448,15 @@
   }
 
   /* ------------------------------------------------------------ rendering */
-  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); }
+  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); update3DButtons(); }
   function renderCursorLabel() {
     if (!state.grid) return;
     $('#cursorLabel').textContent = utc(timeOf(state.cursor)) + ' UTC';
   }
   function renderCursorDependent() {
     renderCursorLabel();
-    if (state.tab === 'compare') drawStrip();
+    if (state.tab === '3d') update3D();
+    else if (state.tab === 'compare') drawStrip();
     else if (state.tab === 'timeline') drawTimeline();
     else if (state.tab === 'sky') renderSky();
     else if (state.tab === 'map') drawMap();
@@ -498,7 +466,8 @@
     const tab = state.tab;
     if (tab === 'method') { renderMethod(); return; }
     if (!state.grid) return;
-    if (tab === 'compare') { renderTable(); drawStrip(); }
+    if (tab === '3d') render3D();
+    else if (tab === 'compare') { renderTable(); drawStrip(); }
     else if (tab === 'timeline') drawTimeline();
     else if (tab === 'sky') renderSky();
     else if (tab === 'plan') renderPlan();
@@ -899,21 +868,11 @@
   }
   function computePlan() {
     const P = planInputs(), g = state.grid;
+    const o = { days: P.days, goal: P.score, sunlitAtTouchdown: P.litTD, linkAtTouchdown: P.commTD,
+      minSunClearanceDeg: P.sunMin, candidateStepH: 6 };
     const win = Math.round(P.days * DAY / g.stepMs);
-    const candStep = Math.max(1, Math.round(6 * HOUR / g.stepMs));
-    const cands = [];
-    for (let i = 0; i + win < g.n; i += candStep) cands.push(i);
-    const rows = state.selected.map(id => {
-      const s = state.series[id];
-      const arr = P.score === 'ops' ? s.ops : P.score === 'lit' ? s.lit : s.dte;
-      const pre = new Float64Array(g.n + 1);
-      for (let i = 0; i < g.n; i++) pre[i + 1] = pre[i] + arr[i];
-      const cells = cands.map(i => {
-        const ok = (!P.litTD || s.lit[i]) && (!P.commTD || s.dte[i]) && (s.sunEl[i] - s.sunHz[i] >= P.sunMin);
-        return { i, score: 100 * (pre[i + win] - pre[i]) / win, ok };
-      });
-      return { id, cells };
-    });
+    const rows = state.selected.map(id => ({ id, cells: E.landingDates(state.series[id], g, o) }));
+    const cands = rows.length ? rows[0].cells.map(c => c.i) : [];
     state.plan = { P, win, cands, rows };
     return state.plan;
   }
@@ -1120,11 +1079,204 @@
     const m = mapLatLon(e); if (!m.inside) return;
     const hs = mapHitSite(m);
     if (hs) { setFocus(hs.id); return; }
-    $('#newLat').value = m.lat.toFixed(4); $('#newLon').value = m.lon.toFixed(4);
-    $('#addSiteBox').open = true; $('#addMsg').textContent = t('coordsSet'); $('#addMsg').className = 'form-msg full';
-    toast(t('coordsSet'));
-    if (window.innerWidth <= 900) $('#addSiteBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    fillNewSite(m.lat, m.lon);
   });
+  function fillNewSite(lat, lon) {
+    $('#newLat').value = lat.toFixed(4); $('#newLon').value = lon.toFixed(4);
+    $('#addSiteBox').open = true; $('#addMsg').textContent = t('coordsSet'); $('#addMsg').className = 'form-msg full';
+    toast(`${Math.abs(lat).toFixed(3)}°S ${lon.toFixed(3)}°E — ${t('coordsSet')}`);
+    if (window.innerWidth <= 900) $('#addSiteBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  /* ---------- calendar export (.ics) */
+  function buildICS() {
+    const ev = [];
+    for (const id of state.selected) ev.push(...E.siteEvents(site(id).name, id, state.series[id], state.grid, ['ops']));
+    return E.toICS(ev.sort((a, b) => a.start - b.start), lang === 'fr' ? 'Fenêtres lunaires (énergie + liaison)' : 'Lunar windows (power + link)');
+  }
+  $('#copyIcs').addEventListener('click', () => {
+    const ics = buildICS();
+    navigator.clipboard.writeText(ics).then(() => toast(t('icsCopied')), () => fallbackText(ics));
+  });
+  if ($('#dlIcs')) $('#dlIcs').addEventListener('click', () => {
+    const blob = new Blob([buildICS()], { type: 'text/calendar' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `clps-windows-${utc(state.start, false)}.ics`; document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  /* ---------- 3D view */
+  const ST_COL = { ops: '#2fbf8c', sun: '#f2b84b', comm: '#5fa2f0', none: '#6b717a' };
+  let v3d = null, v3dInit = null, v3dFailed = false;
+  function v3dFallback(msg) {
+    const f = $('#v3dFallback'); f.hidden = false;
+    f.innerHTML = `<div><p>${esc(msg)}</p><p class="small" style="margin-top:8px;color:var(--space-mut)">${t('noWebGLHelp')}</p></div>`;
+    $('#v3dStatus').textContent = '';
+  }
+  function init3D() {
+    if (v3d || v3dFailed) return Promise.resolve(v3d);
+    if (!v3dInit) {
+      v3dInit = (async () => {
+        if (!window.THREE || !window.LunarView3D || !LunarView3D.available()) throw new Error(t('noWebGL'));
+        $('#v3dStatus').textContent = t('demLoading');
+        const T = await loadTerrain();
+        v3d = LunarView3D.create($('#v3dStage'), T, {
+          t,
+          onPick: (lat, lon) => fillNewSite(lat, lon),
+          onSite: id => setFocus(id),
+          onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
+          onUserInput: () => { if (tour) stopTour(); }
+        });
+        v3d.setRules(state.cfg);
+        v3d.setExag(+$('#v3dExag').value);
+        set3DMode($('#v3dMode').value);
+        $('#v3dStatus').textContent = '';
+        return v3d;
+      })().catch(err => { v3dFailed = true; v3dFallback(err.message); return null; });
+    }
+    return v3dInit;
+  }
+  function v3dSites() {
+    const i = state.cursor;
+    return state.sites.map(s => {
+      const ser = state.series[s.id], sel = state.selected.includes(s.id);
+      const sc = ser ? (ser.ops[i] ? ST_COL.ops : ser.lit[i] ? ST_COL.sun : ser.dte[i] ? ST_COL.comm : ST_COL.none) : null;
+      return { id: s.id, name: s.name, lat: s.lat, lon: s.lon, heightM: s.heightM, selected: sel, focus: s.id === state.focus,
+        color: sel ? colorOf(s.id) : '#c9ced6', stateColor: sc };
+    });
+  }
+  function v3dStateAt(i) {
+    const g = state.grid, k = i * 3, m = state.cfg.dsnMinDeg;
+    const dsnOk = !state.cfg.requireDSN || g.dsn[k] >= m || g.dsn[k + 1] >= m || g.dsn[k + 2] >= m;
+    return { sun: [g.sun[k], g.sun[k + 1], g.sun[k + 2]], earth: [g.earth[k], g.earth[k + 1], g.earth[k + 2]],
+      earthIllum: g.earthIllum[i], dsnOk, t: timeOf(i) };
+  }
+  function v3dSamples() {
+    const g = state.grid, days = (g.n * g.stepMs) / DAY;
+    const N = Math.min(g.n, Math.min(120, Math.max(48, Math.round(days * 1.4))));
+    const out = [];
+    for (let k = 0; k < N; k++) out.push(v3dStateAt(Math.floor((k + 0.5) * g.n / N)));
+    return out;
+  }
+  let v3dSitesKey = '';
+  function render3D() {
+    init3D().then(v => {
+      if (!v || !state.grid) return;
+      v.setRules(state.cfg);
+      v.setSamples(v3dSamples());
+      v3dSitesKey = '';
+      update3D();
+      v.resize();
+    });
+  }
+  function update3D() {
+    if (!v3d || !state.grid) return;
+    const list = v3dSites();
+    const key = list.map(s => s.id + (s.selected ? 1 : 0) + (s.focus ? 1 : 0) + s.color + s.lat).join('|');
+    v3d.setSites(list, key !== v3dSitesKey); v3dSitesKey = key;
+    const S = v3dStateAt(state.cursor);
+    v3d.setState(S);
+    // HUD: Sun and Earth as seen from the pole itself
+    const g = state.grid, i = state.cursor;
+    const el = v => Math.asin(-v[2] / Math.hypot(v[0], v[1], v[2])) * 180 / Math.PI;
+    const az = v => ((Math.atan2(v[1], v[0]) * 180 / Math.PI) + 360) % 360;
+    const poleE = [S.earth[0], S.earth[1], S.earth[2] + 1737.4];
+    const dsnIn = E.DSN.filter((d, k) => g.dsn[i * 3 + k] >= state.cfg.dsnMinDeg).map(d => d.name);
+    $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E<br>` +
+      `${t('hudEarth')} ${fmt(el(poleE), 2)}° · ${t('phase')} ${fmt(S.earthIllum * 100, 0)}%<br>DSN: ${dsnIn.length ? dsnIn.join(', ') : t('none')}`;
+  }
+  function set3DMode(mode) {
+    $('#v3dMode').value = mode;
+    if (v3d) v3d.setMode(mode);
+    const L = $('#v3dLegend');
+    if (mode === 'sun') L.innerHTML = `<span>${t('lgReal')}</span>`;
+    else if (mode === 'plan') L.innerHTML = [['ops', 'lgOps'], ['sun', 'lgSun'], ['comm', 'lgComm'], ['none', 'lgNone']]
+      .map(([k, l]) => `<span><i class="sw" style="background:var(--st-${k})"></i> ${t(l)}</span>`).join('');
+    else {
+      const hue = mode === 'avgSun' ? 'var(--st-sun)' : mode === 'avgEarth' ? 'var(--st-comm)' : 'var(--st-ops)';
+      L.innerHTML = `<span>0%</span><span class="ramp" style="background:linear-gradient(90deg,#1c1d21,${hue} 85%,#fff)"></span><span>100% ${t('ofPeriod')}</span>`;
+    }
+  }
+  function update3DButtons() {
+    const b = $('#v3dStand'); if (!b) return;
+    const s = site(state.focus);
+    b.textContent = `${t('vStand')} ${s ? s.name : ''}`;
+    b.disabled = !s || s.lat > -75;
+    b.title = b.disabled ? t('outsideDem') : '';
+  }
+  function standAt(id, ms) {
+    const s = site(id); if (!s || s.lat > -75 || !v3d) return;
+    if (!v3d.inRegion(s)) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); }
+    v3d.view('site', s, ms);
+  }
+  $('#v3dRegion').addEventListener('change', e => init3D().then(v => { if (v) { v.setRegion(e.target.value); update3D(); } }));
+  $('#v3dMode').addEventListener('change', e => set3DMode(e.target.value));
+  $('#v3dExag').addEventListener('input', e => { $('#v3dExagOut').textContent = e.target.value + '×'; });
+  $('#v3dExag').addEventListener('change', e => { if (v3d) v3d.setExag(+e.target.value); });
+  $('#v3dOverview').addEventListener('click', () => { if (v3d) v3d.view('overview'); });
+  $('#v3dSunView').addEventListener('click', () => { if (v3d) v3d.view('sun'); });
+  $('#v3dStand').addEventListener('click', () => standAt(state.focus));
+
+  // test hook: compare the GPU terrain computation with the CPU engine
+  window.__clpsTest = {
+    ready: () => init3D(),
+    gpuVsCpu(ids, times) {
+      const out = [];
+      for (const i of times) {
+        setCursor(i);
+        for (const id of ids) {
+          const s = site(id); if (!v3d.inRegion(s)) continue;
+          const gpu = v3d.sampleNow(s.lat, s.lon);
+          const ser = state.series[id] || E.siteSeries(state.grid, s, state.cfg);
+          out.push({ id, i, gpuFrac: gpu.sunFrac, cpuFrac: ser.sunFrac[i], gpuEarth: gpu.earthClearanceDeg, cpuEarth: ser.earthEl[i] - ser.earthHz[i] });
+        }
+      }
+      return out;
+    }
+  };
+
+  /* guided tour: a fixed 45-second story for demos and the pitch video */
+  let tour = null;
+  const TOUR = [
+    // 29 s in total: a screen recording of the tour is the <=30 s demo video, captions = English subtitles
+    { cap: 'tour1', region: 'pole', mode: 'sun', view: 'overview', play: true, ms: 5000 },
+    { cap: 'tour2', mode: 'sun', view: 'sun', play: true, ms: 5000 },
+    { cap: 'tour3', mode: 'plan', view: 'overview', play: true, ms: 5000 },
+    { cap: 'tour4', mode: 'avgOps', view: 'overview', play: false, ms: 5500 },
+    { cap: 'tour5', mode: 'sun', site: 'ptB', play: true, ms: 5000 },
+    { cap: 'tour6', mode: 'sun', view: 'overview', play: false, ms: 3500 }
+  ];
+  function setPlaying(on) {
+    if (state.playing === on) return;
+    state.playing = on;
+    $('#playIcon').setAttribute('d', on ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4 2.5v11l9-5.5z');
+    if (on) requestAnimationFrame(tick);
+  }
+  async function runTourStep(k) {
+    if (!tour) return;
+    if (k >= TOUR.length) { stopTour(); return; }
+    const S = TOUR[k];
+    const v = await init3D(); if (!v || !tour) return;
+    if (S.region && v.region() !== S.region) { $('#v3dRegion').value = S.region; v.setRegion(S.region); }
+    set3DMode(S.mode);
+    if (S.site) standAt(S.site, 1200); else v.view(S.view, null, 1300);
+    setPlaying(S.play);
+    const cap = $('#v3dCaption'); cap.hidden = false;
+    cap.innerHTML = `${t(S.cap)}<small>${k + 1} / ${TOUR.length}</small>`;
+    tour.timer = setTimeout(() => runTourStep(k + 1), S.ms || 7500);
+  }
+  function startTour() {
+    if (state.tab !== '3d') showTab('3d');
+    tour = { timer: 0 };
+    $('#v3dTour').textContent = t('vTourStop');
+    runTourStep(0);
+  }
+  function stopTour() {
+    if (!tour) return;
+    clearTimeout(tour.timer); tour = null;
+    $('#v3dCaption').hidden = true; $('#v3dTour').textContent = t('vTour');
+    setPlaying(false);
+  }
+  $('#v3dTour').addEventListener('click', () => (tour ? stopTour() : startTour()));
 
   /* ---------- CSV export */
   function buildCSV() {
@@ -1210,6 +1362,7 @@
       <li>Sites you add: the same ray casting runs in your browser on a compact copy of the LOLA model (240 m/px near the pole, 1 km/px down to 75°S).</li>
       <li>Published coordinates of high-illumination points and Artemis regions are rounded or region-level, so these points are moved to the highest terrain within 1 to 2 km (marked “fitted”). Landed spacecraft keep their exact coordinates.</li>
       <li>You can import any horizon as a CSV of <code>azimuth,elevation</code> rows, for example from a finer DEM.</li>
+      <li>3D view: the same terrain-horizon test runs on your graphics card for every terrain cell (240 m near the pole, 1 km down to 75°S), toward the Sun and toward the Earth. It agrees with the site calculation for 99% of site-times near the pole and 90% on the 1 km regional view.</li>
     </ul>
     <h3>Rules</h3>
     <ul>
@@ -1247,6 +1400,7 @@
       <li>Sites ajoutés : le même calcul tourne dans le navigateur sur une copie compacte du relief LOLA (240 m/pixel près du pôle, 1 km/pixel jusqu’à 75°S).</li>
       <li>Les coordonnées publiées des points très éclairés et des régions Artemis sont arrondies ou valables pour une région : ces points sont déplacés vers le relief le plus haut à moins de 1 à 2 km (mention « ajusté »). Les sondes posées gardent leurs coordonnées exactes.</li>
       <li>Vous pouvez importer n’importe quel horizon sous forme de CSV <code>azimut,élévation</code>, par exemple issu d’un relief plus fin.</li>
+      <li>Vue 3D : le même test d’horizon tourne sur votre carte graphique pour chaque cellule du relief (240 m près du pôle, 1 km jusqu’à 75°S), vers le Soleil et vers la Terre. Il concorde avec le calcul par site dans 99 % des cas près du pôle et 90 % sur la vue régionale à 1 km.</li>
     </ul>
     <h3>Règles</h3>
     <ul>
@@ -1291,7 +1445,7 @@
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
-  const okTabs = ['compare', 'timeline', 'sky', 'plan', 'map', 'method'];
-  showTab(okTabs.includes(hashTab) ? hashTab : 'compare');
+  const okTabs = ['3d', 'compare', 'timeline', 'sky', 'plan', 'map', 'method'];
+  showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();
