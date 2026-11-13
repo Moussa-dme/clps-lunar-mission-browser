@@ -10,6 +10,7 @@ Space Apps asks teams to say where and how AI was used; this file is that statem
 | REST API, CLI, Dockerfile, CI (`server/`, `cli.js`, `openapi.yaml`, `.github/`) | Code written by Claude | `tests/api.test.js` |
 | Data processing (`tools/`) | Scripts written by Claude | Heights checked against published landing elevations (IM-1: 2579 m) |
 | Documentation (`README.md`, `docs/`) | Drafted by Claude, edited by the team | Read by the team |
+| Changes made during the event (14–15 November 2026) | Written with Claude Code, one session per team member on their own branch, following `CLAUDE.md` | `npm test` before every commit, Pull Request review by the team |
 
 Not AI-generated: the terrain and the basemap come from NASA LRO/LOLA elevation data;
 site coordinates come from the sources listed in `data/sites.json`; the Earth texture in
