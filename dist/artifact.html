@@ -517,6 +517,15 @@ tr.click td, td.now { transition: background .2s ease; }
 .search input { transition: width .3s cubic-bezier(.2,.8,.2,1), border-color .2s, box-shadow .2s; }
 @media (max-width: 700px) { .search input:focus { width: 100%; } }
 
+/* ---- light everywhere, whole-Moon scope */
+.btn.toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 18%, var(--panel)); border-color: var(--accent); color: var(--fg); font-weight: 600; }
+.v3d-flat { position: absolute; right: 14px; top: 14px; max-width: min(320px, calc(100% - 28px)); padding: 7px 12px; font-size: 12.5px; line-height: 1.35; color: var(--space-ink); background: rgb(18 20 24 / .5); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid rgb(255 255 255 / .08); border-radius: 12px; pointer-events: none; animation: viewIn .3s ease both; }
+.v3d-flat[hidden] { display: none; }
+@media (max-width: 700px) {
+  .v3d-flat { display: none; }          /* the legend under the 3D view says the same thing */
+  .v3d-top .seg button { padding: 5px 11px; font-size: 13px; }
+}
+
 </style>
 
 <header class="topbar">
@@ -620,11 +629,16 @@ tr.click td, td.now { transition: background .2s ease; }
         <div class="v3d-top">
           <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
             <select id="siteQuick" aria-label="Site"></select></label>
+          <div class="seg" id="v3dScope" role="group" aria-label="Scope">
+            <button type="button" data-scope="moon" aria-pressed="false" data-i18n="scMoon">Whole Moon</button>
+            <button type="button" data-scope="pole" aria-pressed="true" data-i18n="scPole">South pole</button>
+          </div>
           <div class="seg" id="v3dView" role="group" aria-label="View">
             <button type="button" data-view="live" aria-pressed="true" data-i18n="vwLive">Live</button>
             <button type="button" data-view="heat" aria-pressed="false" data-i18n="vwHeat">Heat map</button>
           </div>
           <div class="actions">
+            <button class="btn toggle" type="button" id="v3dLight" aria-pressed="false" data-i18n="vwLight" data-i18n-title="lightTip">Light everywhere</button>
             <button class="btn" type="button" id="bestBtn" data-i18n="bestBtn">Best site</button>
             <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
@@ -636,6 +650,7 @@ tr.click td, td.now { transition: background .2s ease; }
           <canvas class="v3d-labels" id="v3dLabels" aria-hidden="true"></canvas>
           <div class="v3d-hud mono" id="v3dHud"></div>
           <div class="v3d-status" id="v3dStatus" role="status"></div>
+          <div class="v3d-flat" id="v3dFlatTag" hidden data-i18n="flatTag">Fictional lighting: real shadows and colours are hidden</div>
           <div class="v3d-caption" id="v3dCaption" hidden></div>
           <div class="v3d-fallback" id="v3dFallback" hidden></div>
         </div>
@@ -656,6 +671,7 @@ tr.click td, td.now { transition: background .2s ease; }
         <div class="v3d-toolbar">
           <label><span data-i18n="v3dRegion">Area</span>
             <select id="v3dRegion">
+              <option value="moon" data-i18n="v3dMoon">Whole Moon (overview)</option>
               <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
               <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
             </select></label>
@@ -1504,6 +1520,7 @@ tr.click td, td.now { transition: background .2s ease; }
     uniform int uMode; uniform float uSunFracMin; uniform float uEarthMargin; uniform float uDsnOk;
     uniform vec3 cOps; uniform vec3 cSun; uniform vec3 cComm; uniform vec3 cNone;
     uniform vec3 uHsDir; uniform float uEarthIllum; uniform float uAvgReady; uniform float uDetail; uniform float uNoiseFreq;
+    uniform float uFlat; uniform vec3 uFlatDir;
     varying vec2 vUv; varying vec3 vN;
     vec3 ramp(vec3 hue, float v) {
       vec3 c = mix(vec3(0.11, 0.115, 0.13), hue, smoothstep(0.0, 0.85, v));
@@ -1546,6 +1563,37 @@ tr.click td, td.now { transition: background .2s ease; }
         col = thermal(pow(clamp(v / 0.7, 0.0, 1.0), 0.7)) * (0.62 + 0.38 * hs);
         if (uAvgReady < 0.5) col *= 0.6;
       }
+      if (uFlat > 0.5) {   // fictional even lighting: just the terrain, no real shadows or states
+        float h2 = clamp(dot(normalize(vN), uFlatDir), 0.0, 1.0);
+        col = vec3(0.76, 0.74, 0.71) * (0.26 + 0.74 * h2) * dt;
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  /* whole-Moon globe: Lambert shading from the real Sun direction, optional even light */
+  const GLOBE_VS = `
+    #include <common>
+    #include <logdepthbuf_pars_vertex>
+    varying vec2 vUv; varying vec3 vN;
+    void main() {
+      vUv = uv; vN = normalize(position + vec3(0.0, 1737.4, 0.0));
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      #include <logdepthbuf_vertex>
+    }
+  `;
+  const GLOBE_FS = `
+    #include <common>
+    #include <logdepthbuf_pars_fragment>
+    uniform sampler2D uTex; uniform vec3 uSunDir; uniform float uFlat;
+    varying vec2 vUv; varying vec3 vN;
+    void main() {
+      #include <logdepthbuf_fragment>
+      vec3 base = texture2D(uTex, vUv).rgb;
+      float d = dot(normalize(vN), uSunDir);
+      float day = smoothstep(-0.015, 0.09, d) * (0.34 + 0.66 * clamp(d * 1.25, 0.0, 1.0));
+      vec3 col = base * (0.05 + 0.95 * day) * vec3(1.0, 0.99, 0.96);
+      if (uFlat > 0.5) col = base * 0.92;
       gl_FragColor = vec4(col, 1.0);
     }
   `;
@@ -1572,6 +1620,71 @@ tr.click td, td.now { transition: background .2s ease; }
       for (let k = 0; k < 60; k++) { g.globalAlpha = 0.35 + rnd() * 0.4; g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(rnd() * w, rnd() * h, 10 + rnd() * 40, 3 + rnd() * 6, rnd(), 0, 7); g.fill(); }
       g.globalAlpha = 1;
     });
+  }
+  /* Illustrative whole-Moon surface: approximate maria positions + craters. NOT LOLA data;
+     the real LOLA shaded relief of the south polar cap (80-90 S) is composited on top. */
+  const MARIA = [   // lat, lon (E), radius deg, darkness
+    [18, -57, 17, .62], [26, -42, 10, .5], [8, -31, 7, .55], [33, -16, 13, .72], [56, 0, 22, .38], [28, 18, 8, .7], [8, 31, 9, .72],
+    [13, 3, 4.5, .6], [-21, -16, 9, .58], [-24, -39, 5.5, .66], [-10, -23, 4.5, .55], [-15, 34, 4.2, .6], [-4, 52, 8, .62], [17, 59, 5.2, .78],
+    [-19, -93, 4, .55], [27, 148, 3.2, .55], [-34, 166, 3.2, .5], [2, 98, 3, .35], [-53, -169, 24, .2], [10, -20, 3, .0]
+  ];
+  function moonTexture(basemap, meta, onReady) {
+    const W = 2048, H = 1024;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const rnd = seeded(2026);
+    g.fillStyle = '#9a9792'; g.fillRect(0, 0, W, H);
+    const X = lon => (lon + 180) / 360 * W, Y = lat => (90 - lat) / 180 * H;
+    const blobAt = (lat, lon, rad, a, col) => {
+      for (const dx of [-W, 0, W]) {
+        const cx = X(lon) + dx, cy = Y(lat), ry = rad / 180 * H, rx = ry / Math.max(0.12, Math.cos(lat * D2R));
+        if (cx + rx < 0 || cx - rx > W) continue;
+        g.save(); g.translate(cx, cy); g.scale(rx / ry, 1);
+        const gr = g.createRadialGradient(0, 0, 0, 0, 0, ry);
+        gr.addColorStop(0, col.replace('A', a)); gr.addColorStop(0.72, col.replace('A', a * 0.85)); gr.addColorStop(1, col.replace('A', 0));
+        g.fillStyle = gr; g.beginPath(); g.arc(0, 0, ry, 0, 7); g.fill(); g.restore();
+      }
+    };
+    // highland mottling, then maria
+    for (let k = 0; k < 900; k++) blobAt(rnd() * 160 - 80, rnd() * 360 - 180, 2 + rnd() * 6, 0.05 + rnd() * 0.06, rnd() < 0.5 ? 'rgba(60,58,55,A)' : 'rgba(225,222,215,A)');
+    for (const [la, lo, r, d] of MARIA) {
+      if (d <= 0.01) continue;
+      for (let j = 0; j < 4; j++) blobAt(la + (rnd() - .5) * r * .5, lo + (rnd() - .5) * r * .7, r * (0.55 + rnd() * 0.5), d * 0.55, 'rgba(48,50,56,A)');
+    }
+    // craters (uniform on the sphere) and a few bright ray craters
+    for (let k = 0; k < 5200; k++) {
+      const lat = Math.asin(rnd() * 2 - 1) / D2R, lon = rnd() * 360 - 180, r = 0.25 + Math.pow(rnd(), 3) * 3.2;
+      blobAt(lat, lon, r, 0.16, 'rgba(30,30,32,A)'); blobAt(lat + r * .18, lon - r * .18 / Math.max(.2, Math.cos(lat * D2R)), r * .7, 0.10, 'rgba(235,232,225,A)');
+    }
+    for (const [la, lo, r] of [[-43, -11, 3.2], [10, -20, 2.6], [8, -38, 2.2], [-9, -2, 2], [-44, 100, 2.4], [12, 51, 2]]) blobAt(la, lo, r, 0.55, 'rgba(250,248,240,A)');
+    const tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = 4;
+    if (basemap) {
+      const draw = () => {
+        const half = meta.half_m, n = meta.n, S = 1024;
+        const bc = document.createElement('canvas'); bc.width = bc.height = n;
+        const bg = bc.getContext('2d'); bg.drawImage(basemap, 0, 0, n, n);
+        const bd = bg.getImageData(0, 0, n, n).data;
+        const y0 = Math.floor(Y(-79)), img = g.getImageData(0, y0, W, H - y0), px = img.data;
+        for (let yy = 0; yy < H - y0; yy++) {
+          const lat = 90 - (yy + y0 + 0.5) / H * 180;
+          const r = 2 * 1737400 * Math.tan(Math.PI / 4 + lat * D2R / 2);
+          const a = Math.min(1, Math.max(0, (-79 - lat) / 1.2));
+          if (a <= 0) continue;
+          for (let xx = 0; xx < W; xx++) {
+            const lon = (xx + 0.5) / W * 360 - 180;
+            const x = r * Math.sin(lon * D2R), y = r * Math.cos(lon * D2R);
+            const bx = Math.floor((x + half) / (2 * half) * n), by = Math.floor((half - y) / (2 * half) * n);
+            if (bx < 0 || by < 0 || bx >= n || by >= n) continue;
+            const v = bd[(by * n + bx) * 4] * 1.12, i = (yy * W + xx) * 4;
+            px[i] += (v - px[i]) * a; px[i + 1] += (v * 0.99 - px[i + 1]) * a; px[i + 2] += (v * 0.97 - px[i + 2]) * a;
+          }
+        }
+        g.putImageData(img, 0, y0); tex.needsUpdate = true; if (onReady) onReady();
+      };
+      if (basemap.complete && basemap.naturalWidth) draw(); else basemap.addEventListener('load', draw, { once: true });
+    }
+    return tex;
   }
   function sunTexture() {
     return canvasTexture(256, 256, (g, w) => {
@@ -1647,7 +1760,8 @@ tr.click td, td.now { transition: background .2s ease; }
         uSunFracMin: { value: 0.5 }, uEarthMargin: { value: 0 }, uDsnOk: { value: 1 },
         cOps: { value: hexToVec('#2fbf8c') }, cSun: { value: hexToVec('#f2b84b') }, cComm: { value: hexToVec('#5fa2f0') }, cNone: { value: hexToVec('#343a43') },
         uHsDir: { value: new THREE.Vector3(-0.5, 0.75, -0.4).normalize() }, uEarthIllum: { value: 0.5 }, uAvgReady: { value: 0 },
-        uDetail: { value: 1 }, uNoiseFreq: { value: 1000 }
+        uDetail: { value: 1 }, uNoiseFreq: { value: 1000 },
+        uFlat: { value: 0 }, uFlatDir: { value: new THREE.Vector3(-0.5, 0.75, -0.4).normalize() }
       },
       vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS, extensions: { derivatives: true }
     });
@@ -1656,10 +1770,81 @@ tr.click td, td.now { transition: background .2s ease; }
     const st = {
       region: 'pole', mode: 'sun', exag: 3, sun: [1, 0, 0], earth: [-384000, 0, 0], earthIllum: 0.5, dsnOk: true,
       quality: 'high', rules: { sunFracMin: 0.5, earthMarginDeg: 0 }, sites: [], samples: [], avgDone: 0, avgKey: '',
-      grid: null, mesh: null, fp: null, cam: null, anim: null, skyScale: 4
+      grid: null, mesh: null, fp: null, cam: null, anim: null, skyScale: 4, flat: false, zones: [], hoverZone: null
     };
 
     function regionGrid() { return st.region === 'pole' ? terrain.fine : terrain.coarse; }
+    const isMoon = () => st.region === 'moon';
+
+    /* whole-Moon globe (smooth sphere, illustrative texture) and its zone discs */
+    const globeMat = new THREE.ShaderMaterial({
+      uniforms: { uTex: { value: null }, uSunDir: { value: new THREE.Vector3(1, 0, 0) }, uFlat: { value: 0 } },
+      vertexShader: GLOBE_VS, fragmentShader: GLOBE_FS
+    });
+    let globe = null; const zoneGroup = new THREE.Group(); zoneGroup.visible = false; scene.add(zoneGroup);
+    const GLOBE_C = new THREE.Vector3(0, -R, 0);
+    function ensureGlobe() {
+      if (globe) return;
+      const W = 192, H = 96, pos = new Float32Array((W + 1) * (H + 1) * 3), uv = new Float32Array((W + 1) * (H + 1) * 2), idx = [];
+      let k = 0;
+      for (let j = 0; j <= H; j++) for (let i = 0; i <= W; i++) {
+        const lat = (90 - j / H * 180) * D2R, lon = (i / W * 360 - 180) * D2R;
+        const p = toScene([Math.cos(lat) * Math.cos(lon) * R, Math.cos(lat) * Math.sin(lon) * R, Math.sin(lat) * R], true);
+        pos[k * 3] = p.x; pos[k * 3 + 1] = p.y; pos[k * 3 + 2] = p.z; uv[k * 2] = i / W; uv[k * 2 + 1] = 1 - j / H; k++;
+      }
+      for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const a = j * (W + 1) + i, b = a + 1, c = a + W + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      geo.setIndex(idx); geo.computeBoundingSphere();
+      globeMat.uniforms.uTex.value = moonTexture(opts.basemap, opts.basemapMeta, invalidate);
+      globe = new THREE.Mesh(geo, globeMat); globe.frustumCulled = false; scene.add(globe);
+    }
+    const unitOf = (lat, lon) => [Math.cos(lat * D2R) * Math.cos(lon * D2R), Math.cos(lat * D2R) * Math.sin(lon * D2R), Math.sin(lat * D2R)];
+    const angBetween = (a, b) => Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) / D2R;
+    function buildZones() {
+      while (zoneGroup.children.length) { const c = zoneGroup.children.pop(); c.geometry.dispose(); c.material.dispose(); }
+      st.zones.forEach(z => {
+        z.u = unitOf(z.lat, z.lon);
+        const c = new THREE.Vector3(...z.u);
+        const e1 = Math.abs(c.z) > 0.95 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
+        const a1 = new THREE.Vector3().crossVectors(c, e1).normalize(), a2 = new THREE.Vector3().crossVectors(c, a1).normalize();
+        const ring = (rho, rr) => { const t = rho * D2R, k = []; for (let b = 0; b < 72; b++) { const q = b / 72 * 2 * Math.PI;
+          const v = c.clone().multiplyScalar(Math.cos(t)).addScaledVector(a1, Math.sin(t) * Math.cos(q)).addScaledVector(a2, Math.sin(t) * Math.sin(q)).multiplyScalar(rr);
+          k.push(toScene([v.x, v.y, v.z], true)); } return k; };
+        const outer = ring(z.rad, R * 1.0025), inner = ring(z.rad * 0.955, R * 1.0025), ctr = toScene(z.u.map(x => x * R * 1.0025), true);
+        const fill = [], band = [];
+        for (let b = 0; b < 72; b++) { const n = (b + 1) % 72; fill.push(ctr, inner[b], inner[n]); band.push(inner[b], outer[b], inner[n], inner[n], outer[b], outer[n]); }
+        const mk = (pts, op) => { const m = new THREE.Mesh(new THREE.BufferGeometry().setFromPoints(pts),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(z.color), transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide })); m.frustumCulled = false; m.renderOrder = 2; return m; };
+        const f = mk(fill, 0.13), bnd = mk(band, 0.85);
+        f.userData = { zone: z.id, base: 0.13 }; bnd.userData = { zone: z.id, base: 0.85 };
+        zoneGroup.add(f, bnd);
+      });
+      paintZoneHover();
+    }
+    function paintZoneHover() {
+      zoneGroup.children.forEach(m => { m.material.opacity = m.userData.base * (m.userData.zone === st.hoverZone ? (m.userData.base < 0.5 ? 2.4 : 1) : 1); });
+    }
+    /* is a point on the globe on the hemisphere facing the camera? */
+    function facing(p) { return p.clone().sub(GLOBE_C).normalize().dot(camera.position.clone().sub(GLOBE_C)) > R; }
+    function sphereHit(clientX, clientY) {
+      const r = el.getBoundingClientRect();
+      ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      const o = ray.ray.origin.clone().sub(GLOBE_C), d = ray.ray.direction, b = o.dot(d), disc = b * b - (o.dot(o) - R * R);
+      if (disc < 0) return null;
+      const tt = -b - Math.sqrt(disc);
+      return tt < 0 ? null : ray.ray.origin.clone().addScaledVector(d, tt);
+    }
+    function latLonOfScene(p) {
+      const b = fromScene(p);
+      return [Math.asin(b[2] / Math.hypot(b[0], b[1], b[2])) / D2R, Math.atan2(b[1], b[0]) / D2R];
+    }
+    function zoneAtLatLon(lat, lon) {
+      const u = unitOf(lat, lon); let best = null, bd = 1e9;
+      for (const z of st.zones) { const d = angBetween(u, z.u); if (d <= z.rad && d < bd) { bd = d; best = z; } }
+      return best;
+    }
 
     /* terrain mesh */
     function buildMesh() {
@@ -1733,11 +1918,12 @@ tr.click td, td.now { transition: background .2s ease; }
     const markers = new THREE.Group(); scene.add(markers);
     function sitePos(s, extra) {
       const lat = s.lat * D2R, lon = s.lon * D2R;
-      const h = (s.heightM || terrain.height(s.lat, s.lon) || 0) * (st.fp ? 1 : st.exag) / 1000 + (extra || 0);
+      const h = isMoon() ? (extra || 0) : (s.heightM || terrain.height(s.lat, s.lon) || 0) * (st.fp ? 1 : st.exag) / 1000 + (extra || 0);
       const u = [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)];
       return toScene(u.map(c => c * (R + h)), true);
     }
     function inRegion(s) {
+      if (isMoon()) return true;
       if (!terrain.covers(s.lat)) return false;
       const G = regionGrid();
       const [x, y] = LunarTerrainXY(s.lat, s.lon);
@@ -1750,7 +1936,7 @@ tr.click td, td.now { transition: background .2s ease; }
     }
     function buildMarkers() {
       while (markers.children.length) { const c = markers.children.pop(); c.children.forEach(k => { k.geometry.dispose(); k.material.dispose(); }); c.geometry.dispose(); c.material.dispose(); }
-      const pinH = st.region === 'pole' ? 4 : 18, headR = st.region === 'pole' ? 1.3 : 5.5;
+      const pinH = isMoon() ? 70 : st.region === 'pole' ? 4 : 18, headR = isMoon() ? 24 : st.region === 'pole' ? 1.3 : 5.5;
       for (const s of st.sites) {
         if (!inRegion(s)) continue;
         const base = sitePos(s, 0), top = sitePos(s, pinH);
@@ -1775,10 +1961,14 @@ tr.click td, td.now { transition: background .2s ease; }
           .multiplyScalar(Math.cos(ctl.pitch)).add(f.U.clone().multiplyScalar(Math.sin(ctl.pitch)));
         camera.position.copy(f.pos);
         camera.up.copy(f.U);
+        const Fh = f.N.clone().multiplyScalar(Math.cos(ctl.yaw)).addScaledVector(f.E, Math.sin(ctl.yaw));
+        const Rt = f.E.clone().multiplyScalar(Math.cos(ctl.yaw)).addScaledVector(f.N, -Math.sin(ctl.yaw));
+        terrainMat.uniforms.uFlatDir.value.copy(f.U).multiplyScalar(0.75).addScaledVector(Rt, 0.45).addScaledVector(Fh, -0.25).normalize();
         camera.lookAt(f.pos.clone().add(dir));
       } else {
+        terrainMat.uniforms.uFlatDir.value.set(-0.5, 0.75, -0.4).normalize();
         const sp = Math.sin(ctl.phi);
-        camera.up.set(0, 1, 0);
+        camera.up.set(0, isMoon() ? -1 : 1, 0);
         camera.position.set(ctl.target.x + ctl.radius * sp * Math.cos(ctl.theta), ctl.target.y + ctl.radius * Math.cos(ctl.phi),
           ctl.target.z + ctl.radius * sp * Math.sin(ctl.theta));
         camera.lookAt(ctl.target);
@@ -1843,6 +2033,7 @@ tr.click td, td.now { transition: background .2s ease; }
     }
     let lastComputeMs = 0;
     function runNow() {
+      if (isMoon()) { st.nowDirty = false; return; }
       const t0 = performance.now();
       setComputeUniforms(computeNow, st.sun, st.earth, st.dsnOk);
       quad.material = computeNow;
@@ -1853,7 +2044,7 @@ tr.click td, td.now { transition: background .2s ease; }
     function avgKey() { return [st.region, st.samples.length, st.samples.length && st.samples[0].t, st.samples.length && st.samples[st.samples.length - 1].t,
       st.rules.sunFracMin, st.rules.earthMarginDeg].join('|'); }
     function stepAvg(budgetMs) {
-      if (st.mode.indexOf('avg') !== 0 || !st.samples.length) return false;
+      if (isMoon() || st.mode.indexOf('avg') !== 0 || !st.samples.length) return false;
       const key = avgKey();
       if (key !== st.avgKey) {
         st.avgKey = key; st.avgDone = 0;
@@ -1899,8 +2090,14 @@ tr.click td, td.now { transition: background .2s ease; }
         lctx.fillStyle = '#f2f4f7'; lctx.fillText(text, b.x + (dot ? 15 : 4), b.y + th / 2 + 0.5);
       };
       const proj = p => { const v = p.clone().project(camera); return v.z < 1 && v.z > -1 ? [(v.x + 1) / 2 * w, (1 - v.y) / 2 * h] : null; };
+      if (isMoon()) for (const z of st.zones) {
+        const p3 = toScene(z.u.map(x => x * R * 1.0025), true);
+        if (!facing(p3)) continue;
+        const p = proj(p3); if (p) place(p[0], p[1], z.name, z.color, true);
+      }
       // sky labels first
       for (const [obj, name] of [[sunSprite, opts.t('sunNow')], [earth, opts.t('earthNow')]]) {
+        if (!obj.visible) continue;
         const p = proj(obj.position);
         if (p) { const off = obj === earth ? Math.max(10, earth.scale.x / SKY_DIST * h / (2 * Math.tan(camera.fov * D2R / 2))) : 14; place(p[0], p[1] - off - 8, name, null, true); }
       }
@@ -1951,6 +2148,9 @@ tr.click td, td.now { transition: background .2s ease; }
       if (st.fp) {
         const k = ctl.fov * D2R / el.clientHeight;
         ctl.yaw -= dx * k; ctl.pitch = Math.max(-1.2, Math.min(1.4, ctl.pitch + dy * k));
+      } else if (isMoon()) {
+        const f = Math.max(0.25, Math.min(1, (ctl.radius - R) / (2.1 * R)));
+        ctl.theta -= dx * 0.006 * f; ctl.phi = Math.max(0.12, Math.min(Math.PI - 0.12, ctl.phi + dy * 0.005 * f));
       } else if (drag.button === 2 || drag.shift) {
         const k = ctl.radius * 0.0016;
         const right = new THREE.Vector3(-Math.sin(ctl.theta), 0, Math.cos(ctl.theta));
@@ -1970,6 +2170,7 @@ tr.click td, td.now { transition: background .2s ease; }
     el.addEventListener('contextmenu', e => e.preventDefault());
     function zoom(f) {
       if (st.fp) ctl.fov = Math.max(8, Math.min(90, ctl.fov * f));
+      else if (isMoon()) ctl.radius = Math.max(R * 1.12, Math.min(R * 9, ctl.radius * f));
       else ctl.radius = Math.max(4, Math.min(4000, ctl.radius * f));
       invalidate();
     }
@@ -1983,7 +2184,9 @@ tr.click td, td.now { transition: background .2s ease; }
       let best = null, bd = maxPx;
       for (const s of st.sites) {
         if (!inRegion(s)) continue;
-        const v = sitePos(s, st.region === 'pole' ? 4 : 18).clone().project(camera);
+        const pp = sitePos(s, isMoon() ? 70 : st.region === 'pole' ? 4 : 18);
+        if (isMoon() && !facing(pp)) continue;
+        const v = pp.clone().project(camera);
         if (v.z > 1 || v.z < -1) continue;
         const d = Math.hypot((v.x + 1) / 2 * r.width - x, (1 - v.y) / 2 * r.height - y);
         if (d < bd) { bd = d; best = s; }
@@ -2000,11 +2203,15 @@ tr.click td, td.now { transition: background .2s ease; }
     el.addEventListener('pointermove', e => {
       if (drag || !opts.onHover) return;
       const s = nearestSite(e.clientX, e.clientY, 24);
-      el.style.cursor = s ? 'pointer' : '';
+      let z = null;
+      if (!s && isMoon()) { const hp = sphereHit(e.clientX, e.clientY); if (hp) { const ll = latLonOfScene(hp); z = zoneAtLatLon(ll[0], ll[1]); } }
+      el.style.cursor = s || z ? 'pointer' : '';
       if ((s ? s.id : null) !== hoverId) setHover(s ? s.id : null);
       if (s) opts.onHover(s.id, e.clientX, e.clientY);
+      if ((z ? z.id : null) !== st.hoverZone) { st.hoverZone = z ? z.id : null; paintZoneHover(); invalidate(); if (!z && !s && opts.onZoneHover) opts.onZoneHover(null); }
+      if (z && opts.onZoneHover) opts.onZoneHover(z.id, e.clientX, e.clientY);
     });
-    el.addEventListener('pointerleave', () => { if (hoverId) setHover(null); });
+    el.addEventListener('pointerleave', () => { if (hoverId) setHover(null); if (st.hoverZone) { st.hoverZone = null; paintZoneHover(); invalidate(); if (opts.onZoneHover) opts.onZoneHover(null); } });
     function pick(e) {
       const r = el.getBoundingClientRect();
       ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
@@ -2013,21 +2220,32 @@ tr.click td, td.now { transition: background .2s ease; }
       if (hm && opts.onSite) { opts.onSite(hm.object.userData.site.id); return; }
       const ns = nearestSite(e.clientX, e.clientY, 24);
       if (ns && opts.onSite && !(drag && drag.button === 2)) { opts.onSite(ns.id); return; }
-      if (!st.mesh) return;
-      const hit = ray.intersectObject(st.mesh, false)[0];
-      if (!hit) return;
-      const b = fromScene(hit.point);
-      const lat = Math.asin(b[2] / Math.hypot(b[0], b[1], b[2])) / D2R, lon = Math.atan2(b[1], b[0]) / D2R;
-      if (drag && drag.button === 2 && opts.onContext) opts.onContext(lat, lon, e.clientX, e.clientY);
+      let hp = null;
+      if (isMoon()) hp = sphereHit(e.clientX, e.clientY);
+      else { if (!st.mesh) return; const hit = ray.intersectObject(st.mesh, false)[0]; hp = hit && hit.point; }
+      if (!hp) return;
+      const [lat, lon] = latLonOfScene(hp);
+      if (drag && drag.button === 2) { if (opts.onContext) opts.onContext(lat, lon, e.clientX, e.clientY); return; }
+      if (isMoon() && opts.onZone) { const z = zoneAtLatLon(lat, lon); if (z) opts.onZone(z.id); }
     }
 
     /* presets */
-    function regionRadius() { return regionGrid().half_m / 1000; }
+    function regionRadius() { return isMoon() ? R : regionGrid().half_m / 1000; }
     function sunAzScene() { return Math.atan2(st.sun[1], st.sun[0]); } // angle in scene x/z plane
     const api = {
       renderer,
       setRegion(region) {
-        if (region === st.region && st.mesh) return;
+        if (region === st.region && (st.mesh || region === 'moon')) return;
+        st.hoverZone = null;
+        if (region === 'moon') {
+          if (st.fp) { st.fp = null; st.exag = st.exagBeforeFp || 3; }
+          st.region = 'moon'; ensureGlobe(); globe.visible = true; zoneGroup.visible = true; earth.visible = false;
+          if (st.mesh) st.mesh.visible = false;
+          ctl.target.copy(GLOBE_C); buildMarkers(); paintZoneHover();
+          api.view('overview', null, 1); invalidate();
+          return;
+        }
+        if (globe) { globe.visible = false; zoneGroup.visible = false; } earth.visible = true;
         st.region = region; buildMesh(); buildTargets(); buildMarkers(); st.nowDirty = true;
         if (!st.fp) api.view('overview', null, 1);
         invalidate();
@@ -2048,14 +2266,29 @@ tr.click td, td.now { transition: background .2s ease; }
         for (const k of ['cOps', 'cSun', 'cComm', 'cNone']) if (c[k]) terrainMat.uniforms[k].value.copy(hexToVec(c[k]));
         invalidate();
       },
+      setFlat(on) {
+        st.flat = !!on; terrainMat.uniforms.uFlat.value = on ? 1 : 0; globeMat.uniforms.uFlat.value = on ? 1 : 0; invalidate();
+      },
+      setZones(list) { st.zones = list; buildZones(); invalidate(); },
+      focusZone(id, ms) {
+        const z = st.zones.find(q => q.id === id); if (!z || !isMoon()) return;
+        const p = toScene(z.u.map(x => x * R), true).sub(GLOBE_C).normalize();
+        animateTo({ tx: GLOBE_C.x, ty: GLOBE_C.y, tz: GLOBE_C.z, radius: R * (1.35 + z.rad / 40), theta: Math.atan2(p.z, p.x), phi: Math.max(0.12, Math.min(Math.PI - 0.12, Math.acos(p.y))) }, ms || 1000);
+      },
       setState(s) {
-        st.sun = s.sun; st.earth = s.earth; st.earthIllum = s.earthIllum; st.dsnOk = s.dsnOk;
+        st.sun = s.sun; st.earth = s.earth;
+        { const q = toScene([s.sun[0], s.sun[1], s.sun[2]]).normalize(); globeMat.uniforms.uSunDir.value.copy(q); } st.earthIllum = s.earthIllum; st.dsnOk = s.dsnOk;
         terrainMat.uniforms.uDsnOk.value = s.dsnOk ? 1 : 0; terrainMat.uniforms.uEarthIllum.value = s.earthIllum;
         st.nowDirty = true; invalidate();
       },
       setSites(list, rebuild) { st.sites = list; if (rebuild !== false) buildMarkers(); invalidate(); },
       flyTo(site, ms) {
         if (st.fp || !site) return;
+        if (isMoon()) {
+          const q = sitePos(site, 0).sub(GLOBE_C).normalize();
+          animateTo({ tx: GLOBE_C.x, ty: GLOBE_C.y, tz: GLOBE_C.z, radius: Math.min(ctl.radius, R * 2.3), theta: Math.atan2(q.z, q.x), phi: Math.max(0.12, Math.min(Math.PI - 0.12, Math.acos(q.y))) }, ms || 900);
+          return;
+        }
         const p = sitePos(site, 0);
         animateTo({ tx: p.x, ty: p.y, tz: p.z, radius: Math.min(ctl.radius, regionRadius() * 0.9), phi: 0.85 }, ms || 900);
       },
@@ -2064,6 +2297,15 @@ tr.click td, td.now { transition: background .2s ease; }
       mode: () => st.mode,
       setSamples(samples) { st.samples = samples; invalidate(); },
       view(name, site, ms) {
+        if (isMoon()) {
+          if (name === 'site' && site) { api.flyTo(site, ms); return; }
+          const g = { tx: GLOBE_C.x, ty: GLOBE_C.y, tz: GLOBE_C.z, radius: R * 3.7, fov: 45 };
+          if (name === 'sun') {
+            const q = toScene([st.sun[0], st.sun[1], st.sun[2]]).normalize();
+            animateTo(Object.assign(g, { theta: Math.atan2(q.z, q.x), phi: Math.max(0.12, Math.min(Math.PI - 0.12, Math.acos(q.y))) }), ms);
+          } else animateTo(Object.assign(g, { theta: 0, phi: Math.PI / 2 - 0.72 }), ms);
+          return;
+        }
         if (name === 'site' && site) {
           const lat = site.lat * D2R, lon = site.lon * D2R;
           const U = toScene([Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)]).normalize();
@@ -2210,6 +2452,11 @@ tr.click td, td.now { transition: background .2s ease; }
       mAvgEarth: 'Earth link, share of the period', mAvgOps: 'Power + link, share of the period',
       vOverview: 'Overview', vSun: 'Look toward the Sun', vStand: 'Stand at', vTour: 'Guided tour', vTourStop: 'Stop the tour',
       v3dNote: 'Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Right-click the terrain (without dragging) to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.',
+      vwLight: 'Light everywhere', lightTip: 'Fictional even lighting: see the terrain itself, without real shadows or colours. This is not the real Sun.',
+      flatTag: 'Fictional lighting: real shadows and colours are hidden', scMoon: 'Whole Moon', scPole: 'South pole', v3dMoon: 'Whole Moon (overview)',
+      lgMoon: 'Lit side = the real Sun at the cursor time. The surface texture is illustrative (maria positions approximate); the south pole cap is real LOLA relief. Discs = zones with sites; click one to zoom.',
+      zPolar: 'South pole · Artemis & CLPS', zApollo: 'Apollo & SLIM · near side', zWest: 'Reiner Gamma & Chang’e 5 · west', zFar: 'Chang’e 4 & 6 · far side',
+      zoneTip: '{n} sites · click to zoom', zoneToast: '{z}: LOLA terrain only covers the south pole, so these sites use a smooth horizon (less precise). Click a marker for its profile.', hudSubSolar: 'Sun overhead',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -2298,6 +2545,11 @@ tr.click td, td.now { transition: background .2s ease; }
       mAvgEarth: 'Liaison Terre, part de la période', mAvgOps: 'Énergie + liaison, part de la période',
       vOverview: 'Vue d’ensemble', vSun: 'Regarder vers le Soleil', vStand: 'Se placer sur', vTour: 'Visite guidée', vTourStop: 'Arrêter la visite',
       v3dNote: 'Glissez pour tourner, clic droit ou Maj + glisser pour déplacer, molette pour zoomer. Clic droit sur le relief (sans glisser) pour y ajouter un site. Ombres et visibilité de la Terre sont calculées par votre carte graphique à partir du relief LOLA ; l’étirement vertical est seulement visuel.',
+      vwLight: 'Lumière partout', lightTip: 'Éclairage fictif uniforme : voir le relief lui-même, sans ombres ni couleurs réelles. Ce n’est pas le vrai Soleil.',
+      flatTag: 'Éclairage fictif : ombres et couleurs réelles masquées', scMoon: 'Toute la Lune', scPole: 'Pôle sud', v3dMoon: 'Toute la Lune (vue d’ensemble)',
+      lgMoon: 'Côté éclairé = le vrai Soleil à l’heure du curseur. La texture de surface est illustrative (positions des mers approximatives) ; la calotte du pôle sud est le vrai relief LOLA. Disques = zones avec des sites ; cliquez pour zoomer.',
+      zPolar: 'Pôle sud · Artemis et CLPS', zApollo: 'Apollo et SLIM · face visible', zWest: 'Reiner Gamma et Chang’e 5 · ouest', zFar: 'Chang’e 4 et 6 · face cachée',
+      zoneTip: '{n} sites · cliquer pour zoomer', zoneToast: '{z} : le relief LOLA ne couvre que le pôle sud, ces sites utilisent donc un horizon lisse (moins précis). Cliquez sur un marqueur pour son profil.', hudSubSolar: 'Soleil au zénith',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -3559,7 +3811,7 @@ tr.click td, td.now { transition: background .2s ease; }
       state.focus = b.id; computeSeries();
     } else setFocus(b.id);
     toast(t('bestMsg').replace('{n}', s.name).replace('{g}', b.gr.letter).replace('{p}', fmt(b.gr.pct, 0)).replace('{d}', utc(timeOf(state.cursor), false)));
-    if (v3d) { if (!v3d.inRegion(s)) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); } v3d.view('overview'); }
+    if (v3d) { if (v3d.region() === 'moon' || !v3d.inRegion(s)) setRegionUI('south'); v3d.view('overview'); }
   }
   $('#bestBtn').addEventListener('click', bestSite);
   const gradeChip = gr => `<span class="grade" style="background:${gr.color}">${gr.letter}</span>`;
@@ -3582,7 +3834,7 @@ tr.click td, td.now { transition: background .2s ease; }
       state.focus = id; computeSeries();
     } else setFocus(id);
     if (v3d) {
-      if (!v3d.inRegion(s) && s.lat <= -75) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); }
+      if (!v3d.inRegion(s) && s.lat <= -75) setRegionUI('south');
       v3d.flyTo(s, 900);
     }
     if (scroll && state.tab === '3d') {
@@ -3664,12 +3916,17 @@ tr.click td, td.now { transition: background .2s ease; }
           onSite: id => openSite(id),
           onContext: (lat, lon, x, y) => showAddPop(lat, lon, x, y),
           onHover: onSiteHover,
+          onZone: openZone, onZoneHover,
+          basemap: baseImg, basemapMeta: DATA.assets.basemap,
           onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
           onUserInput: () => { if (tour) stopTour(); }
         });
         v3d.setRules(state.cfg);
         v3d.setQuality($('#v3dQuality').value);
         v3d.setExag(+$('#v3dExag').value);
+        v3d.setFlat(flat);
+        syncZones();
+        if ($('#v3dRegion').value === 'moon') v3d.setRegion('moon');
         set3DMode($('#v3dMode').value);
         $('#v3dStatus').textContent = '';
         return v3d;
@@ -3681,6 +3938,7 @@ tr.click td, td.now { transition: background .2s ease; }
     const i = state.cursor, heat = $('#v3dMode').value.startsWith('avg') && v3d && v3d.region() === 'south';
     const top = {}, gcol = {};
     if (heat) rankSouth().forEach((x, k) => { gcol[x.id] = x.gr.color; if (k < 3) top[x.id] = true; });
+    else if (v3d && v3d.region() === 'moon') state.sites.forEach(s => { const gr = siteGrade(s.id); if (gr) gcol[s.id] = gr.color; });
     return state.sites.map(s => {
       const ser = state.series[s.id], sel = state.selected.includes(s.id);
       const sc = ser ? (ser.ops[i] ? ST_COL.ops : ser.lit[i] ? ST_COL.sun : ser.dte[i] ? ST_COL.comm : ST_COL.none) : null;
@@ -3715,33 +3973,105 @@ tr.click td, td.now { transition: background .2s ease; }
   function update3D() {
     if (!v3d || !state.grid) return;
     if (heatOn()) scheduleHeat();
+    syncZones();
     const list = v3dSites();
     const key = list.map(s => s.id + (s.selected ? 1 : 0) + (s.focus ? 1 : 0) + s.color + s.lat).join('|');
     v3d.setSites(list, key !== v3dSitesKey); v3dSitesKey = key;
     const S = v3dStateAt(state.cursor);
     v3d.setState(S);
+    renderLegend();
     // HUD: Sun and Earth as seen from the pole itself
     const g = state.grid, i = state.cursor;
     const el = v => Math.asin(-v[2] / Math.hypot(v[0], v[1], v[2])) * 180 / Math.PI;
     const az = v => ((Math.atan2(v[1], v[0]) * 180 / Math.PI) + 360) % 360;
     const poleE = [S.earth[0], S.earth[1], S.earth[2] + 1737.4];
     const dsnIn = E.DSN.filter((d, k) => g.dsn[i * 3 + k] >= state.cfg.dsnMinDeg).map(d => d.name);
-    $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E<br>` +
+    const subLat = Math.asin(S.sun[2] / Math.hypot(S.sun[0], S.sun[1], S.sun[2])) * 180 / Math.PI, subLon = Math.atan2(S.sun[1], S.sun[0]) * 180 / Math.PI;
+    const sunLine = v3d.region() === 'moon' ? `${t('hudSubSolar')} ${fmt(Math.abs(subLat), 1)}°${subLat < 0 ? 'S' : 'N'} ${fmt(Math.abs(subLon), 0)}°${subLon < 0 ? 'W' : 'E'}`
+      : `${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E`;
+    $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${sunLine}<br>` +
       `${t('hudEarth')} ${fmt(el(poleE), 2)}° · ${t('phase')} ${fmt(S.earthIllum * 100, 0)}%<br>DSN: ${dsnIn.length ? dsnIn.join(', ') : t('none')}` +
       (state.series[state.focus] ? (() => { const c = E.conditionsAt(state.series[state.focus], g, i), a1 = changeInfo(c, 'sun'), a2 = changeInfo(c, 'earth');
         const gr = siteGrade(state.focus);
         return `<br><b style="font-size:13px">${esc(site(state.focus).name)}</b>${gr ? ' ' + gradeChip(gr) + ' ' + fmt(gr.pct, 0) + '%' : ''}: ${t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))} · ${a1.label} ${a1.val} · ${a2.label} ${a2.val}`; })() : '');
   }
-  function set3DMode(mode) {
-    $('#v3dMode').value = mode;
-    if (v3d) v3d.setMode(mode);
-    const L = $('#v3dLegend');
+  /* region / scope: 'moon' = whole Moon, 'south' (75-90 S) and 'pole' (87.5-90 S) = LOLA terrain */
+  function syncScope() {
+    const moon = $('#v3dRegion').value === 'moon';
+    document.querySelectorAll('#v3dScope [data-scope]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.scope === 'moon') === moon)));
+  }
+  function setRegionUI(r) {
+    $('#v3dRegion').value = r;
+    if (v3d) v3d.setRegion(r);
+    syncScope(); renderLegend(); update3D();
+  }
+  /* fictional even lighting ("light everywhere") */
+  let flat = store.get('flat', false) === true;
+  function applyFlat() {
+    $('#v3dLight').setAttribute('aria-pressed', String(flat));
+    $('#v3dFlatTag').hidden = !flat;
+    if (v3d) v3d.setFlat(flat);
+    renderLegend();
+  }
+  $('#v3dLight').addEventListener('click', () => { flat = !flat; store.set('flat', flat); applyFlat(); });
+  /* zones shown as discs on the whole-Moon view */
+  const ZONE_DEFS = [
+    { id: 'polar', key: 'zPolar', color: '#f2b84b', south: true },
+    { id: 'apollo', key: 'zApollo', color: '#5fa2f0', ids: ['a11', 'a12', 'a14', 'a15', 'a16', 'a17', 'slim'] },
+    { id: 'west', key: 'zWest', color: '#5fa2f0', ids: ['im3', 'ce5'] },
+    { id: 'far', key: 'zFar', color: '#5fa2f0', ids: ['ce4', 'ce6'] }
+  ];
+  let zonesCache = [], zonesKey = '';
+  function zoneList() {
+    const D = Math.PI / 180, U = (la, lo) => [Math.cos(la * D) * Math.cos(lo * D), Math.cos(la * D) * Math.sin(lo * D), Math.sin(la * D)];
+    return ZONE_DEFS.map(d => {
+      const ss = d.south ? state.sites.filter(s => s.lat <= -75) : d.ids.map(site).filter(Boolean);
+      if (!ss.length) return null;
+      let lat = -90, lon = 0, rad = 15;
+      if (!d.south) {
+        let v = [0, 0, 0]; ss.forEach(s => { const u = U(s.lat, s.lon); v = v.map((x, k) => x + u[k]); });
+        const n = Math.hypot(...v); v = v.map(x => x / n);
+        lat = Math.asin(v[2]) / D; lon = Math.atan2(v[1], v[0]) / D;
+        rad = Math.max(8, 5 + Math.max(...ss.map(s => { const u = U(s.lat, s.lon); return Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1] + u[2] * v[2]))) / D; })));
+      }
+      return { id: d.id, name: t(d.key), color: d.color, lat, lon, rad, siteIds: ss.map(s => s.id) };
+    }).filter(Boolean);
+  }
+  function syncZones() {
+    const zl = zoneList(), key = lang + '|' + zl.map(z => z.id + z.rad.toFixed(1) + z.siteIds.length).join(',');
+    zonesCache = zl;
+    if (v3d && key !== zonesKey) { v3d.setZones(zl); zonesKey = key; }
+  }
+  function openZone(id) {
+    const z = zonesCache.find(q => q.id === id); if (!z || !v3d) return;
+    if (id === 'polar') { setRegionUI('south'); v3d.view('overview'); return; }
+    v3d.focusZone(id);
+    toast(t('zoneToast').replace('{z}', z.name));
+  }
+  function onZoneHover(id, x, y) {
+    if (!id) { hideTip(); return; }
+    const z = zonesCache.find(q => q.id === id); if (!z) return;
+    tip.innerHTML = `<div class="r"><b>${esc(z.name)}</b></div><div class="t">${t('zoneTip').replace('{n}', z.siteIds.length)}</div>`;
+    tip.hidden = false;
+    const r = tip.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - r.width - 8, x + 14) + 'px';
+    tip.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y + 14)) + 'px';
+  }
+  function renderLegend() {
+    const L = $('#v3dLegend'), mode = $('#v3dMode').value, moon = $('#v3dRegion').value === 'moon';
+    if (flat) { L.innerHTML = `<span>${t('flatTag')}</span>`; return; }
+    if (moon) { L.innerHTML = `<span>${t('lgMoon')}</span>`; return; }
     if (mode === 'sun') L.innerHTML = `<span>${t('lgReal')}</span>`;
     else if (mode === 'plan') L.innerHTML = [['ops', 'lgOps'], ['sun', 'lgSun'], ['comm', 'lgComm'], ['none', 'lgNone']]
       .map(([k, l]) => `<span><i class="sw" style="background:var(--st-${k})"></i> ${t(l)}</span>`).join('');
     else {
       L.innerHTML = `<span>${t('poor')}</span><span class="ramp" style="background:linear-gradient(90deg,#b2182b,#ef8a62,#f5f5f5,#67a9cf,#2166ac)"></span><span>${t('good')} (${heatWin ? t('heatWindow') : t('ofPeriod')})</span><span class="muted">${t('stretched')}</span>`;
     }
+  }
+  function set3DMode(mode) {
+    $('#v3dMode').value = mode;
+    if (v3d) v3d.setMode(mode);
+    renderLegend();
     document.querySelectorAll('#v3dView [data-view]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.view === 'heat') === mode.startsWith('avg'))));
   }
   function update3DButtons() {
@@ -3753,10 +4083,15 @@ tr.click td, td.now { transition: background .2s ease; }
   }
   function standAt(id, ms) {
     const s = site(id); if (!s || s.lat > -75 || !v3d) return;
-    if (!v3d.inRegion(s)) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); }
+    if (v3d.region() === 'moon' || !v3d.inRegion(s)) setRegionUI('south');
     v3d.view('site', s, ms);
   }
-  $('#v3dRegion').addEventListener('change', e => init3D().then(v => { if (v) { v.setRegion(e.target.value); update3D(); } }));
+  $('#v3dRegion').addEventListener('change', e => init3D().then(v => { if (v) setRegionUI(e.target.value); }));
+  $('#v3dScope').addEventListener('click', e => {
+    const b = e.target.closest('[data-scope]'); if (!b) return;
+    if (tour) stopTour();
+    init3D().then(v => { if (!v) return; setRegionUI(b.dataset.scope === 'moon' ? 'moon' : (v.region() === 'moon' ? 'south' : v.region())); });
+  });
   $('#v3dMode').addEventListener('change', e => { heatWin = false; set3DMode(e.target.value); if (v3d && state.grid) v3d.setSamples(v3dSamples()); });
   $('#v3dView').addEventListener('click', e => {
     const b = e.target.closest('[data-view]'); if (!b) return;
@@ -3764,7 +4099,7 @@ tr.click td, td.now { transition: background .2s ease; }
     set3DMode(heatWin ? 'avgOps' : 'sun');
     if (v3d && state.grid) v3d.setSamples(heatWin ? windowSamples() : v3dSamples());
     if (b.dataset.view === 'heat' && v3d) {
-      if (v3d.region() !== 'south') { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); update3D(); }
+      if (v3d.region() !== 'south') setRegionUI('south');
       v3d.view('overview');
     }
   });
@@ -3815,7 +4150,7 @@ tr.click td, td.now { transition: background .2s ease; }
     if (k >= TOUR.length) { stopTour(); return; }
     const S = TOUR[k];
     const v = await init3D(); if (!v || !tour) return;
-    if (S.region && v.region() !== S.region) { $('#v3dRegion').value = S.region; v.setRegion(S.region); }
+    if (S.region && v.region() !== S.region) setRegionUI(S.region);
     set3DMode(S.mode);
     if (S.site) standAt(S.site, 1200); else v.view(S.view, null, 1300);
     setPlaying(S.play);
@@ -4289,6 +4624,7 @@ tr.click td, td.now { transition: background .2s ease; }
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => { const v = I18N[lang][el.dataset.i18n]; if (v) el.textContent = v; });
     document.querySelectorAll('[data-i18n-ph]').forEach(el => { const v = I18N[lang][el.dataset.i18nPh]; if (v) { el.placeholder = v; el.setAttribute('aria-label', v); } });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => { const v = I18N[lang][el.dataset.i18nTitle]; if (v) el.title = v; });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => { const v = I18N[lang][el.dataset.i18nAria]; if (v) { el.setAttribute('aria-label', v); el.title = v; } });
     $('#lang').textContent = lang === 'en' ? 'FR' : 'EN';
     buildMethod(); renderMethod();
@@ -4302,6 +4638,7 @@ tr.click td, td.now { transition: background .2s ease; }
 
   /* ---------- boot */
   applyI18n();
+  applyFlat(); syncScope();
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);

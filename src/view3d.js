@@ -108,6 +108,7 @@
     uniform int uMode; uniform float uSunFracMin; uniform float uEarthMargin; uniform float uDsnOk;
     uniform vec3 cOps; uniform vec3 cSun; uniform vec3 cComm; uniform vec3 cNone;
     uniform vec3 uHsDir; uniform float uEarthIllum; uniform float uAvgReady; uniform float uDetail; uniform float uNoiseFreq;
+    uniform float uFlat; uniform vec3 uFlatDir;
     varying vec2 vUv; varying vec3 vN;
     vec3 ramp(vec3 hue, float v) {
       vec3 c = mix(vec3(0.11, 0.115, 0.13), hue, smoothstep(0.0, 0.85, v));
@@ -150,6 +151,37 @@
         col = thermal(pow(clamp(v / 0.7, 0.0, 1.0), 0.7)) * (0.62 + 0.38 * hs);
         if (uAvgReady < 0.5) col *= 0.6;
       }
+      if (uFlat > 0.5) {   // fictional even lighting: just the terrain, no real shadows or states
+        float h2 = clamp(dot(normalize(vN), uFlatDir), 0.0, 1.0);
+        col = vec3(0.76, 0.74, 0.71) * (0.26 + 0.74 * h2) * dt;
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }
+  `;
+
+  /* whole-Moon globe: Lambert shading from the real Sun direction, optional even light */
+  const GLOBE_VS = `
+    #include <common>
+    #include <logdepthbuf_pars_vertex>
+    varying vec2 vUv; varying vec3 vN;
+    void main() {
+      vUv = uv; vN = normalize(position + vec3(0.0, 1737.4, 0.0));
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      #include <logdepthbuf_vertex>
+    }
+  `;
+  const GLOBE_FS = `
+    #include <common>
+    #include <logdepthbuf_pars_fragment>
+    uniform sampler2D uTex; uniform vec3 uSunDir; uniform float uFlat;
+    varying vec2 vUv; varying vec3 vN;
+    void main() {
+      #include <logdepthbuf_fragment>
+      vec3 base = texture2D(uTex, vUv).rgb;
+      float d = dot(normalize(vN), uSunDir);
+      float day = smoothstep(-0.015, 0.09, d) * (0.34 + 0.66 * clamp(d * 1.25, 0.0, 1.0));
+      vec3 col = base * (0.05 + 0.95 * day) * vec3(1.0, 0.99, 0.96);
+      if (uFlat > 0.5) col = base * 0.92;
       gl_FragColor = vec4(col, 1.0);
     }
   `;
@@ -176,6 +208,71 @@
       for (let k = 0; k < 60; k++) { g.globalAlpha = 0.35 + rnd() * 0.4; g.fillStyle = '#ffffff'; g.beginPath(); g.ellipse(rnd() * w, rnd() * h, 10 + rnd() * 40, 3 + rnd() * 6, rnd(), 0, 7); g.fill(); }
       g.globalAlpha = 1;
     });
+  }
+  /* Illustrative whole-Moon surface: approximate maria positions + craters. NOT LOLA data;
+     the real LOLA shaded relief of the south polar cap (80-90 S) is composited on top. */
+  const MARIA = [   // lat, lon (E), radius deg, darkness
+    [18, -57, 17, .62], [26, -42, 10, .5], [8, -31, 7, .55], [33, -16, 13, .72], [56, 0, 22, .38], [28, 18, 8, .7], [8, 31, 9, .72],
+    [13, 3, 4.5, .6], [-21, -16, 9, .58], [-24, -39, 5.5, .66], [-10, -23, 4.5, .55], [-15, 34, 4.2, .6], [-4, 52, 8, .62], [17, 59, 5.2, .78],
+    [-19, -93, 4, .55], [27, 148, 3.2, .55], [-34, 166, 3.2, .5], [2, 98, 3, .35], [-53, -169, 24, .2], [10, -20, 3, .0]
+  ];
+  function moonTexture(basemap, meta, onReady) {
+    const W = 2048, H = 1024;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const rnd = seeded(2026);
+    g.fillStyle = '#9a9792'; g.fillRect(0, 0, W, H);
+    const X = lon => (lon + 180) / 360 * W, Y = lat => (90 - lat) / 180 * H;
+    const blobAt = (lat, lon, rad, a, col) => {
+      for (const dx of [-W, 0, W]) {
+        const cx = X(lon) + dx, cy = Y(lat), ry = rad / 180 * H, rx = ry / Math.max(0.12, Math.cos(lat * D2R));
+        if (cx + rx < 0 || cx - rx > W) continue;
+        g.save(); g.translate(cx, cy); g.scale(rx / ry, 1);
+        const gr = g.createRadialGradient(0, 0, 0, 0, 0, ry);
+        gr.addColorStop(0, col.replace('A', a)); gr.addColorStop(0.72, col.replace('A', a * 0.85)); gr.addColorStop(1, col.replace('A', 0));
+        g.fillStyle = gr; g.beginPath(); g.arc(0, 0, ry, 0, 7); g.fill(); g.restore();
+      }
+    };
+    // highland mottling, then maria
+    for (let k = 0; k < 900; k++) blobAt(rnd() * 160 - 80, rnd() * 360 - 180, 2 + rnd() * 6, 0.05 + rnd() * 0.06, rnd() < 0.5 ? 'rgba(60,58,55,A)' : 'rgba(225,222,215,A)');
+    for (const [la, lo, r, d] of MARIA) {
+      if (d <= 0.01) continue;
+      for (let j = 0; j < 4; j++) blobAt(la + (rnd() - .5) * r * .5, lo + (rnd() - .5) * r * .7, r * (0.55 + rnd() * 0.5), d * 0.55, 'rgba(48,50,56,A)');
+    }
+    // craters (uniform on the sphere) and a few bright ray craters
+    for (let k = 0; k < 5200; k++) {
+      const lat = Math.asin(rnd() * 2 - 1) / D2R, lon = rnd() * 360 - 180, r = 0.25 + Math.pow(rnd(), 3) * 3.2;
+      blobAt(lat, lon, r, 0.16, 'rgba(30,30,32,A)'); blobAt(lat + r * .18, lon - r * .18 / Math.max(.2, Math.cos(lat * D2R)), r * .7, 0.10, 'rgba(235,232,225,A)');
+    }
+    for (const [la, lo, r] of [[-43, -11, 3.2], [10, -20, 2.6], [8, -38, 2.2], [-9, -2, 2], [-44, 100, 2.4], [12, 51, 2]]) blobAt(la, lo, r, 0.55, 'rgba(250,248,240,A)');
+    const tex = new THREE.CanvasTexture(c);
+    tex.anisotropy = 4;
+    if (basemap) {
+      const draw = () => {
+        const half = meta.half_m, n = meta.n, S = 1024;
+        const bc = document.createElement('canvas'); bc.width = bc.height = n;
+        const bg = bc.getContext('2d'); bg.drawImage(basemap, 0, 0, n, n);
+        const bd = bg.getImageData(0, 0, n, n).data;
+        const y0 = Math.floor(Y(-79)), img = g.getImageData(0, y0, W, H - y0), px = img.data;
+        for (let yy = 0; yy < H - y0; yy++) {
+          const lat = 90 - (yy + y0 + 0.5) / H * 180;
+          const r = 2 * 1737400 * Math.tan(Math.PI / 4 + lat * D2R / 2);
+          const a = Math.min(1, Math.max(0, (-79 - lat) / 1.2));
+          if (a <= 0) continue;
+          for (let xx = 0; xx < W; xx++) {
+            const lon = (xx + 0.5) / W * 360 - 180;
+            const x = r * Math.sin(lon * D2R), y = r * Math.cos(lon * D2R);
+            const bx = Math.floor((x + half) / (2 * half) * n), by = Math.floor((half - y) / (2 * half) * n);
+            if (bx < 0 || by < 0 || bx >= n || by >= n) continue;
+            const v = bd[(by * n + bx) * 4] * 1.12, i = (yy * W + xx) * 4;
+            px[i] += (v - px[i]) * a; px[i + 1] += (v * 0.99 - px[i + 1]) * a; px[i + 2] += (v * 0.97 - px[i + 2]) * a;
+          }
+        }
+        g.putImageData(img, 0, y0); tex.needsUpdate = true; if (onReady) onReady();
+      };
+      if (basemap.complete && basemap.naturalWidth) draw(); else basemap.addEventListener('load', draw, { once: true });
+    }
+    return tex;
   }
   function sunTexture() {
     return canvasTexture(256, 256, (g, w) => {
@@ -251,7 +348,8 @@
         uSunFracMin: { value: 0.5 }, uEarthMargin: { value: 0 }, uDsnOk: { value: 1 },
         cOps: { value: hexToVec('#2fbf8c') }, cSun: { value: hexToVec('#f2b84b') }, cComm: { value: hexToVec('#5fa2f0') }, cNone: { value: hexToVec('#343a43') },
         uHsDir: { value: new THREE.Vector3(-0.5, 0.75, -0.4).normalize() }, uEarthIllum: { value: 0.5 }, uAvgReady: { value: 0 },
-        uDetail: { value: 1 }, uNoiseFreq: { value: 1000 }
+        uDetail: { value: 1 }, uNoiseFreq: { value: 1000 },
+        uFlat: { value: 0 }, uFlatDir: { value: new THREE.Vector3(-0.5, 0.75, -0.4).normalize() }
       },
       vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS, extensions: { derivatives: true }
     });
@@ -260,10 +358,81 @@
     const st = {
       region: 'pole', mode: 'sun', exag: 3, sun: [1, 0, 0], earth: [-384000, 0, 0], earthIllum: 0.5, dsnOk: true,
       quality: 'high', rules: { sunFracMin: 0.5, earthMarginDeg: 0 }, sites: [], samples: [], avgDone: 0, avgKey: '',
-      grid: null, mesh: null, fp: null, cam: null, anim: null, skyScale: 4
+      grid: null, mesh: null, fp: null, cam: null, anim: null, skyScale: 4, flat: false, zones: [], hoverZone: null
     };
 
     function regionGrid() { return st.region === 'pole' ? terrain.fine : terrain.coarse; }
+    const isMoon = () => st.region === 'moon';
+
+    /* whole-Moon globe (smooth sphere, illustrative texture) and its zone discs */
+    const globeMat = new THREE.ShaderMaterial({
+      uniforms: { uTex: { value: null }, uSunDir: { value: new THREE.Vector3(1, 0, 0) }, uFlat: { value: 0 } },
+      vertexShader: GLOBE_VS, fragmentShader: GLOBE_FS
+    });
+    let globe = null; const zoneGroup = new THREE.Group(); zoneGroup.visible = false; scene.add(zoneGroup);
+    const GLOBE_C = new THREE.Vector3(0, -R, 0);
+    function ensureGlobe() {
+      if (globe) return;
+      const W = 192, H = 96, pos = new Float32Array((W + 1) * (H + 1) * 3), uv = new Float32Array((W + 1) * (H + 1) * 2), idx = [];
+      let k = 0;
+      for (let j = 0; j <= H; j++) for (let i = 0; i <= W; i++) {
+        const lat = (90 - j / H * 180) * D2R, lon = (i / W * 360 - 180) * D2R;
+        const p = toScene([Math.cos(lat) * Math.cos(lon) * R, Math.cos(lat) * Math.sin(lon) * R, Math.sin(lat) * R], true);
+        pos[k * 3] = p.x; pos[k * 3 + 1] = p.y; pos[k * 3 + 2] = p.z; uv[k * 2] = i / W; uv[k * 2 + 1] = 1 - j / H; k++;
+      }
+      for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const a = j * (W + 1) + i, b = a + 1, c = a + W + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+      geo.setIndex(idx); geo.computeBoundingSphere();
+      globeMat.uniforms.uTex.value = moonTexture(opts.basemap, opts.basemapMeta, invalidate);
+      globe = new THREE.Mesh(geo, globeMat); globe.frustumCulled = false; scene.add(globe);
+    }
+    const unitOf = (lat, lon) => [Math.cos(lat * D2R) * Math.cos(lon * D2R), Math.cos(lat * D2R) * Math.sin(lon * D2R), Math.sin(lat * D2R)];
+    const angBetween = (a, b) => Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) / D2R;
+    function buildZones() {
+      while (zoneGroup.children.length) { const c = zoneGroup.children.pop(); c.geometry.dispose(); c.material.dispose(); }
+      st.zones.forEach(z => {
+        z.u = unitOf(z.lat, z.lon);
+        const c = new THREE.Vector3(...z.u);
+        const e1 = Math.abs(c.z) > 0.95 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
+        const a1 = new THREE.Vector3().crossVectors(c, e1).normalize(), a2 = new THREE.Vector3().crossVectors(c, a1).normalize();
+        const ring = (rho, rr) => { const t = rho * D2R, k = []; for (let b = 0; b < 72; b++) { const q = b / 72 * 2 * Math.PI;
+          const v = c.clone().multiplyScalar(Math.cos(t)).addScaledVector(a1, Math.sin(t) * Math.cos(q)).addScaledVector(a2, Math.sin(t) * Math.sin(q)).multiplyScalar(rr);
+          k.push(toScene([v.x, v.y, v.z], true)); } return k; };
+        const outer = ring(z.rad, R * 1.0025), inner = ring(z.rad * 0.955, R * 1.0025), ctr = toScene(z.u.map(x => x * R * 1.0025), true);
+        const fill = [], band = [];
+        for (let b = 0; b < 72; b++) { const n = (b + 1) % 72; fill.push(ctr, inner[b], inner[n]); band.push(inner[b], outer[b], inner[n], inner[n], outer[b], outer[n]); }
+        const mk = (pts, op) => { const m = new THREE.Mesh(new THREE.BufferGeometry().setFromPoints(pts),
+          new THREE.MeshBasicMaterial({ color: new THREE.Color(z.color), transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide })); m.frustumCulled = false; m.renderOrder = 2; return m; };
+        const f = mk(fill, 0.13), bnd = mk(band, 0.85);
+        f.userData = { zone: z.id, base: 0.13 }; bnd.userData = { zone: z.id, base: 0.85 };
+        zoneGroup.add(f, bnd);
+      });
+      paintZoneHover();
+    }
+    function paintZoneHover() {
+      zoneGroup.children.forEach(m => { m.material.opacity = m.userData.base * (m.userData.zone === st.hoverZone ? (m.userData.base < 0.5 ? 2.4 : 1) : 1); });
+    }
+    /* is a point on the globe on the hemisphere facing the camera? */
+    function facing(p) { return p.clone().sub(GLOBE_C).normalize().dot(camera.position.clone().sub(GLOBE_C)) > R; }
+    function sphereHit(clientX, clientY) {
+      const r = el.getBoundingClientRect();
+      ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+      ray.setFromCamera(ndc, camera);
+      const o = ray.ray.origin.clone().sub(GLOBE_C), d = ray.ray.direction, b = o.dot(d), disc = b * b - (o.dot(o) - R * R);
+      if (disc < 0) return null;
+      const tt = -b - Math.sqrt(disc);
+      return tt < 0 ? null : ray.ray.origin.clone().addScaledVector(d, tt);
+    }
+    function latLonOfScene(p) {
+      const b = fromScene(p);
+      return [Math.asin(b[2] / Math.hypot(b[0], b[1], b[2])) / D2R, Math.atan2(b[1], b[0]) / D2R];
+    }
+    function zoneAtLatLon(lat, lon) {
+      const u = unitOf(lat, lon); let best = null, bd = 1e9;
+      for (const z of st.zones) { const d = angBetween(u, z.u); if (d <= z.rad && d < bd) { bd = d; best = z; } }
+      return best;
+    }
 
     /* terrain mesh */
     function buildMesh() {
@@ -337,11 +506,12 @@
     const markers = new THREE.Group(); scene.add(markers);
     function sitePos(s, extra) {
       const lat = s.lat * D2R, lon = s.lon * D2R;
-      const h = (s.heightM || terrain.height(s.lat, s.lon) || 0) * (st.fp ? 1 : st.exag) / 1000 + (extra || 0);
+      const h = isMoon() ? (extra || 0) : (s.heightM || terrain.height(s.lat, s.lon) || 0) * (st.fp ? 1 : st.exag) / 1000 + (extra || 0);
       const u = [Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)];
       return toScene(u.map(c => c * (R + h)), true);
     }
     function inRegion(s) {
+      if (isMoon()) return true;
       if (!terrain.covers(s.lat)) return false;
       const G = regionGrid();
       const [x, y] = LunarTerrainXY(s.lat, s.lon);
@@ -354,7 +524,7 @@
     }
     function buildMarkers() {
       while (markers.children.length) { const c = markers.children.pop(); c.children.forEach(k => { k.geometry.dispose(); k.material.dispose(); }); c.geometry.dispose(); c.material.dispose(); }
-      const pinH = st.region === 'pole' ? 4 : 18, headR = st.region === 'pole' ? 1.3 : 5.5;
+      const pinH = isMoon() ? 70 : st.region === 'pole' ? 4 : 18, headR = isMoon() ? 24 : st.region === 'pole' ? 1.3 : 5.5;
       for (const s of st.sites) {
         if (!inRegion(s)) continue;
         const base = sitePos(s, 0), top = sitePos(s, pinH);
@@ -379,10 +549,14 @@
           .multiplyScalar(Math.cos(ctl.pitch)).add(f.U.clone().multiplyScalar(Math.sin(ctl.pitch)));
         camera.position.copy(f.pos);
         camera.up.copy(f.U);
+        const Fh = f.N.clone().multiplyScalar(Math.cos(ctl.yaw)).addScaledVector(f.E, Math.sin(ctl.yaw));
+        const Rt = f.E.clone().multiplyScalar(Math.cos(ctl.yaw)).addScaledVector(f.N, -Math.sin(ctl.yaw));
+        terrainMat.uniforms.uFlatDir.value.copy(f.U).multiplyScalar(0.75).addScaledVector(Rt, 0.45).addScaledVector(Fh, -0.25).normalize();
         camera.lookAt(f.pos.clone().add(dir));
       } else {
+        terrainMat.uniforms.uFlatDir.value.set(-0.5, 0.75, -0.4).normalize();
         const sp = Math.sin(ctl.phi);
-        camera.up.set(0, 1, 0);
+        camera.up.set(0, isMoon() ? -1 : 1, 0);
         camera.position.set(ctl.target.x + ctl.radius * sp * Math.cos(ctl.theta), ctl.target.y + ctl.radius * Math.cos(ctl.phi),
           ctl.target.z + ctl.radius * sp * Math.sin(ctl.theta));
         camera.lookAt(ctl.target);
@@ -447,6 +621,7 @@
     }
     let lastComputeMs = 0;
     function runNow() {
+      if (isMoon()) { st.nowDirty = false; return; }
       const t0 = performance.now();
       setComputeUniforms(computeNow, st.sun, st.earth, st.dsnOk);
       quad.material = computeNow;
@@ -457,7 +632,7 @@
     function avgKey() { return [st.region, st.samples.length, st.samples.length && st.samples[0].t, st.samples.length && st.samples[st.samples.length - 1].t,
       st.rules.sunFracMin, st.rules.earthMarginDeg].join('|'); }
     function stepAvg(budgetMs) {
-      if (st.mode.indexOf('avg') !== 0 || !st.samples.length) return false;
+      if (isMoon() || st.mode.indexOf('avg') !== 0 || !st.samples.length) return false;
       const key = avgKey();
       if (key !== st.avgKey) {
         st.avgKey = key; st.avgDone = 0;
@@ -503,8 +678,14 @@
         lctx.fillStyle = '#f2f4f7'; lctx.fillText(text, b.x + (dot ? 15 : 4), b.y + th / 2 + 0.5);
       };
       const proj = p => { const v = p.clone().project(camera); return v.z < 1 && v.z > -1 ? [(v.x + 1) / 2 * w, (1 - v.y) / 2 * h] : null; };
+      if (isMoon()) for (const z of st.zones) {
+        const p3 = toScene(z.u.map(x => x * R * 1.0025), true);
+        if (!facing(p3)) continue;
+        const p = proj(p3); if (p) place(p[0], p[1], z.name, z.color, true);
+      }
       // sky labels first
       for (const [obj, name] of [[sunSprite, opts.t('sunNow')], [earth, opts.t('earthNow')]]) {
+        if (!obj.visible) continue;
         const p = proj(obj.position);
         if (p) { const off = obj === earth ? Math.max(10, earth.scale.x / SKY_DIST * h / (2 * Math.tan(camera.fov * D2R / 2))) : 14; place(p[0], p[1] - off - 8, name, null, true); }
       }
@@ -555,6 +736,9 @@
       if (st.fp) {
         const k = ctl.fov * D2R / el.clientHeight;
         ctl.yaw -= dx * k; ctl.pitch = Math.max(-1.2, Math.min(1.4, ctl.pitch + dy * k));
+      } else if (isMoon()) {
+        const f = Math.max(0.25, Math.min(1, (ctl.radius - R) / (2.1 * R)));
+        ctl.theta -= dx * 0.006 * f; ctl.phi = Math.max(0.12, Math.min(Math.PI - 0.12, ctl.phi + dy * 0.005 * f));
       } else if (drag.button === 2 || drag.shift) {
         const k = ctl.radius * 0.0016;
         const right = new THREE.Vector3(-Math.sin(ctl.theta), 0, Math.cos(ctl.theta));
@@ -574,6 +758,7 @@
     el.addEventListener('contextmenu', e => e.preventDefault());
     function zoom(f) {
       if (st.fp) ctl.fov = Math.max(8, Math.min(90, ctl.fov * f));
+      else if (isMoon()) ctl.radius = Math.max(R * 1.12, Math.min(R * 9, ctl.radius * f));
       else ctl.radius = Math.max(4, Math.min(4000, ctl.radius * f));
       invalidate();
     }
@@ -587,7 +772,9 @@
       let best = null, bd = maxPx;
       for (const s of st.sites) {
         if (!inRegion(s)) continue;
-        const v = sitePos(s, st.region === 'pole' ? 4 : 18).clone().project(camera);
+        const pp = sitePos(s, isMoon() ? 70 : st.region === 'pole' ? 4 : 18);
+        if (isMoon() && !facing(pp)) continue;
+        const v = pp.clone().project(camera);
         if (v.z > 1 || v.z < -1) continue;
         const d = Math.hypot((v.x + 1) / 2 * r.width - x, (1 - v.y) / 2 * r.height - y);
         if (d < bd) { bd = d; best = s; }
@@ -604,11 +791,15 @@
     el.addEventListener('pointermove', e => {
       if (drag || !opts.onHover) return;
       const s = nearestSite(e.clientX, e.clientY, 24);
-      el.style.cursor = s ? 'pointer' : '';
+      let z = null;
+      if (!s && isMoon()) { const hp = sphereHit(e.clientX, e.clientY); if (hp) { const ll = latLonOfScene(hp); z = zoneAtLatLon(ll[0], ll[1]); } }
+      el.style.cursor = s || z ? 'pointer' : '';
       if ((s ? s.id : null) !== hoverId) setHover(s ? s.id : null);
       if (s) opts.onHover(s.id, e.clientX, e.clientY);
+      if ((z ? z.id : null) !== st.hoverZone) { st.hoverZone = z ? z.id : null; paintZoneHover(); invalidate(); if (!z && !s && opts.onZoneHover) opts.onZoneHover(null); }
+      if (z && opts.onZoneHover) opts.onZoneHover(z.id, e.clientX, e.clientY);
     });
-    el.addEventListener('pointerleave', () => { if (hoverId) setHover(null); });
+    el.addEventListener('pointerleave', () => { if (hoverId) setHover(null); if (st.hoverZone) { st.hoverZone = null; paintZoneHover(); invalidate(); if (opts.onZoneHover) opts.onZoneHover(null); } });
     function pick(e) {
       const r = el.getBoundingClientRect();
       ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
@@ -617,21 +808,32 @@
       if (hm && opts.onSite) { opts.onSite(hm.object.userData.site.id); return; }
       const ns = nearestSite(e.clientX, e.clientY, 24);
       if (ns && opts.onSite && !(drag && drag.button === 2)) { opts.onSite(ns.id); return; }
-      if (!st.mesh) return;
-      const hit = ray.intersectObject(st.mesh, false)[0];
-      if (!hit) return;
-      const b = fromScene(hit.point);
-      const lat = Math.asin(b[2] / Math.hypot(b[0], b[1], b[2])) / D2R, lon = Math.atan2(b[1], b[0]) / D2R;
-      if (drag && drag.button === 2 && opts.onContext) opts.onContext(lat, lon, e.clientX, e.clientY);
+      let hp = null;
+      if (isMoon()) hp = sphereHit(e.clientX, e.clientY);
+      else { if (!st.mesh) return; const hit = ray.intersectObject(st.mesh, false)[0]; hp = hit && hit.point; }
+      if (!hp) return;
+      const [lat, lon] = latLonOfScene(hp);
+      if (drag && drag.button === 2) { if (opts.onContext) opts.onContext(lat, lon, e.clientX, e.clientY); return; }
+      if (isMoon() && opts.onZone) { const z = zoneAtLatLon(lat, lon); if (z) opts.onZone(z.id); }
     }
 
     /* presets */
-    function regionRadius() { return regionGrid().half_m / 1000; }
+    function regionRadius() { return isMoon() ? R : regionGrid().half_m / 1000; }
     function sunAzScene() { return Math.atan2(st.sun[1], st.sun[0]); } // angle in scene x/z plane
     const api = {
       renderer,
       setRegion(region) {
-        if (region === st.region && st.mesh) return;
+        if (region === st.region && (st.mesh || region === 'moon')) return;
+        st.hoverZone = null;
+        if (region === 'moon') {
+          if (st.fp) { st.fp = null; st.exag = st.exagBeforeFp || 3; }
+          st.region = 'moon'; ensureGlobe(); globe.visible = true; zoneGroup.visible = true; earth.visible = false;
+          if (st.mesh) st.mesh.visible = false;
+          ctl.target.copy(GLOBE_C); buildMarkers(); paintZoneHover();
+          api.view('overview', null, 1); invalidate();
+          return;
+        }
+        if (globe) { globe.visible = false; zoneGroup.visible = false; } earth.visible = true;
         st.region = region; buildMesh(); buildTargets(); buildMarkers(); st.nowDirty = true;
         if (!st.fp) api.view('overview', null, 1);
         invalidate();
@@ -652,14 +854,29 @@
         for (const k of ['cOps', 'cSun', 'cComm', 'cNone']) if (c[k]) terrainMat.uniforms[k].value.copy(hexToVec(c[k]));
         invalidate();
       },
+      setFlat(on) {
+        st.flat = !!on; terrainMat.uniforms.uFlat.value = on ? 1 : 0; globeMat.uniforms.uFlat.value = on ? 1 : 0; invalidate();
+      },
+      setZones(list) { st.zones = list; buildZones(); invalidate(); },
+      focusZone(id, ms) {
+        const z = st.zones.find(q => q.id === id); if (!z || !isMoon()) return;
+        const p = toScene(z.u.map(x => x * R), true).sub(GLOBE_C).normalize();
+        animateTo({ tx: GLOBE_C.x, ty: GLOBE_C.y, tz: GLOBE_C.z, radius: R * (1.35 + z.rad / 40), theta: Math.atan2(p.z, p.x), phi: Math.max(0.12, Math.min(Math.PI - 0.12, Math.acos(p.y))) }, ms || 1000);
+      },
       setState(s) {
-        st.sun = s.sun; st.earth = s.earth; st.earthIllum = s.earthIllum; st.dsnOk = s.dsnOk;
+        st.sun = s.sun; st.earth = s.earth;
+        { const q = toScene([s.sun[0], s.sun[1], s.sun[2]]).normalize(); globeMat.uniforms.uSunDir.value.copy(q); } st.earthIllum = s.earthIllum; st.dsnOk = s.dsnOk;
         terrainMat.uniforms.uDsnOk.value = s.dsnOk ? 1 : 0; terrainMat.uniforms.uEarthIllum.value = s.earthIllum;
         st.nowDirty = true; invalidate();
       },
       setSites(list, rebuild) { st.sites = list; if (rebuild !== false) buildMarkers(); invalidate(); },
       flyTo(site, ms) {
         if (st.fp || !site) return;
+        if (isMoon()) {
+          const q = sitePos(site, 0).sub(GLOBE_C).normalize();
+          animateTo({ tx: GLOBE_C.x, ty: GLOBE_C.y, tz: GLOBE_C.z, radius: Math.min(ctl.radius, R * 2.3), theta: Math.atan2(q.z, q.x), phi: Math.max(0.12, Math.min(Math.PI - 0.12, Math.acos(q.y))) }, ms || 900);
+          return;
+        }
         const p = sitePos(site, 0);
         animateTo({ tx: p.x, ty: p.y, tz: p.z, radius: Math.min(ctl.radius, regionRadius() * 0.9), phi: 0.85 }, ms || 900);
       },
@@ -668,6 +885,15 @@
       mode: () => st.mode,
       setSamples(samples) { st.samples = samples; invalidate(); },
       view(name, site, ms) {
+        if (isMoon()) {
+          if (name === 'site' && site) { api.flyTo(site, ms); return; }
+          const g = { tx: GLOBE_C.x, ty: GLOBE_C.y, tz: GLOBE_C.z, radius: R * 3.7, fov: 45 };
+          if (name === 'sun') {
+            const q = toScene([st.sun[0], st.sun[1], st.sun[2]]).normalize();
+            animateTo(Object.assign(g, { theta: Math.atan2(q.z, q.x), phi: Math.max(0.12, Math.min(Math.PI - 0.12, Math.acos(q.y))) }), ms);
+          } else animateTo(Object.assign(g, { theta: 0, phi: Math.PI / 2 - 0.72 }), ms);
+          return;
+        }
         if (name === 'site' && site) {
           const lat = site.lat * D2R, lon = site.lon * D2R;
           const U = toScene([Math.cos(lat) * Math.cos(lon), Math.cos(lat) * Math.sin(lon), Math.sin(lat)]).normalize();
