@@ -113,6 +113,11 @@
       vec3 c = mix(vec3(0.11, 0.115, 0.13), hue, smoothstep(0.0, 0.85, v));
       return mix(c, vec3(1.0), smoothstep(0.85, 1.0, v) * 0.55);
     }
+    vec3 thermal(float v) {
+      vec3 a = vec3(0.70, 0.09, 0.17), b = vec3(0.94, 0.54, 0.38), c = vec3(0.96, 0.96, 0.96), d = vec3(0.40, 0.66, 0.81), e = vec3(0.13, 0.40, 0.67);
+      v = clamp(v, 0.0, 1.0);
+      return v < 0.25 ? mix(a, b, v / 0.25) : v < 0.5 ? mix(b, c, (v - 0.25) / 0.25) : v < 0.75 ? mix(c, d, (v - 0.5) / 0.25) : mix(d, e, (v - 0.75) / 0.25);
+    }
     void main() {
       #include <logdepthbuf_fragment>
       vec2 d = vUv - 0.5; if (dot(d, d) > 0.2475) discard;
@@ -134,7 +139,7 @@
         vec4 A = texture2D(uAvg, vUv);
         float v = uMode == 2 ? A.r : uMode == 3 ? A.g : A.b;
         vec3 hue = uMode == 2 ? cSun : uMode == 3 ? cComm : cOps;
-        col = ramp(hue, v) * (0.55 + 0.45 * hs);
+        col = thermal(pow(clamp(v / 0.7, 0.0, 1.0), 0.7)) * (0.62 + 0.38 * hs);
         if (uAvgReady < 0.5) col *= 0.6;
       }
       gl_FragColor = vec4(col, 1.0);
@@ -342,7 +347,7 @@
       for (const s of st.sites) {
         if (!inRegion(s)) continue;
         const base = sitePos(s, 0), top = sitePos(s, pinH);
-        const col = new THREE.Color(s.selected ? s.color : '#c9ced6');
+        const col = new THREE.Color(s.color);
         const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([base, top]), new THREE.LineBasicMaterial({ color: col }));
         const head = new THREE.Mesh(new THREE.SphereGeometry(headR * (s.focus ? 1.4 : 1), 16, 12), new THREE.MeshBasicMaterial({ color: col }));
         head.position.copy(top); head.userData.site = s;
@@ -489,7 +494,7 @@
       const sorted = st.sites.filter(inRegion).sort((a, b) => (b.focus - a.focus) || (b.selected - a.selected));
       for (const s of sorted) {
         if (st.fp && st.fp.site.id === s.id) continue;
-        if (!s.selected && !s.focus) continue;
+        if (!s.selected && !s.focus && !s.label) continue;
         const p = proj(sitePos(s, st.region === 'pole' ? 2.2 : 9)); if (!p) continue;
         place(p[0], p[1], s.name, s.stateColor || null, s.focus);
       }
@@ -565,12 +570,36 @@
     el.addEventListener('wheel', e => { e.preventDefault(); zoom(Math.exp(e.deltaY * 0.0012)); if (opts.onUserInput) opts.onUserInput(); }, { passive: false });
 
     const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
+    /* nearest site marker on screen (more forgiving than a ray against a small sphere) */
+    function nearestSite(clientX, clientY, maxPx) {
+      if (st.fp) return null;
+      const r = el.getBoundingClientRect(), x = clientX - r.left, y = clientY - r.top;
+      let best = null, bd = maxPx;
+      for (const s of st.sites) {
+        if (!inRegion(s)) continue;
+        const v = sitePos(s, st.region === 'pole' ? 2.2 : 9).clone().project(camera);
+        if (v.z > 1 || v.z < -1) continue;
+        const d = Math.hypot((v.x + 1) / 2 * r.width - x, (1 - v.y) / 2 * r.height - y);
+        if (d < bd) { bd = d; best = s; }
+      }
+      return best;
+    }
+    let hoverId = null;
+    el.addEventListener('pointermove', e => {
+      if (drag || !opts.onHover) return;
+      const s = nearestSite(e.clientX, e.clientY, 16);
+      el.style.cursor = s ? 'pointer' : '';
+      if ((s ? s.id : null) !== hoverId || s) { hoverId = s ? s.id : null; opts.onHover(hoverId, e.clientX, e.clientY); }
+    });
+    el.addEventListener('pointerleave', () => { if (hoverId && opts.onHover) { hoverId = null; opts.onHover(null); } });
     function pick(e) {
       const r = el.getBoundingClientRect();
       ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
       const hm = ray.intersectObjects(markers.children.filter(m => m.userData.site), false)[0];
       if (hm && opts.onSite) { opts.onSite(hm.object.userData.site.id); return; }
+      const ns = nearestSite(e.clientX, e.clientY, 18);
+      if (ns && opts.onSite) { opts.onSite(ns.id); return; }
       if (!st.mesh) return;
       const hit = ray.intersectObject(st.mesh, false)[0];
       if (!hit) return;
