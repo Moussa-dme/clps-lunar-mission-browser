@@ -37,10 +37,13 @@
   /* the 3D stage is space: always black, in both themes (deliberate) */
   --space: #000000; --space-ink: #eef1f5; --space-mut: #a7afbb;
   --st-ops: #2fbf8c; --st-sun: #f2b84b; --st-comm: #5fa2f0; --st-none: #343a43;
-  --f-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
-  --f-body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+  --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --r: 6px;
+  --r: 10px;
+  --rl: 18px;
+  --shadow: 0 1px 2px rgb(0 0 0 / .05), 0 10px 30px rgb(0 0 0 / .07);
+  --glass: color-mix(in srgb, var(--panel) 78%, transparent);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -300,6 +303,97 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
 .canvas-box.short-card { height: 150px; }
 .canvas-box.mid-card { height: 220px; }
 
+/* Profile: hexagon of scores + detail panel (expands on click) */
+.prof { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; transition: grid-template-columns .45s ease; }
+.prof-main { display: flex; flex-direction: column; gap: 10px; align-items: center; min-width: 0; }
+.prof-main h3 { align-self: flex-start; display: flex; align-items: center; gap: 8px; font-size: 20px; }
+.hexbtn { background: transparent; border: 0; padding: 0; cursor: pointer; width: 100%; max-width: 440px; border-radius: var(--r); }
+.hexbtn:hover svg, .hexbtn:focus-visible svg { filter: drop-shadow(0 0 6px var(--accent)); }
+.hexbtn svg { width: 100%; height: auto; display: block; transition: transform .45s ease, filter .2s; }
+.prof.open .hexbtn svg { transform: scale(.94); }
+.hx-ring { fill: none; stroke: var(--line); }
+.hx-spoke { stroke: var(--line); }
+.hx-lab { fill: var(--fg2); font-size: 11.5px; font-family: var(--f-body); }
+.hx-area { fill-opacity: .28; stroke-width: 2.2; }
+.hx-other { fill: none; stroke-width: 1.3; stroke-dasharray: 4 3; opacity: .8; }
+.now-line { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.pc { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; }
+.pc h4 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+.pc ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.pc li { padding-left: 10px; border-left: 3px solid var(--line); }
+.pc .pro li { border-left-color: var(--ops); }
+.pc .con li { border-left-color: var(--danger); }
+.pc li.none { color: var(--muted); }
+.prof-detail { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows .45s ease, opacity .35s ease .1s, visibility 0s .45s; }
+.prof-detail-in { overflow: hidden; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.prof.open .prof-detail { grid-template-rows: 1fr; opacity: 1; visibility: visible; transition-delay: 0s; }
+.prof-detail-in > .btn { align-self: flex-start; }
+.dm, .dm-x { opacity: 0; transform: translateY(8px); transition: opacity .3s ease, transform .3s ease; }
+.prof.open .dm, .prof.open .dm-x { opacity: 1; transform: none; transition-delay: calc(.15s + var(--i) * .05s); }
+.dm-h { display: flex; justify-content: space-between; }
+.dm-bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 3px 0; }
+.dm-bar i { display: block; height: 100%; background: var(--ops); }
+.dm-x .r { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--line); }
+@media (min-width: 860px) { .prof.open { grid-template-columns: minmax(320px, 440px) minmax(0, 1fr); } }
+
+/* ---------- Apple-style layer: rounded, quiet, glassy ---------- */
+.panel { border-radius: var(--rl); box-shadow: var(--shadow); padding: 16px; }
+h1 { font-weight: 650; letter-spacing: -.02em; font-size: 20px; }
+h2, h3 { letter-spacing: -.01em; }
+.btn { border-radius: 999px; min-height: 34px; padding: 6px 14px; transition: background .15s, border-color .15s, transform .1s; }
+.btn:active { transform: scale(.97); }
+.btn.icon { border-radius: 50%; }
+input[type="date"], input[type="number"], input[type="text"], input[type="datetime-local"], select { border-radius: var(--r); min-height: 36px; }
+.topbar { background: var(--glass); -webkit-backdrop-filter: saturate(1.6) blur(20px); backdrop-filter: saturate(1.6) blur(20px); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.top-actions { display: flex; gap: 10px; align-items: center; }
+.seg { display: inline-flex; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.seg button { border: 0; background: transparent; padding: 5px 16px; border-radius: 999px; cursor: pointer; color: var(--fg2); font-weight: 500; transition: background .2s, color .2s, box-shadow .2s; }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / .18); }
+/* tabs as a segmented control */
+.tabs { border: 0; background: color-mix(in srgb, var(--fg) 7%, transparent); padding: 3px; border-radius: 14px; gap: 2px; align-self: flex-start; max-width: 100%; }
+.tabs button { border: 0; border-radius: 11px; font-family: var(--f-body); font-size: 13.5px; font-weight: 500; letter-spacing: 0; padding: 6px 14px; }
+.tabs button[aria-selected="true"] { background: var(--panel); box-shadow: 0 1px 3px rgb(0 0 0 / .18); border: 0; }
+/* accordions */
+details.acc { display: block; }
+details.acc > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; font-weight: 600; font-size: 15px; -webkit-user-select: none; user-select: none; }
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .25s; flex: none; margin-left: auto; margin-right: 4px; }
+details.acc[open] > summary::after { transform: rotate(-135deg); }
+details.acc[open] > summary { margin-bottom: 10px; }
+details.acc > *:not(summary) { margin-top: 8px; }
+details.acc > summary .small { margin-left: auto; font-weight: 400; }
+/* 3D stage */
+.v3d-top { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; }
+.site-quick select { font-weight: 600; min-width: 220px; border-radius: 999px; padding-inline: 14px; }
+.v3d-stage { border-radius: var(--rl); }
+.v3d-hud, .v3d-status, .v3d-caption { background: rgb(18 20 24 / .5); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); border-radius: 12px; border: 1px solid rgb(255 255 255 / .08); }
+.v3d-hud { left: 14px; top: 14px; padding: 8px 12px; }
+.v3d-status { right: 14px; top: 14px; padding: 6px 10px; }
+.v3d-caption { border-left: 1px solid rgb(255 255 255 / .08); }
+.v3d-toolbar { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
+/* time bar, always reachable at the bottom */
+.cursor-bar { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 15; background: var(--glass); -webkit-backdrop-filter: saturate(1.6) blur(20px); backdrop-filter: saturate(1.6) blur(20px); border-radius: 22px; box-shadow: 0 8px 30px rgb(0 0 0 / .18); }
+.progress { border-radius: 0 0 22px 22px; }
+.prof .dm-bar, .dm-bar i { border-radius: 999px; }
+.site { border-radius: 10px; }
+.tooltip { border-radius: 12px; }
+/* Simple mode: the 3D scene is the page */
+body[data-mode="simple"] .tabs { display: none; }
+body[data-mode="simple"] .layout { grid-template-columns: minmax(0, 1fr); max-width: 1180px; }
+body[data-mode="simple"] .main { order: 1; }
+body[data-mode="simple"] .side { order: 2; position: static; max-height: none; overflow: visible; }
+body[data-mode="simple"] .v3d-panel { background: transparent; border: 0; box-shadow: none; padding: 0; }
+body[data-mode="simple"] .v3d-stage { height: min(76vh, 880px); }
+body[data-mode="simple"] .site-list { max-height: 50vh; }
+body[data-mode="simple"] .sub { display: none; }
+@media (max-width: 900px) { .side { order: 2; } .main { order: 1; } .layout { max-width: none; } }
+@media (max-width: 700px) {
+  .top-actions { width: 100%; justify-content: space-between; }
+  .site-quick select { min-width: 0; width: 100%; }
+  .site-quick { flex: 1 1 100%; }
+  .cursor-bar { border-radius: 18px; }
+}
+
 </style>
 
 <header class="topbar">
@@ -311,14 +405,11 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
         <p class="sub" data-i18n="tagline">Sun and Earth over the real south-pole horizon</p>
       </div>
     </div>
-    <div class="range" role="group" aria-label="Time range">
-      <label><span data-i18n="from">From (UTC)</span><input type="date" id="start"></label>
-      <label><span data-i18n="to">To (UTC)</span><input type="date" id="end"></label>
-      <label><span data-i18n="step">Step</span>
-        <select id="step">
-          <option value="auto">Auto</option><option value="10">10 min</option><option value="20">20 min</option>
-          <option value="30">30 min</option><option value="60">1 h</option><option value="180">3 h</option>
-        </select></label>
+    <div class="top-actions">
+      <div class="seg" id="modeSwitch" role="group" aria-label="Mode">
+        <button type="button" data-mode="simple" aria-pressed="true" data-i18n="modeSimple">Simple</button>
+        <button type="button" data-mode="advanced" aria-pressed="false" data-i18n="modeAdvanced">Advanced</button>
+      </div>
       <button class="btn ghost" id="lang" type="button" aria-label="Langue / Language">FR</button>
     </div>
   </div>
@@ -326,11 +417,8 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
 
 <div class="wrap layout">
   <aside class="side" aria-label="Sites and constraints">
-    <section class="panel">
-      <div class="panel-head">
-        <h2 data-i18n="sites">Sites</h2>
-        <span class="muted small" id="selCount"></span>
-      </div>
+    <details class="panel acc" id="accSites">
+      <summary><span data-i18n="sites">Sites</span><span class="muted small" id="selCount"></span></summary>
       <p class="muted small" data-i18n="sitesHelp">Tick up to 8 sites to compare. Click a name to focus it.</p>
       <div id="siteList" class="site-list"></div>
       <details class="add-site" id="addSiteBox">
@@ -345,10 +433,23 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
           <p class="form-msg full" id="addMsg" role="status"></p>
         </form>
       </details>
-    </section>
+    </details>
 
-    <section class="panel">
-      <h2 data-i18n="rules">Mission rules</h2>
+    <details class="panel acc" id="accPeriod">
+      <summary data-i18n="period">Period</summary>
+      <div class="range" role="group" aria-label="Time range">
+        <label><span data-i18n="from">From (UTC)</span><input type="date" id="start"></label>
+        <label><span data-i18n="to">To (UTC)</span><input type="date" id="end"></label>
+        <label><span data-i18n="step">Step</span>
+          <select id="step">
+            <option value="auto">Auto</option><option value="10">10 min</option><option value="20">20 min</option>
+            <option value="30">30 min</option><option value="60">1 h</option><option value="180">3 h</option>
+          </select></label>
+      </div>
+    </details>
+
+    <details class="panel acc" id="accRules">
+      <summary data-i18n="rules">Mission rules</summary>
       <label class="rule"><span data-i18n="sunRule">Counts as sunlit when</span>
         <select id="sunFrac">
           <option value="0.001" data-i18n="anyDisk">any part of the Sun is visible</option>
@@ -360,34 +461,20 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       <label class="rule check"><input id="reqDSN" type="checkbox" checked> <span data-i18n="dsnRule">Direct-to-Earth also needs a Deep Space Network dish to see the Moon</span></label>
       <label class="rule"><span data-i18n="dsnMin">DSN minimum elevation</span>
         <span class="inline"><input id="dsnMin" type="number" min="0" max="30" step="1" value="10"><span class="unit">°</span></span></label>
-    </section>
+    </details>
 
-    <section class="panel legend-panel">
-      <h2 data-i18n="legend">Legend</h2>
+    <details class="panel acc legend-panel" id="accLegend">
+      <summary data-i18n="legend">Legend</summary>
       <ul class="legend">
         <li><i class="sw st-ops"></i><span data-i18n="lgOps">Power and direct-to-Earth link</span></li>
         <li><i class="sw st-sun"></i><span data-i18n="lgSun">Sunlit, no Earth link</span></li>
         <li><i class="sw st-comm"></i><span data-i18n="lgComm">Earth link, in shadow</span></li>
         <li><i class="sw st-none"></i><span data-i18n="lgNone">Dark and out of contact</span></li>
       </ul>
-    </section>
+    </details>
   </aside>
 
   <main class="main">
-    <div class="cursor-bar panel">
-      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
-      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
-      <output id="cursorLabel" class="mono" hidden></output>
-      <div class="cursor-tools">
-        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
-        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
-        <span class="utc-tag">UTC</span>
-        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
-        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
-      </div>
-      <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
-    </div>
-
     <nav class="tabs" role="tablist" aria-label="Views">
       <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
       <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
@@ -403,22 +490,9 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
     <!-- 3D -->
     <section class="view" id="view-3d" role="tabpanel" aria-labelledby="tab-3d">
       <div class="panel v3d-panel">
-        <div class="v3d-toolbar">
-          <label><span data-i18n="v3dRegion">Area</span>
-            <select id="v3dRegion">
-              <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
-              <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
-            </select></label>
-          <label><span data-i18n="v3dShow">Show</span>
-            <select id="v3dMode">
-              <option value="sun" data-i18n="mSun">Sunlight now</option>
-              <option value="plan" data-i18n="mPlan">Power and Earth link now</option>
-              <option value="avgSun" data-i18n="mAvgSun">Sunlight, share of the period</option>
-              <option value="avgEarth" data-i18n="mAvgEarth">Earth link, share of the period</option>
-              <option value="avgOps" data-i18n="mAvgOps">Power + link, share of the period</option>
-            </select></label>
-          <label class="v3d-range"><span data-i18n="exag">Vertical stretch</span>
-            <input type="range" id="v3dExag" min="1" max="8" step="0.5" value="3"><output id="v3dExagOut" class="mono">3×</output></label>
+        <div class="v3d-top">
+          <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
+            <select id="siteQuick" aria-label="Site"></select></label>
           <div class="actions">
             <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
@@ -438,6 +512,33 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
           <p class="muted small" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
         </div>
       </div>
+
+      <details class="panel acc" id="accProfile" open>
+        <summary id="profTitle" data-i18n="profTitle">Site profile</summary>
+        <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
+        <div class="prof" id="prof"></div>
+      </details>
+
+      <details class="panel acc" id="accView">
+        <summary data-i18n="viewOpts">View options</summary>
+        <div class="v3d-toolbar">
+          <label><span data-i18n="v3dRegion">Area</span>
+            <select id="v3dRegion">
+              <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
+              <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
+            </select></label>
+          <label><span data-i18n="v3dShow">Show</span>
+            <select id="v3dMode">
+              <option value="sun" data-i18n="mSun">Sunlight now</option>
+              <option value="plan" data-i18n="mPlan">Power and Earth link now</option>
+              <option value="avgSun" data-i18n="mAvgSun">Sunlight, share of the period</option>
+              <option value="avgEarth" data-i18n="mAvgEarth">Earth link, share of the period</option>
+              <option value="avgOps" data-i18n="mAvgOps">Power + link, share of the period</option>
+            </select></label>
+          <label class="v3d-range"><span data-i18n="exag">Vertical stretch</span>
+            <input type="range" id="v3dExag" min="1" max="8" step="0.5" value="3"><output id="v3dExagOut" class="mono">3×</output></label>
+        </div>
+      </details>
     </section>
 
     <!-- COMPARE -->
@@ -585,6 +686,19 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
     <section class="view prose" id="view-method" role="tabpanel" aria-labelledby="tab-method" hidden>
       <div class="panel" id="methodText"></div>
     </section>
+    <div class="cursor-bar panel">
+      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
+      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
+      <output id="cursorLabel" class="mono" hidden></output>
+      <div class="cursor-tools">
+        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
+        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
+        <span class="utc-tag">UTC</span>
+        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
+        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+      </div>
+      <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
+    </div>
   </main>
 </div>
 
@@ -1845,6 +1959,23 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
+      modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
+      tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
+      axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
+      dSun: 'Share of the period with the Sun above the local terrain horizon.',
+      dEnergy: 'Mean visible fraction of the solar disk: what a sun-tracking panel would collect.',
+      dLink: 'Share of the time Earth is above the terrain horizon and a Deep Space Network antenna sees the Moon.',
+      dOps: 'Power and link at the same time: the time the mission can really use.',
+      dNight: '100 minus the longest continuous night as a share of the period.',
+      dGap: '100 minus the longest continuous loss of direct Earth link as a share of the period.',
+      pros: 'Strengths', cons: 'Weaknesses', noPros: 'Nothing stands out.', noCons: 'No major weakness over this period.',
+      prSun: 'Sunlit {v} of the period', prLink: 'Direct Earth link {v} of the time', prOps: 'Power and link together {v} of the time',
+      prNight: 'Longest night only {v}', prGap: 'Longest link gap only {v}',
+      cnSun: 'Sunlit only {v} of the period', cnLink: 'Direct Earth link only {v} of the time', cnOps: 'Power and link together only {v} of the time',
+      cnNight: 'A night of {v}: batteries and heaters must carry the lander', cnGap: 'A link gap of {v}: no direct commands',
+      profNow: 'At the cursor time', profBack: 'Close details', profOpen: 'Show details',
+      profPower: 'Power depends on where the Sun is; communication depends on where Earth is.',
+      rngSun: 'Sun elevation range', rngEarth: 'Earth elevation range', litWin: 'Sunlit windows', profOthers: 'Other selected sites (outline)',
       selected: 'selected', noSel: 'Tick at least one site in the list.', computing: 'Computing ephemerides…',
       sunNow: 'Sun', earthNow: 'Earth', clearance: 'above terrain', visibleDisk: 'of the disk visible', phase: 'Earth phase',
       dsnNow: 'DSN in view', none: 'none', power: 'Power', link: 'Earth link', dark: 'No power', noLink: 'No link',
@@ -1914,6 +2045,23 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
+      modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
+      tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
+      axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
+      dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
+      dEnergy: 'Fraction moyenne visible du disque solaire : ce que capterait un panneau orienté vers le Soleil.',
+      dLink: 'Part du temps où la Terre est au-dessus de l’horizon du relief et où une antenne du Deep Space Network voit la Lune.',
+      dOps: 'Énergie et liaison en même temps : le temps réellement utilisable par la mission.',
+      dNight: '100 moins la plus longue nuit continue, en part de la période.',
+      dGap: '100 moins la plus longue perte continue de liaison directe, en part de la période.',
+      pros: 'Points forts', cons: 'Points faibles', noPros: 'Rien ne ressort.', noCons: 'Aucune faiblesse majeure sur cette période.',
+      prSun: 'Au soleil {v} de la période', prLink: 'Liaison directe avec la Terre {v} du temps', prOps: 'Énergie et liaison ensemble {v} du temps',
+      prNight: 'Plus longue nuit de seulement {v}', prGap: 'Plus longue coupure de seulement {v}',
+      cnSun: 'Au soleil seulement {v} de la période', cnLink: 'Liaison directe seulement {v} du temps', cnOps: 'Énergie et liaison ensemble seulement {v} du temps',
+      cnNight: 'Une nuit de {v} : batteries et chauffage doivent tenir seuls', cnGap: 'Une coupure de {v} : pas de commandes directes',
+      profNow: 'À l’instant du curseur', profBack: 'Fermer les détails', profOpen: 'Voir les détails',
+      profPower: 'L’énergie dépend de la position du Soleil ; la communication dépend de la position de la Terre.',
+      rngSun: 'Hauteur du Soleil (min–max)', rngEarth: 'Hauteur de la Terre (min–max)', litWin: 'Fenêtres au soleil', profOthers: 'Autres sites sélectionnés (contour)',
       selected: 'sélectionnés', noSel: 'Cochez au moins un site dans la liste.', computing: 'Calcul des éphémérides…',
       sunNow: 'Soleil', earthNow: 'Terre', clearance: 'au-dessus du relief', visibleDisk: 'du disque visible', phase: 'Phase de la Terre',
       dsnNow: 'DSN en vue', none: 'aucune', power: 'Énergie', link: 'Liaison', dark: 'Sans énergie', noLink: 'Sans liaison',
@@ -2129,8 +2277,20 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       }
     }
     list.innerHTML = html;
+    const q = $('#siteQuick');
+    if (q) {
+      q.innerHTML = groups.map(g => `<optgroup label="${esc(groupLabel(g))}">` + state.sites.filter(x => (x.custom ? 'My sites' : x.group) === g)
+        .map(s => `<option value="${esc(s.id)}"${s.id === state.focus ? ' selected' : ''}>${esc(s.name)}</option>`).join('') + '</optgroup>').join('');
+    }
     $('#selCount').textContent = `${state.selected.length}/${MAX_SEL} ${t('selected')}`;
   }
+  $('#siteQuick').addEventListener('change', e => {
+    const id = e.target.value;
+    if (state.selected.includes(id)) { setFocus(id); return; }
+    if (!selectSite(id)) { toast(t('maxSel')); renderSiteList(); return; }
+    state.focus = id; store.set('selected', state.selected);
+    computeSeries();
+  });
   $('#siteList').addEventListener('change', e => {
     const id = e.target.dataset.id; if (!id) return;
     if (e.target.checked) {
@@ -2259,16 +2419,30 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
   }
   function setCursor(i) { state.cursor = i; $('#cursor').value = i; renderCursorDependent(); }
 
+  /* mode: Simple = 3D first, details in drop-downs; Advanced = every tab and number */
+  let mode = store.get('mode', 'simple');
+  function applyMode(initial) {
+    document.body.dataset.mode = mode;
+    document.querySelectorAll('#modeSwitch [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    if (!initial) document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
+  }
+  function setMode(m) {
+    mode = m; store.set('mode', m); applyMode();
+    showTab(m === 'advanced' ? store.get('tab', '3d') : '3d');
+  }
+  $('#modeSwitch').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
+
   /* tabs */
   document.querySelector('.tabs').addEventListener('click', e => {
     const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab);
   });
   function showTab(tab) {
+    if (mode === 'simple') tab = '3d';
     state.tab = tab;
     document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
     document.querySelectorAll('.view').forEach(v => { v.hidden = v.id !== 'view-' + tab; });
     try { history.replaceState(null, '', '#' + tab); } catch (e) { /* ignore */ }
-    store.set('tab', tab);
+    if (mode === 'advanced') store.set('tab', tab);
     renderTab();
   }
 
@@ -2298,7 +2472,7 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
   $('#jumpSunset').addEventListener('click', () => jump(false));
   function renderCursorDependent() {
     renderCursorLabel();
-    if (state.tab === '3d') update3D();
+    if (state.tab === '3d') { update3D(); renderProfile(); }
     else if (state.tab === 'compare') { renderTable(); drawStrip(); }
     else if (state.tab === 'timeline') drawTimeline();
     else if (state.tab === 'sky') renderSky();
@@ -2310,7 +2484,7 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
     const tab = state.tab;
     if (tab === 'method') { renderMethod(); return; }
     if (!state.grid) return;
-    if (tab === '3d') render3D();
+    if (tab === '3d') { render3D(); renderProfile(); }
     else if (tab === 'compare') { renderTable(); drawStrip(); }
     else if (tab === 'timeline') drawTimeline();
     else if (tab === 'sky') renderSky();
@@ -2423,6 +2597,99 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
     const th = e.target.closest('th[data-k]');
     if (th) { const k = th.dataset.k; if (state.sortKey === k) state.sortDir *= -1; else { state.sortKey = k; state.sortDir = COLS.find(c => c.k === k).low ? 1 : -1; } renderTable(); return; }
     const tr = e.target.closest('tr[data-id]'); if (tr) setFocus(tr.dataset.id);
+  });
+
+  /* ---------- profile: hexagon of 0-100 scores, strengths/weaknesses, details */
+  const AXES = [
+    { k: 'axSun', d: 'dSun', v: (m) => m.litPct },
+    { k: 'axEnergy', d: 'dEnergy', v: (m) => m.energyPct },
+    { k: 'axLink', d: 'dLink', v: (m) => m.dtePct },
+    { k: 'axOps', d: 'dOps', v: (m) => m.opsPct },
+    { k: 'axNight', d: 'dNight', v: (m, H) => 100 * (1 - m.longestNightH / H) },
+    { k: 'axGap', d: 'dGap', v: (m, H) => 100 * (1 - m.longestBlackoutH / H) }
+  ];
+  const tf = (k, v) => t(k).replace('{v}', v);
+  function profileScores(id) {
+    const m = state.sums[id]; if (!m || !state.grid) return null;
+    const H = state.grid.n * state.grid.stepMs / HOUR;
+    return AXES.map(a => Math.max(0, Math.min(100, a.v(m, H))));
+  }
+  function hexPoints(scores, cx, cy, R) {
+    return scores.map((s, i) => {
+      const a = -Math.PI / 2 + i * Math.PI / 3, r = R * s / 100;
+      return (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1);
+    }).join(' ');
+  }
+  function hexSvg(id) {
+    const cx = 170, cy = 150, R = 100, sc = profileScores(id);
+    let g = '';
+    [25, 50, 75, 100].forEach(p => { g += `<polygon class="hx-ring" points="${hexPoints(AXES.map(() => p), cx, cy, R)}"/>`; });
+    AXES.forEach((a, i) => {
+      const an = -Math.PI / 2 + i * Math.PI / 3, c = Math.cos(an), s = Math.sin(an);
+      g += `<line class="hx-spoke" x1="${cx}" y1="${cy}" x2="${(cx + R * c).toFixed(1)}" y2="${(cy + R * s).toFixed(1)}"/>`;
+      const anchor = Math.abs(c) < 0.2 ? 'middle' : c > 0 ? 'start' : 'end';
+      g += `<text class="hx-lab" x="${(cx + (R + 12) * c).toFixed(1)}" y="${(cy + (R + 14) * s + 4).toFixed(1)}" text-anchor="${anchor}">${esc(t(a.k))}</text>`;
+    });
+    state.selected.filter(o => o !== id && state.sums[o]).forEach(o => {
+      g += `<polygon class="hx-other" style="stroke:${colorOf(o)}" points="${hexPoints(profileScores(o), cx, cy, R)}"/>`;
+    });
+    const col = colorOf(id) || cssv('--accent');
+    g += `<polygon class="hx-area" style="fill:${col};stroke:${col}" points="${hexPoints(sc, cx, cy, R)}"/>`;
+    sc.forEach((s, i) => {
+      const an = -Math.PI / 2 + i * Math.PI / 3;
+      g += `<circle class="hx-pt" style="fill:${col}" r="3.5" cx="${(cx + R * s / 100 * Math.cos(an)).toFixed(1)}" cy="${(cy + R * s / 100 * Math.sin(an)).toFixed(1)}"/>`;
+    });
+    return `<svg viewBox="-30 0 400 300" role="img" aria-label="${esc(t('profTitle'))}: ${esc(site(id).name)}">${g}</svg>`;
+  }
+  function prosCons(m) {
+    const pr = [], cn = [], pc = v => fmt(v, 0) + '%';
+    if (m.litPct >= 70) pr.push(tf('prSun', pc(m.litPct))); else if (m.litPct < 40) cn.push(tf('cnSun', pc(m.litPct)));
+    if (m.dtePct >= 80) pr.push(tf('prLink', pc(m.dtePct))); else if (m.dtePct < 60) cn.push(tf('cnLink', pc(m.dtePct)));
+    if (m.opsPct >= 60) pr.push(tf('prOps', pc(m.opsPct))); else if (m.opsPct < 30) cn.push(tf('cnOps', pc(m.opsPct)));
+    if (m.longestNightH <= 48) pr.push(tf('prNight', dur(m.longestNightH))); else if (m.longestNightH >= 100) cn.push(tf('cnNight', dur(m.longestNightH)));
+    if (m.longestBlackoutH <= 24) pr.push(tf('prGap', dur(m.longestBlackoutH))); else if (m.longestBlackoutH >= 72) cn.push(tf('cnGap', dur(m.longestBlackoutH)));
+    return { pr, cn };
+  }
+  let profOpen = false;
+  function renderProfile() {
+    const box = $('#prof'); if (!box) return;
+    const id = state.focus, m = state.sums[id], s = state.series[id];
+    if (!m || !s) { box.innerHTML = `<p class="muted">${t('computing')}</p>`; return; }
+    const c = E.conditionsAt(s, state.grid, state.cursor), sc = profileScores(id), { pr, cn } = prosCons(m);
+    const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
+    const others = state.selected.filter(o => o !== id).length;
+    box.className = 'prof' + (profOpen ? ' open' : '');
+    box.innerHTML = `
+      <div class="prof-main">
+        <h3><i class="dot" style="background:${colorOf(id)}"></i>${esc(site(id).name)}</h3>
+        <button class="hexbtn" type="button" id="hexBtn" aria-expanded="${profOpen}" aria-label="${esc(profOpen ? t('profBack') : t('profOpen'))}">${hexSvg(id)}</button>
+        ${others ? `<p class="muted small">${t('profOthers')}</p>` : ''}
+        <div class="now-line">${stPill(c)} ${cdHtml(changeInfo(c, 'sun'))} ${cdHtml(changeInfo(c, 'earth'))}</div>
+        <div class="pc">
+          <div><h4>${t('pros')}</h4><ul class="pro">${pr.length ? li(pr) : `<li class="none">${t('noPros')}</li>`}</ul></div>
+          <div><h4>${t('cons')}</h4><ul class="con">${cn.length ? li(cn) : `<li class="none">${t('noCons')}</li>`}</ul></div>
+        </div>
+      </div>
+      <div class="prof-detail" aria-hidden="${!profOpen}"><div class="prof-detail-in">
+        <button class="btn ghost" type="button" id="hexClose">${t('profBack')}</button>
+        <p class="small">${t('profPower')}</p>
+        ${AXES.map((a, i) => `<div class="dm" style="--i:${i}">
+          <div class="dm-h"><b>${t(a.k)}</b><span class="num">${fmt(sc[i], 0)}</span></div>
+          <div class="dm-bar"><i style="width:${sc[i].toFixed(0)}%"></i></div>
+          <p class="muted small">${t(a.d)}</p></div>`).join('')}
+        <div class="dm-x" style="--i:6">
+          <div class="r"><span>${t('rngSun')}</span><span class="num">${fmt(m.sunMin, 1)}° → ${fmt(m.sunMax, 1)}°</span></div>
+          <div class="r"><span>${t('rngEarth')}</span><span class="num">${fmt(m.earthMin, 1)}° → ${fmt(m.earthMax, 1)}°</span></div>
+          <div class="r"><span>${t('litWin')}</span><span class="num">${m.litWindows}</span></div>
+          <div class="r"><span>${t('profNow')}</span><span class="num">${t('sunNow')} ${fmt(c.sunClearance, 1)}° · ${t('earthNow')} ${fmt(c.earthClearance, 1)}°</span></div>
+        </div>
+      </div></div>`;
+  }
+  $('#prof').addEventListener('click', e => {
+    if (e.target.closest('#hexBtn')) profOpen = !profOpen;
+    else if (e.target.closest('#hexClose')) profOpen = false;
+    else return;
+    renderProfile();
   });
 
   /* ---------- state strip */
@@ -3611,6 +3878,9 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
   const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
+  if (hashTab && hashTab !== '3d' && okTabs.includes(hashTab)) mode = 'advanced';
+  applyMode(true);
+  document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();
