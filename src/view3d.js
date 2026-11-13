@@ -107,11 +107,16 @@
     uniform sampler2D uIllum; uniform sampler2D uAvg;
     uniform int uMode; uniform float uSunFracMin; uniform float uEarthMargin; uniform float uDsnOk;
     uniform vec3 cOps; uniform vec3 cSun; uniform vec3 cComm; uniform vec3 cNone;
-    uniform vec3 uHsDir; uniform float uEarthIllum; uniform float uAvgReady;
+    uniform vec3 uHsDir; uniform float uEarthIllum; uniform float uAvgReady; uniform float uDetail; uniform float uNoiseFreq;
     varying vec2 vUv; varying vec3 vN;
     vec3 ramp(vec3 hue, float v) {
       vec3 c = mix(vec3(0.11, 0.115, 0.13), hue, smoothstep(0.0, 0.85, v));
       return mix(c, vec3(1.0), smoothstep(0.85, 1.0, v) * 0.55);
+    }
+    float hash21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+    float vnoise(vec2 p) {
+      vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+      return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x), mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), f.x), f.y);
     }
     vec3 thermal(float v) {
       vec3 a = vec3(0.70, 0.09, 0.17), b = vec3(0.94, 0.54, 0.38), c = vec3(0.96, 0.96, 0.96), d = vec3(0.40, 0.66, 0.81), e = vec3(0.13, 0.40, 0.67);
@@ -122,11 +127,14 @@
       #include <logdepthbuf_fragment>
       vec2 d = vUv - 0.5; if (dot(d, d) > 0.2475) discard;
       float hs = clamp(dot(normalize(vN), uHsDir), 0.0, 1.0);
+      // fine regolith grain (High quality only), faded out when it would alias
+      float fw = fwidth(vUv.x * uNoiseFreq);
+      float dt = 1.0 + uDetail * (vnoise(vUv * uNoiseFreq) * 0.6 + vnoise(vUv * uNoiseFreq * 2.7) * 0.4 - 0.5) * 0.4 * (1.0 - smoothstep(0.35, 0.9, fw));
       vec4 I = texture2D(uIllum, vUv);
       float frac = I.r; float clr = I.g * 20.0 - 10.0; float lam = I.b * I.b;
       vec3 col;
       if (uMode == 0) {
-        float rad = 4.5 * lam;
+        float rad = 4.5 * lam * dt;
         col = vec3(1.0 - exp(-rad * 2.2)) * vec3(1.0, 0.985, 0.95);
         float earthshine = (clr > 0.0 ? 1.0 : 0.0) * uEarthIllum * 0.02;
         col += (0.03 + earthshine) * (0.35 + 0.65 * hs) * vec3(0.55, 0.62, 0.78);
@@ -134,7 +142,7 @@
         bool lit = frac >= uSunFracMin && frac > 0.0;
         bool dte = clr >= uEarthMargin && uDsnOk > 0.5;
         vec3 s = lit && dte ? cOps : lit ? cSun : dte ? cComm : cNone;
-        col = s * (0.42 + 0.58 * hs);
+        col = s * (0.42 + 0.58 * hs) * dt;
       } else {
         vec4 A = texture2D(uAvg, vUv);
         float v = uMode == 2 ? A.r : uMode == 3 ? A.g : A.b;
@@ -242,15 +250,16 @@
         uIllum: { value: null }, uAvg: { value: null }, uMode: { value: 0 },
         uSunFracMin: { value: 0.5 }, uEarthMargin: { value: 0 }, uDsnOk: { value: 1 },
         cOps: { value: hexToVec('#2fbf8c') }, cSun: { value: hexToVec('#f2b84b') }, cComm: { value: hexToVec('#5fa2f0') }, cNone: { value: hexToVec('#343a43') },
-        uHsDir: { value: new THREE.Vector3(-0.5, 0.75, -0.4).normalize() }, uEarthIllum: { value: 0.5 }, uAvgReady: { value: 0 }
+        uHsDir: { value: new THREE.Vector3(-0.5, 0.75, -0.4).normalize() }, uEarthIllum: { value: 0.5 }, uAvgReady: { value: 0 },
+        uDetail: { value: 1 }, uNoiseFreq: { value: 1000 }
       },
-      vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS
+      vertexShader: TERRAIN_VS, fragmentShader: TERRAIN_FS, extensions: { derivatives: true }
     });
 
     /* state */
     const st = {
       region: 'pole', mode: 'sun', exag: 3, sun: [1, 0, 0], earth: [-384000, 0, 0], earthIllum: 0.5, dsnOk: true,
-      rules: { sunFracMin: 0.5, earthMarginDeg: 0 }, sites: [], samples: [], avgDone: 0, avgKey: '',
+      quality: 'high', rules: { sunFracMin: 0.5, earthMarginDeg: 0 }, sites: [], samples: [], avgDone: 0, avgKey: '',
       grid: null, mesh: null, fp: null, cam: null, anim: null, skyScale: 4
     };
 
@@ -258,7 +267,9 @@
 
     /* terrain mesh */
     function buildMesh() {
-      const G = regionGrid(), step = st.region === 'pole' ? 1 : 2;
+      const G = regionGrid(), step = (st.region === 'pole' || st.quality === 'high') ? 1 : 2;
+      terrainMat.uniforms.uDetail.value = st.quality === 'high' ? 1 : 0;
+      terrainMat.uniforms.uNoiseFreq.value = G.n * 1.5;
       const n = G.n, m = Math.floor((n - 1) / step) + 1;
       const pos = new Float32Array(m * m * 3), uv = new Float32Array(m * m * 2);
       let k = 0;
@@ -626,6 +637,7 @@
         invalidate();
       },
       setMode(mode) { st.mode = mode; terrainMat.uniforms.uMode.value = ['sun', 'plan', 'avgSun', 'avgEarth', 'avgOps'].indexOf(mode); invalidate(); },
+      setQuality(q) { if (q === st.quality) return; st.quality = q; if (st.mesh) { buildMesh(); buildMarkers(); } invalidate(); },
       setExag(x) {
         if (st.fp) { st.exagBeforeFp = x; return; }
         if (x === st.exag) return;

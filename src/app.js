@@ -40,7 +40,7 @@
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
-      searchPh: 'Search a site…', searchNone: 'No match', popTitle: 'New site here', popName: 'Site name', popOk: 'Add', popCancel: 'Cancel', heatWindow: 'next 10 days from the cursor',
+      qualLabel: 'Quality', qualStd: 'Standard', qualHigh: 'High (sharper, heavier)', searchPh: 'Search a site…', searchNone: 'No match', popTitle: 'New site here', popName: 'Site name', popOk: 'Add', popCancel: 'Cancel', heatWindow: 'next 10 days from the cursor',
       bestBtn: 'Best site', bestMsg: 'Best south-pole site for the 10 days from {d}: {n}, grade {g} ({p}%).', vwLive: 'Live', vwHeat: 'Heat map', gradeTitle: 'Power + link score, next 10 days', gradeWord: 'Grade', poor: 'Poor', good: 'Good', stretched: 'colours stretched to show differences',
       gradeNote: 'A score of the next 10 days from the cursor time, not a landing-success probability.', dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
@@ -128,7 +128,7 @@
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
-      searchPh: 'Chercher un site…', searchNone: 'Aucun résultat', popTitle: 'Nouveau site ici', popName: 'Nom du site', popOk: 'Ajouter', popCancel: 'Annuler', heatWindow: 'les 10 jours suivant le curseur',
+      qualLabel: 'Qualité', qualStd: 'Standard', qualHigh: 'Haute (plus net, plus lourd)', searchPh: 'Chercher un site…', searchNone: 'Aucun résultat', popTitle: 'Nouveau site ici', popName: 'Nom du site', popOk: 'Ajouter', popCancel: 'Annuler', heatWindow: 'les 10 jours suivant le curseur',
       bestBtn: 'Meilleur site', bestMsg: 'Meilleur site du pôle Sud pour les 10 jours à partir du {d} : {n}, note {g} ({p} %).', vwLive: 'Direct', vwHeat: 'Carte thermique', gradeTitle: 'Score énergie + liaison, 10 prochains jours', gradeWord: 'Note', poor: 'Mauvais', good: 'Bon', stretched: 'couleurs étirées pour montrer les écarts',
       gradeNote: 'Un score sur les 10 jours à partir du curseur, pas une probabilité de réussite de l’atterrissage.', dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
@@ -1491,6 +1491,7 @@
   document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')) sRes.hidden = true; });
 
   /* heat map follows the cursor: score over the 10 days from the cursor time */
+  try { const q = store.get('quality', 'high'); $('#v3dQuality').value = q === 'standard' ? 'standard' : 'high'; } catch (e) { /* ignore */ }
   let heatWin = false, heatT = 0;
   function windowSamples() {
     const g = state.grid, w = Math.round(10 * DAY / g.stepMs);
@@ -1520,6 +1521,7 @@
           onUserInput: () => { if (tour) stopTour(); }
         });
         v3d.setRules(state.cfg);
+        v3d.setQuality($('#v3dQuality').value);
         v3d.setExag(+$('#v3dExag').value);
         set3DMode($('#v3dMode').value);
         $('#v3dStatus').textContent = '';
@@ -1620,6 +1622,7 @@
     }
   });
   $('#v3dExag').addEventListener('input', e => { $('#v3dExagOut').textContent = e.target.value + '×'; });
+  $('#v3dQuality').addEventListener('change', e => { store.set('quality', e.target.value); if (v3d) v3d.setQuality(e.target.value); });
   $('#v3dExag').addEventListener('change', e => { if (v3d) v3d.setExag(+e.target.value); });
   $('#v3dOverview').addEventListener('click', () => { if (v3d) v3d.view('overview'); });
   $('#v3dSunView').addEventListener('click', () => { if (v3d) v3d.view('sun'); });
