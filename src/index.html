@@ -109,11 +109,16 @@
         <div class="v3d-top">
           <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
             <select id="siteQuick" aria-label="Site"></select></label>
+          <div class="seg" id="v3dScope" role="group" aria-label="Scope">
+            <button type="button" data-scope="moon" aria-pressed="false" data-i18n="scMoon">Whole Moon</button>
+            <button type="button" data-scope="pole" aria-pressed="true" data-i18n="scPole">South pole</button>
+          </div>
           <div class="seg" id="v3dView" role="group" aria-label="View">
             <button type="button" data-view="live" aria-pressed="true" data-i18n="vwLive">Live</button>
             <button type="button" data-view="heat" aria-pressed="false" data-i18n="vwHeat">Heat map</button>
           </div>
           <div class="actions">
+            <button class="btn toggle" type="button" id="v3dLight" aria-pressed="false" data-i18n="vwLight" data-i18n-title="lightTip">Light everywhere</button>
             <button class="btn" type="button" id="bestBtn" data-i18n="bestBtn">Best site</button>
             <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
@@ -125,6 +130,7 @@
           <canvas class="v3d-labels" id="v3dLabels" aria-hidden="true"></canvas>
           <div class="v3d-hud mono" id="v3dHud"></div>
           <div class="v3d-status" id="v3dStatus" role="status"></div>
+          <div class="v3d-flat" id="v3dFlatTag" hidden data-i18n="flatTag">Fictional lighting: real shadows and colours are hidden</div>
           <div class="v3d-caption" id="v3dCaption" hidden></div>
           <div class="v3d-fallback" id="v3dFallback" hidden></div>
         </div>
@@ -145,6 +151,7 @@
         <div class="v3d-toolbar">
           <label><span data-i18n="v3dRegion">Area</span>
             <select id="v3dRegion">
+              <option value="moon" data-i18n="v3dMoon">Whole Moon (overview)</option>
               <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
               <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
             </select></label>

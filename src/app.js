@@ -89,6 +89,11 @@
       mAvgEarth: 'Earth link, share of the period', mAvgOps: 'Power + link, share of the period',
       vOverview: 'Overview', vSun: 'Look toward the Sun', vStand: 'Stand at', vTour: 'Guided tour', vTourStop: 'Stop the tour',
       v3dNote: 'Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Right-click the terrain (without dragging) to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.',
+      vwLight: 'Light everywhere', lightTip: 'Fictional even lighting: see the terrain itself, without real shadows or colours. This is not the real Sun.',
+      flatTag: 'Fictional lighting: real shadows and colours are hidden', scMoon: 'Whole Moon', scPole: 'South pole', v3dMoon: 'Whole Moon (overview)',
+      lgMoon: 'Lit side = the real Sun at the cursor time. The surface texture is illustrative (maria positions approximate); the south pole cap is real LOLA relief. Discs = zones with sites; click one to zoom.',
+      zPolar: 'South pole · Artemis & CLPS', zApollo: 'Apollo & SLIM · near side', zWest: 'Reiner Gamma & Chang’e 5 · west', zFar: 'Chang’e 4 & 6 · far side',
+      zoneTip: '{n} sites · click to zoom', zoneToast: '{z}: LOLA terrain only covers the south pole, so these sites use a smooth horizon (less precise). Click a marker for its profile.', hudSubSolar: 'Sun overhead',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -177,6 +182,11 @@
       mAvgEarth: 'Liaison Terre, part de la période', mAvgOps: 'Énergie + liaison, part de la période',
       vOverview: 'Vue d’ensemble', vSun: 'Regarder vers le Soleil', vStand: 'Se placer sur', vTour: 'Visite guidée', vTourStop: 'Arrêter la visite',
       v3dNote: 'Glissez pour tourner, clic droit ou Maj + glisser pour déplacer, molette pour zoomer. Clic droit sur le relief (sans glisser) pour y ajouter un site. Ombres et visibilité de la Terre sont calculées par votre carte graphique à partir du relief LOLA ; l’étirement vertical est seulement visuel.',
+      vwLight: 'Lumière partout', lightTip: 'Éclairage fictif uniforme : voir le relief lui-même, sans ombres ni couleurs réelles. Ce n’est pas le vrai Soleil.',
+      flatTag: 'Éclairage fictif : ombres et couleurs réelles masquées', scMoon: 'Toute la Lune', scPole: 'Pôle sud', v3dMoon: 'Toute la Lune (vue d’ensemble)',
+      lgMoon: 'Côté éclairé = le vrai Soleil à l’heure du curseur. La texture de surface est illustrative (positions des mers approximatives) ; la calotte du pôle sud est le vrai relief LOLA. Disques = zones avec des sites ; cliquez pour zoomer.',
+      zPolar: 'Pôle sud · Artemis et CLPS', zApollo: 'Apollo et SLIM · face visible', zWest: 'Reiner Gamma et Chang’e 5 · ouest', zFar: 'Chang’e 4 et 6 · face cachée',
+      zoneTip: '{n} sites · cliquer pour zoomer', zoneToast: '{z} : le relief LOLA ne couvre que le pôle sud, ces sites utilisent donc un horizon lisse (moins précis). Cliquez sur un marqueur pour son profil.', hudSubSolar: 'Soleil au zénith',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -1438,7 +1448,7 @@
       state.focus = b.id; computeSeries();
     } else setFocus(b.id);
     toast(t('bestMsg').replace('{n}', s.name).replace('{g}', b.gr.letter).replace('{p}', fmt(b.gr.pct, 0)).replace('{d}', utc(timeOf(state.cursor), false)));
-    if (v3d) { if (!v3d.inRegion(s)) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); } v3d.view('overview'); }
+    if (v3d) { if (v3d.region() === 'moon' || !v3d.inRegion(s)) setRegionUI('south'); v3d.view('overview'); }
   }
   $('#bestBtn').addEventListener('click', bestSite);
   const gradeChip = gr => `<span class="grade" style="background:${gr.color}">${gr.letter}</span>`;
@@ -1461,7 +1471,7 @@
       state.focus = id; computeSeries();
     } else setFocus(id);
     if (v3d) {
-      if (!v3d.inRegion(s) && s.lat <= -75) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); }
+      if (!v3d.inRegion(s) && s.lat <= -75) setRegionUI('south');
       v3d.flyTo(s, 900);
     }
     if (scroll && state.tab === '3d') {
@@ -1543,12 +1553,17 @@
           onSite: id => openSite(id),
           onContext: (lat, lon, x, y) => showAddPop(lat, lon, x, y),
           onHover: onSiteHover,
+          onZone: openZone, onZoneHover,
+          basemap: baseImg, basemapMeta: DATA.assets.basemap,
           onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
           onUserInput: () => { if (tour) stopTour(); }
         });
         v3d.setRules(state.cfg);
         v3d.setQuality($('#v3dQuality').value);
         v3d.setExag(+$('#v3dExag').value);
+        v3d.setFlat(flat);
+        syncZones();
+        if ($('#v3dRegion').value === 'moon') v3d.setRegion('moon');
         set3DMode($('#v3dMode').value);
         $('#v3dStatus').textContent = '';
         return v3d;
@@ -1560,6 +1575,7 @@
     const i = state.cursor, heat = $('#v3dMode').value.startsWith('avg') && v3d && v3d.region() === 'south';
     const top = {}, gcol = {};
     if (heat) rankSouth().forEach((x, k) => { gcol[x.id] = x.gr.color; if (k < 3) top[x.id] = true; });
+    else if (v3d && v3d.region() === 'moon') state.sites.forEach(s => { const gr = siteGrade(s.id); if (gr) gcol[s.id] = gr.color; });
     return state.sites.map(s => {
       const ser = state.series[s.id], sel = state.selected.includes(s.id);
       const sc = ser ? (ser.ops[i] ? ST_COL.ops : ser.lit[i] ? ST_COL.sun : ser.dte[i] ? ST_COL.comm : ST_COL.none) : null;
@@ -1594,33 +1610,105 @@
   function update3D() {
     if (!v3d || !state.grid) return;
     if (heatOn()) scheduleHeat();
+    syncZones();
     const list = v3dSites();
     const key = list.map(s => s.id + (s.selected ? 1 : 0) + (s.focus ? 1 : 0) + s.color + s.lat).join('|');
     v3d.setSites(list, key !== v3dSitesKey); v3dSitesKey = key;
     const S = v3dStateAt(state.cursor);
     v3d.setState(S);
+    renderLegend();
     // HUD: Sun and Earth as seen from the pole itself
     const g = state.grid, i = state.cursor;
     const el = v => Math.asin(-v[2] / Math.hypot(v[0], v[1], v[2])) * 180 / Math.PI;
     const az = v => ((Math.atan2(v[1], v[0]) * 180 / Math.PI) + 360) % 360;
     const poleE = [S.earth[0], S.earth[1], S.earth[2] + 1737.4];
     const dsnIn = E.DSN.filter((d, k) => g.dsn[i * 3 + k] >= state.cfg.dsnMinDeg).map(d => d.name);
-    $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E<br>` +
+    const subLat = Math.asin(S.sun[2] / Math.hypot(S.sun[0], S.sun[1], S.sun[2])) * 180 / Math.PI, subLon = Math.atan2(S.sun[1], S.sun[0]) * 180 / Math.PI;
+    const sunLine = v3d.region() === 'moon' ? `${t('hudSubSolar')} ${fmt(Math.abs(subLat), 1)}°${subLat < 0 ? 'S' : 'N'} ${fmt(Math.abs(subLon), 0)}°${subLon < 0 ? 'W' : 'E'}`
+      : `${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E`;
+    $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${sunLine}<br>` +
       `${t('hudEarth')} ${fmt(el(poleE), 2)}° · ${t('phase')} ${fmt(S.earthIllum * 100, 0)}%<br>DSN: ${dsnIn.length ? dsnIn.join(', ') : t('none')}` +
       (state.series[state.focus] ? (() => { const c = E.conditionsAt(state.series[state.focus], g, i), a1 = changeInfo(c, 'sun'), a2 = changeInfo(c, 'earth');
         const gr = siteGrade(state.focus);
         return `<br><b style="font-size:13px">${esc(site(state.focus).name)}</b>${gr ? ' ' + gradeChip(gr) + ' ' + fmt(gr.pct, 0) + '%' : ''}: ${t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))} · ${a1.label} ${a1.val} · ${a2.label} ${a2.val}`; })() : '');
   }
-  function set3DMode(mode) {
-    $('#v3dMode').value = mode;
-    if (v3d) v3d.setMode(mode);
-    const L = $('#v3dLegend');
+  /* region / scope: 'moon' = whole Moon, 'south' (75-90 S) and 'pole' (87.5-90 S) = LOLA terrain */
+  function syncScope() {
+    const moon = $('#v3dRegion').value === 'moon';
+    document.querySelectorAll('#v3dScope [data-scope]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.scope === 'moon') === moon)));
+  }
+  function setRegionUI(r) {
+    $('#v3dRegion').value = r;
+    if (v3d) v3d.setRegion(r);
+    syncScope(); renderLegend(); update3D();
+  }
+  /* fictional even lighting ("light everywhere") */
+  let flat = store.get('flat', false) === true;
+  function applyFlat() {
+    $('#v3dLight').setAttribute('aria-pressed', String(flat));
+    $('#v3dFlatTag').hidden = !flat;
+    if (v3d) v3d.setFlat(flat);
+    renderLegend();
+  }
+  $('#v3dLight').addEventListener('click', () => { flat = !flat; store.set('flat', flat); applyFlat(); });
+  /* zones shown as discs on the whole-Moon view */
+  const ZONE_DEFS = [
+    { id: 'polar', key: 'zPolar', color: '#f2b84b', south: true },
+    { id: 'apollo', key: 'zApollo', color: '#5fa2f0', ids: ['a11', 'a12', 'a14', 'a15', 'a16', 'a17', 'slim'] },
+    { id: 'west', key: 'zWest', color: '#5fa2f0', ids: ['im3', 'ce5'] },
+    { id: 'far', key: 'zFar', color: '#5fa2f0', ids: ['ce4', 'ce6'] }
+  ];
+  let zonesCache = [], zonesKey = '';
+  function zoneList() {
+    const D = Math.PI / 180, U = (la, lo) => [Math.cos(la * D) * Math.cos(lo * D), Math.cos(la * D) * Math.sin(lo * D), Math.sin(la * D)];
+    return ZONE_DEFS.map(d => {
+      const ss = d.south ? state.sites.filter(s => s.lat <= -75) : d.ids.map(site).filter(Boolean);
+      if (!ss.length) return null;
+      let lat = -90, lon = 0, rad = 15;
+      if (!d.south) {
+        let v = [0, 0, 0]; ss.forEach(s => { const u = U(s.lat, s.lon); v = v.map((x, k) => x + u[k]); });
+        const n = Math.hypot(...v); v = v.map(x => x / n);
+        lat = Math.asin(v[2]) / D; lon = Math.atan2(v[1], v[0]) / D;
+        rad = Math.max(8, 5 + Math.max(...ss.map(s => { const u = U(s.lat, s.lon); return Math.acos(Math.max(-1, Math.min(1, u[0] * v[0] + u[1] * v[1] + u[2] * v[2]))) / D; })));
+      }
+      return { id: d.id, name: t(d.key), color: d.color, lat, lon, rad, siteIds: ss.map(s => s.id) };
+    }).filter(Boolean);
+  }
+  function syncZones() {
+    const zl = zoneList(), key = lang + '|' + zl.map(z => z.id + z.rad.toFixed(1) + z.siteIds.length).join(',');
+    zonesCache = zl;
+    if (v3d && key !== zonesKey) { v3d.setZones(zl); zonesKey = key; }
+  }
+  function openZone(id) {
+    const z = zonesCache.find(q => q.id === id); if (!z || !v3d) return;
+    if (id === 'polar') { setRegionUI('south'); v3d.view('overview'); return; }
+    v3d.focusZone(id);
+    toast(t('zoneToast').replace('{z}', z.name));
+  }
+  function onZoneHover(id, x, y) {
+    if (!id) { hideTip(); return; }
+    const z = zonesCache.find(q => q.id === id); if (!z) return;
+    tip.innerHTML = `<div class="r"><b>${esc(z.name)}</b></div><div class="t">${t('zoneTip').replace('{n}', z.siteIds.length)}</div>`;
+    tip.hidden = false;
+    const r = tip.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - r.width - 8, x + 14) + 'px';
+    tip.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y + 14)) + 'px';
+  }
+  function renderLegend() {
+    const L = $('#v3dLegend'), mode = $('#v3dMode').value, moon = $('#v3dRegion').value === 'moon';
+    if (flat) { L.innerHTML = `<span>${t('flatTag')}</span>`; return; }
+    if (moon) { L.innerHTML = `<span>${t('lgMoon')}</span>`; return; }
     if (mode === 'sun') L.innerHTML = `<span>${t('lgReal')}</span>`;
     else if (mode === 'plan') L.innerHTML = [['ops', 'lgOps'], ['sun', 'lgSun'], ['comm', 'lgComm'], ['none', 'lgNone']]
       .map(([k, l]) => `<span><i class="sw" style="background:var(--st-${k})"></i> ${t(l)}</span>`).join('');
     else {
       L.innerHTML = `<span>${t('poor')}</span><span class="ramp" style="background:linear-gradient(90deg,#b2182b,#ef8a62,#f5f5f5,#67a9cf,#2166ac)"></span><span>${t('good')} (${heatWin ? t('heatWindow') : t('ofPeriod')})</span><span class="muted">${t('stretched')}</span>`;
     }
+  }
+  function set3DMode(mode) {
+    $('#v3dMode').value = mode;
+    if (v3d) v3d.setMode(mode);
+    renderLegend();
     document.querySelectorAll('#v3dView [data-view]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.view === 'heat') === mode.startsWith('avg'))));
   }
   function update3DButtons() {
@@ -1632,10 +1720,15 @@
   }
   function standAt(id, ms) {
     const s = site(id); if (!s || s.lat > -75 || !v3d) return;
-    if (!v3d.inRegion(s)) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); }
+    if (v3d.region() === 'moon' || !v3d.inRegion(s)) setRegionUI('south');
     v3d.view('site', s, ms);
   }
-  $('#v3dRegion').addEventListener('change', e => init3D().then(v => { if (v) { v.setRegion(e.target.value); update3D(); } }));
+  $('#v3dRegion').addEventListener('change', e => init3D().then(v => { if (v) setRegionUI(e.target.value); }));
+  $('#v3dScope').addEventListener('click', e => {
+    const b = e.target.closest('[data-scope]'); if (!b) return;
+    if (tour) stopTour();
+    init3D().then(v => { if (!v) return; setRegionUI(b.dataset.scope === 'moon' ? 'moon' : (v.region() === 'moon' ? 'south' : v.region())); });
+  });
   $('#v3dMode').addEventListener('change', e => { heatWin = false; set3DMode(e.target.value); if (v3d && state.grid) v3d.setSamples(v3dSamples()); });
   $('#v3dView').addEventListener('click', e => {
     const b = e.target.closest('[data-view]'); if (!b) return;
@@ -1643,7 +1736,7 @@
     set3DMode(heatWin ? 'avgOps' : 'sun');
     if (v3d && state.grid) v3d.setSamples(heatWin ? windowSamples() : v3dSamples());
     if (b.dataset.view === 'heat' && v3d) {
-      if (v3d.region() !== 'south') { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); update3D(); }
+      if (v3d.region() !== 'south') setRegionUI('south');
       v3d.view('overview');
     }
   });
@@ -1694,7 +1787,7 @@
     if (k >= TOUR.length) { stopTour(); return; }
     const S = TOUR[k];
     const v = await init3D(); if (!v || !tour) return;
-    if (S.region && v.region() !== S.region) { $('#v3dRegion').value = S.region; v.setRegion(S.region); }
+    if (S.region && v.region() !== S.region) setRegionUI(S.region);
     set3DMode(S.mode);
     if (S.site) standAt(S.site, 1200); else v.view(S.view, null, 1300);
     setPlaying(S.play);
@@ -2168,6 +2261,7 @@
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => { const v = I18N[lang][el.dataset.i18n]; if (v) el.textContent = v; });
     document.querySelectorAll('[data-i18n-ph]').forEach(el => { const v = I18N[lang][el.dataset.i18nPh]; if (v) { el.placeholder = v; el.setAttribute('aria-label', v); } });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => { const v = I18N[lang][el.dataset.i18nTitle]; if (v) el.title = v; });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => { const v = I18N[lang][el.dataset.i18nAria]; if (v) { el.setAttribute('aria-label', v); el.title = v; } });
     $('#lang').textContent = lang === 'en' ? 'FR' : 'EN';
     buildMethod(); renderMethod();
@@ -2181,6 +2275,7 @@
 
   /* ---------- boot */
   applyI18n();
+  applyFlat(); syncScope();
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
