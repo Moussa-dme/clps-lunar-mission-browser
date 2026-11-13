@@ -403,3 +403,16 @@ body[data-mode="simple"] .sub { display: none; }
   .cb-key, .utc-tag { display: none; }
   .cb-chips { gap: 4px 10px; }
 }
+
+/* grades A-E, heat map toggle, compact time bar */
+.grade { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 7px; color: #fff; font-weight: 700; font-size: 13px; line-height: 1; }
+.grade-line { display: inline-flex; align-items: center; gap: 8px; margin-left: 10px; font-weight: 400; }
+.grade-line small { color: var(--muted); font-size: 12px; }
+.tooltip .r { gap: 14px; }
+.v3d-hud .grade { height: 18px; min-width: 18px; font-size: 11px; vertical-align: 1px; }
+.cb-chips { max-height: 90px; overflow: hidden; transition: max-height .3s ease, opacity .25s ease, margin .3s ease; }
+.cursor-bar.compact .cb-chips { max-height: 0; opacity: 0; margin-top: -6px; }
+.cursor-bar.compact .small-btn { display: none; }
+.cursor-bar { transition: padding .3s ease; }
+.cursor-bar.compact { padding-block: 8px; }
+@media (max-width: 700px) { .v3d-top .seg { order: 2; } }

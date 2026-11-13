@@ -40,7 +40,8 @@
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
-      dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
+      bestBtn: 'Best site', bestMsg: 'Best south-pole site for the 10 days from {d}: {n}, grade {g} ({p}%).', vwLive: 'Live', vwHeat: 'Heat map', gradeTitle: 'Power + link score, next 10 days', gradeWord: 'Grade', poor: 'Poor', good: 'Good', stretched: 'colours stretched to show differences',
+      gradeNote: 'A score of the next 10 days from the cursor time, not a landing-success probability.', dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
       axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
       dSun: 'Share of the period with the Sun above the local terrain horizon.',
@@ -126,7 +127,8 @@
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
-      dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
+      bestBtn: 'Meilleur site', bestMsg: 'Meilleur site du pôle Sud pour les 10 jours à partir du {d} : {n}, note {g} ({p} %).', vwLive: 'Direct', vwHeat: 'Carte thermique', gradeTitle: 'Score énergie + liaison, 10 prochains jours', gradeWord: 'Note', poor: 'Mauvais', good: 'Bon', stretched: 'couleurs étirées pour montrer les écarts',
+      gradeNote: 'Un score sur les 10 jours à partir du curseur, pas une probabilité de réussite de l’atterrissage.', dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
       axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
       dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
@@ -483,6 +485,18 @@
   }
   ['#start', '#end', '#step'].forEach(s => $(s).addEventListener('change', readRange));
 
+  /* time bar: compact when scrolling up / at the top, full when scrolling down */
+  (function () {
+    const bar = $('.cursor-bar'); let lastY = window.scrollY;
+    const upd = () => {
+      const y = window.scrollY, dy = y - lastY;
+      if (y < 60 || dy < -6) bar.classList.add('compact'); else if (dy > 6) bar.classList.remove('compact');
+      if (Math.abs(dy) > 6) lastY = y;
+    };
+    bar.classList.add('compact');
+    window.addEventListener('scroll', upd, { passive: true });
+  })();
+
   /* cursor + play */
   $('#cursor').addEventListener('input', e => { state.cursor = +e.target.value; renderCursorDependent(); });
   $('#play').addEventListener('click', () => setPlaying(!state.playing));
@@ -780,8 +794,9 @@
     box.className = 'prof' + (profOpen ? ' open' : '');
     box.innerHTML = `
       <div class="prof-main">
-        <h3><i class="dot" style="background:${colorOf(id)}"></i>${esc(site(id).name)}</h3>
+        <h3><i class="dot" style="background:${colorOf(id)}"></i>${esc(site(id).name)}${(() => { const gr = siteGrade(id); return gr ? ` <span class="grade-line">${gradeChip(gr)}<small>${t('gradeTitle')}: ${fmt(gr.pct, 0)}%</small></span>` : ''; })()}</h3>
         <button class="hexbtn" type="button" id="hexBtn" aria-expanded="${profOpen}" aria-label="${esc(profOpen ? t('profBack') : t('profOpen'))}">${hexSvg(id)}</button>
+        <p class="muted small">${t('gradeNote')}</p>
         ${others ? `<p class="muted small">${t('profOthers')}</p>` : ''}
         <div class="now-line">${stPill(c)} ${cdHtml(changeInfo(c, 'sun'))} ${cdHtml(changeInfo(c, 'earth'))}</div>
         <div class="pc">
@@ -1362,6 +1377,53 @@
     f.innerHTML = `<div><p>${esc(msg)}</p><p class="small" style="margin-top:8px;color:var(--space-mut)">${t('noWebGLHelp')}</p></div>`;
     $('#v3dStatus').textContent = '';
   }
+  /* grade for any site: share of the next 10 days with power + link, from the cursor time */
+  const GRADES = [[60, 'A', '#2166ac'], [45, 'B', '#4393c3'], [30, 'C', '#8c929b'], [15, 'D', '#d6604d'], [-1, 'E', '#b2182b']];
+  const allSer = {};
+  let allSerGrid = null;
+  function anySeries(id) {
+    if (!state.grid) return null;
+    if (state.series[id]) return state.series[id];
+    if (allSerGrid !== state.grid) { for (const k in allSer) delete allSer[k]; allSerGrid = state.grid; }
+    if (!allSer[id]) allSer[id] = E.siteSeries(state.grid, site(id), state.cfg);
+    return allSer[id];
+  }
+  function siteGrade(id) {
+    const ser = anySeries(id); if (!ser) return null;
+    const g = state.grid, w = Math.round(10 * DAY / g.stepMs);
+    const i0 = Math.min(state.cursor, Math.max(0, g.n - 2)), i1 = Math.min(g.n, i0 + w);
+    const m = E.summarize(ser, g, i0, i1), pct = m.opsPct;
+    const [, letter, color] = GRADES.find(([min]) => pct >= min);
+    return { pct, letter, color, days: (i1 - i0) * g.stepMs / DAY };
+  }
+  /* south-pole candidates ranked by their grade at the cursor time */
+  function rankSouth() {
+    return state.sites.filter(s => s.lat <= -75).map(s => ({ id: s.id, gr: siteGrade(s.id) })).filter(x => x.gr).sort((a, b) => b.gr.pct - a.gr.pct);
+  }
+  function bestSite() {
+    if (!state.grid) return;
+    const rk = rankSouth(); if (!rk.length) return;
+    const b = rk[0], s = site(b.id);
+    if (!state.selected.includes(b.id)) {
+      if (!selectSite(b.id)) { state.selected.pop(); selectSite(b.id); }
+      store.set('selected', state.selected);
+      state.focus = b.id; computeSeries();
+    } else setFocus(b.id);
+    toast(t('bestMsg').replace('{n}', s.name).replace('{g}', b.gr.letter).replace('{p}', fmt(b.gr.pct, 0)).replace('{d}', utc(timeOf(state.cursor), false)));
+    if (v3d) { if (!v3d.inRegion(s)) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); } v3d.view('overview'); }
+  }
+  $('#bestBtn').addEventListener('click', bestSite);
+  const gradeChip = gr => `<span class="grade" style="background:${gr.color}">${gr.letter}</span>`;
+  function onSiteHover(id, x, y) {
+    if (!id) { hideTip(); return; }
+    const s = site(id), gr = siteGrade(id); if (!s || !gr) return;
+    tip.innerHTML = `<div class="r"><b>${esc(s.name)}</b>${gradeChip(gr)}</div><div class="t">${utc(timeOf(state.cursor))} UTC</div>` +
+      `<div class="r"><span>${t('gradeTitle')}</span><span>${fmt(gr.pct, 0)}%</span></div>`;
+    tip.hidden = false;
+    const r = tip.getBoundingClientRect();
+    tip.style.left = Math.min(window.innerWidth - r.width - 8, x + 14) + 'px';
+    tip.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y + 14)) + 'px';
+  }
   function init3D() {
     if (v3d || v3dFailed) return Promise.resolve(v3d);
     if (!v3dInit) {
@@ -1373,6 +1435,7 @@
           t,
           onPick: (lat, lon) => fillNewSite(lat, lon),
           onSite: id => setFocus(id),
+          onHover: onSiteHover,
           onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
           onUserInput: () => { if (tour) stopTour(); }
         });
@@ -1386,12 +1449,14 @@
     return v3dInit;
   }
   function v3dSites() {
-    const i = state.cursor;
+    const i = state.cursor, heat = $('#v3dMode').value.startsWith('avg') && v3d && v3d.region() === 'south';
+    const top = {}, gcol = {};
+    if (heat) rankSouth().forEach((x, k) => { gcol[x.id] = x.gr.color; if (k < 3) top[x.id] = true; });
     return state.sites.map(s => {
       const ser = state.series[s.id], sel = state.selected.includes(s.id);
       const sc = ser ? (ser.ops[i] ? ST_COL.ops : ser.lit[i] ? ST_COL.sun : ser.dte[i] ? ST_COL.comm : ST_COL.none) : null;
       return { id: s.id, name: s.name, lat: s.lat, lon: s.lon, heightM: s.heightM, selected: sel, focus: s.id === state.focus,
-        color: sel ? colorOf(s.id) : '#c9ced6', stateColor: sc };
+        color: gcol[s.id] || (sel ? colorOf(s.id) : '#c9ced6'), stateColor: sc, label: !!top[s.id] };
     });
   }
   function v3dStateAt(i) {
@@ -1434,7 +1499,8 @@
     $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E<br>` +
       `${t('hudEarth')} ${fmt(el(poleE), 2)}° · ${t('phase')} ${fmt(S.earthIllum * 100, 0)}%<br>DSN: ${dsnIn.length ? dsnIn.join(', ') : t('none')}` +
       (state.series[state.focus] ? (() => { const c = E.conditionsAt(state.series[state.focus], g, i), a1 = changeInfo(c, 'sun'), a2 = changeInfo(c, 'earth');
-        return `<br><b style="font-size:13px">${esc(site(state.focus).name)}</b>: ${t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))} · ${a1.label} ${a1.val} · ${a2.label} ${a2.val}`; })() : '');
+        const gr = siteGrade(state.focus);
+        return `<br><b style="font-size:13px">${esc(site(state.focus).name)}</b>${gr ? ' ' + gradeChip(gr) + ' ' + fmt(gr.pct, 0) + '%' : ''}: ${t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))} · ${a1.label} ${a1.val} · ${a2.label} ${a2.val}`; })() : '');
   }
   function set3DMode(mode) {
     $('#v3dMode').value = mode;
@@ -1444,9 +1510,9 @@
     else if (mode === 'plan') L.innerHTML = [['ops', 'lgOps'], ['sun', 'lgSun'], ['comm', 'lgComm'], ['none', 'lgNone']]
       .map(([k, l]) => `<span><i class="sw" style="background:var(--st-${k})"></i> ${t(l)}</span>`).join('');
     else {
-      const hue = mode === 'avgSun' ? 'var(--st-sun)' : mode === 'avgEarth' ? 'var(--st-comm)' : 'var(--st-ops)';
-      L.innerHTML = `<span>0%</span><span class="ramp" style="background:linear-gradient(90deg,#1c1d21,${hue} 85%,#fff)"></span><span>100% ${t('ofPeriod')}</span>`;
+      L.innerHTML = `<span>${t('poor')}</span><span class="ramp" style="background:linear-gradient(90deg,#b2182b,#ef8a62,#f5f5f5,#67a9cf,#2166ac)"></span><span>${t('good')} (${t('ofPeriod')})</span><span class="muted">${t('stretched')}</span>`;
     }
+    document.querySelectorAll('#v3dView [data-view]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.view === 'heat') === mode.startsWith('avg'))));
   }
   function update3DButtons() {
     const b = $('#v3dStand'); if (!b) return;
@@ -1462,6 +1528,14 @@
   }
   $('#v3dRegion').addEventListener('change', e => init3D().then(v => { if (v) { v.setRegion(e.target.value); update3D(); } }));
   $('#v3dMode').addEventListener('change', e => set3DMode(e.target.value));
+  $('#v3dView').addEventListener('click', e => {
+    const b = e.target.closest('[data-view]'); if (!b) return;
+    set3DMode(b.dataset.view === 'heat' ? 'avgOps' : 'sun');
+    if (b.dataset.view === 'heat' && v3d) {
+      if (v3d.region() !== 'south') { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); update3D(); }
+      v3d.view('overview');
+    }
+  });
   $('#v3dExag').addEventListener('input', e => { $('#v3dExagOut').textContent = e.target.value + '×'; });
   $('#v3dExag').addEventListener('change', e => { if (v3d) v3d.setExag(+e.target.value); });
   $('#v3dOverview').addEventListener('click', () => { if (v3d) v3d.view('overview'); });

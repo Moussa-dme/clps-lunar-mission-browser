@@ -105,7 +105,12 @@
         <div class="v3d-top">
           <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
             <select id="siteQuick" aria-label="Site"></select></label>
+          <div class="seg" id="v3dView" role="group" aria-label="View">
+            <button type="button" data-view="live" aria-pressed="true" data-i18n="vwLive">Live</button>
+            <button type="button" data-view="heat" aria-pressed="false" data-i18n="vwHeat">Heat map</button>
+          </div>
           <div class="actions">
+            <button class="btn" type="button" id="bestBtn" data-i18n="bestBtn">Best site</button>
             <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
             <button class="btn ghost" type="button" id="v3dStand"></button>
