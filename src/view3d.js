@@ -342,15 +342,17 @@
       return [r * Math.sin(lon * D2R), r * Math.cos(lon * D2R)];
     }
     function buildMarkers() {
-      while (markers.children.length) { const c = markers.children.pop(); c.geometry.dispose(); c.material.dispose(); }
-      const pinH = st.region === 'pole' ? 2.2 : 9, headR = st.region === 'pole' ? 0.35 : 1.6;
+      while (markers.children.length) { const c = markers.children.pop(); c.children.forEach(k => { k.geometry.dispose(); k.material.dispose(); }); c.geometry.dispose(); c.material.dispose(); }
+      const pinH = st.region === 'pole' ? 4 : 18, headR = st.region === 'pole' ? 1.3 : 5.5;
       for (const s of st.sites) {
         if (!inRegion(s)) continue;
         const base = sitePos(s, 0), top = sitePos(s, pinH);
         const col = new THREE.Color(s.color);
         const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([base, top]), new THREE.LineBasicMaterial({ color: col }));
-        const head = new THREE.Mesh(new THREE.SphereGeometry(headR * (s.focus ? 1.4 : 1), 16, 12), new THREE.MeshBasicMaterial({ color: col }));
-        head.position.copy(top); head.userData.site = s;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(headR * (s.focus ? 1.5 : 1), 20, 14), new THREE.MeshBasicMaterial({ color: col }));
+        const halo = new THREE.Mesh(new THREE.SphereGeometry(headR * (s.focus ? 1.5 : 1) * 1.45, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide }));
+        head.add(halo);
+        head.position.copy(top); head.userData.site = s; head.scale.setScalar((st.msc || 1) * (st.hover === s.id ? 1.6 : 1));
         line.visible = head.visible = !st.fp || st.fp.site.id !== s.id;
         markers.add(line, head);
       }
@@ -377,6 +379,10 @@
       camera.fov = ctl.fov; camera.updateProjectionMatrix();
       sky.position.copy(camera.position);
       markers.visible = !st.fp;
+      if (!st.fp) {   // keep markers a readable size on screen whatever the zoom
+        const ms = Math.max(0.3, Math.min(1.8, ctl.radius / (regionRadius() * 2.35)));
+        if (Math.abs(ms - (st.msc || 1)) > 0.02) { st.msc = ms; markers.children.forEach(m => { if (m.userData.site) m.scale.setScalar(ms * (st.hover === m.userData.site.id ? 1.6 : 1)); }); }
+      }
       placeSky();
     }
     function animateTo(to, ms) {
@@ -491,13 +497,6 @@
         const p = proj(obj.position);
         if (p) { const off = obj === earth ? Math.max(10, earth.scale.x / SKY_DIST * h / (2 * Math.tan(camera.fov * D2R / 2))) : 14; place(p[0], p[1] - off - 8, name, null, true); }
       }
-      const sorted = st.sites.filter(inRegion).sort((a, b) => (b.focus - a.focus) || (b.selected - a.selected));
-      for (const s of sorted) {
-        if (st.fp && st.fp.site.id === s.id) continue;
-        if (!s.selected && !s.focus && !s.label) continue;
-        const p = proj(sitePos(s, st.region === 'pole' ? 2.2 : 9)); if (!p) continue;
-        place(p[0], p[1], s.name, s.stateColor || null, s.focus);
-      }
     }
 
     /* render loop on demand */
@@ -577,7 +576,7 @@
       let best = null, bd = maxPx;
       for (const s of st.sites) {
         if (!inRegion(s)) continue;
-        const v = sitePos(s, st.region === 'pole' ? 2.2 : 9).clone().project(camera);
+        const v = sitePos(s, st.region === 'pole' ? 4 : 18).clone().project(camera);
         if (v.z > 1 || v.z < -1) continue;
         const d = Math.hypot((v.x + 1) / 2 * r.width - x, (1 - v.y) / 2 * r.height - y);
         if (d < bd) { bd = d; best = s; }
@@ -585,27 +584,34 @@
       return best;
     }
     let hoverId = null;
+    function setHover(id) {
+      hoverId = id; st.hover = id;
+      markers.children.forEach(m => { if (m.userData.site) m.scale.setScalar((st.msc || 1) * (m.userData.site.id === id ? 1.6 : 1)); });
+      if (!id && opts.onHover) opts.onHover(null);
+      invalidate();
+    }
     el.addEventListener('pointermove', e => {
       if (drag || !opts.onHover) return;
-      const s = nearestSite(e.clientX, e.clientY, 16);
+      const s = nearestSite(e.clientX, e.clientY, 24);
       el.style.cursor = s ? 'pointer' : '';
-      if ((s ? s.id : null) !== hoverId || s) { hoverId = s ? s.id : null; opts.onHover(hoverId, e.clientX, e.clientY); }
+      if ((s ? s.id : null) !== hoverId) setHover(s ? s.id : null);
+      if (s) opts.onHover(s.id, e.clientX, e.clientY);
     });
-    el.addEventListener('pointerleave', () => { if (hoverId && opts.onHover) { hoverId = null; opts.onHover(null); } });
+    el.addEventListener('pointerleave', () => { if (hoverId) setHover(null); });
     function pick(e) {
       const r = el.getBoundingClientRect();
       ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
       ray.setFromCamera(ndc, camera);
       const hm = ray.intersectObjects(markers.children.filter(m => m.userData.site), false)[0];
       if (hm && opts.onSite) { opts.onSite(hm.object.userData.site.id); return; }
-      const ns = nearestSite(e.clientX, e.clientY, 18);
-      if (ns && opts.onSite) { opts.onSite(ns.id); return; }
+      const ns = nearestSite(e.clientX, e.clientY, 24);
+      if (ns && opts.onSite && !(drag && drag.button === 2)) { opts.onSite(ns.id); return; }
       if (!st.mesh) return;
       const hit = ray.intersectObject(st.mesh, false)[0];
       if (!hit) return;
       const b = fromScene(hit.point);
       const lat = Math.asin(b[2] / Math.hypot(b[0], b[1], b[2])) / D2R, lon = Math.atan2(b[1], b[0]) / D2R;
-      if (opts.onPick) opts.onPick(lat, lon);
+      if (drag && drag.button === 2 && opts.onContext) opts.onContext(lat, lon, e.clientX, e.clientY);
     }
 
     /* presets */
@@ -640,6 +646,11 @@
         st.nowDirty = true; invalidate();
       },
       setSites(list, rebuild) { st.sites = list; if (rebuild !== false) buildMarkers(); invalidate(); },
+      flyTo(site, ms) {
+        if (st.fp || !site) return;
+        const p = sitePos(site, 0);
+        animateTo({ tx: p.x, ty: p.y, tz: p.z, radius: Math.min(ctl.radius, regionRadius() * 0.9), phi: 0.85 }, ms || 900);
+      },
       inRegion: s => inRegion(s),
       region: () => st.region,
       mode: () => st.mode,
