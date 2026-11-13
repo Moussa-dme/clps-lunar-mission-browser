@@ -96,6 +96,7 @@
 
     <nav class="tabs" role="tablist" aria-label="Views">
       <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
+      <button role="tab" id="tab-profile" aria-selected="false" data-tab="profile" data-i18n="tProfile">Profile</button>
       <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
       <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-i18n="tScen">Scenarios</button>
       <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
@@ -147,6 +148,16 @@
     </section>
 
     <!-- COMPARE -->
+    <section class="view" id="view-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
+      <div class="panel">
+        <div class="panel-head">
+          <h2 id="profTitle" data-i18n="profTitle">Site profile</h2>
+        </div>
+        <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
+        <div class="prof" id="prof"></div>
+      </div>
+    </section>
+
     <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
       <div class="panel">
         <div class="panel-head">

@@ -40,6 +40,22 @@
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
+      tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
+      axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
+      dSun: 'Share of the period with the Sun above the local terrain horizon.',
+      dEnergy: 'Mean visible fraction of the solar disk: what a sun-tracking panel would collect.',
+      dLink: 'Share of the time Earth is above the terrain horizon and a Deep Space Network antenna sees the Moon.',
+      dOps: 'Power and link at the same time: the time the mission can really use.',
+      dNight: '100 minus the longest continuous night as a share of the period.',
+      dGap: '100 minus the longest continuous loss of direct Earth link as a share of the period.',
+      pros: 'Strengths', cons: 'Weaknesses', noPros: 'Nothing stands out.', noCons: 'No major weakness over this period.',
+      prSun: 'Sunlit {v} of the period', prLink: 'Direct Earth link {v} of the time', prOps: 'Power and link together {v} of the time',
+      prNight: 'Longest night only {v}', prGap: 'Longest link gap only {v}',
+      cnSun: 'Sunlit only {v} of the period', cnLink: 'Direct Earth link only {v} of the time', cnOps: 'Power and link together only {v} of the time',
+      cnNight: 'A night of {v}: batteries and heaters must carry the lander', cnGap: 'A link gap of {v}: no direct commands',
+      profNow: 'At the cursor time', profBack: 'Close details', profOpen: 'Show details',
+      profPower: 'Power depends on where the Sun is; communication depends on where Earth is.',
+      rngSun: 'Sun elevation range', rngEarth: 'Earth elevation range', litWin: 'Sunlit windows', profOthers: 'Other selected sites (outline)',
       selected: 'selected', noSel: 'Tick at least one site in the list.', computing: 'Computing ephemerides…',
       sunNow: 'Sun', earthNow: 'Earth', clearance: 'above terrain', visibleDisk: 'of the disk visible', phase: 'Earth phase',
       dsnNow: 'DSN in view', none: 'none', power: 'Power', link: 'Earth link', dark: 'No power', noLink: 'No link',
@@ -109,6 +125,22 @@
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
+      tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
+      axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
+      dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
+      dEnergy: 'Fraction moyenne visible du disque solaire : ce que capterait un panneau orienté vers le Soleil.',
+      dLink: 'Part du temps où la Terre est au-dessus de l’horizon du relief et où une antenne du Deep Space Network voit la Lune.',
+      dOps: 'Énergie et liaison en même temps : le temps réellement utilisable par la mission.',
+      dNight: '100 moins la plus longue nuit continue, en part de la période.',
+      dGap: '100 moins la plus longue perte continue de liaison directe, en part de la période.',
+      pros: 'Points forts', cons: 'Points faibles', noPros: 'Rien ne ressort.', noCons: 'Aucune faiblesse majeure sur cette période.',
+      prSun: 'Au soleil {v} de la période', prLink: 'Liaison directe avec la Terre {v} du temps', prOps: 'Énergie et liaison ensemble {v} du temps',
+      prNight: 'Plus longue nuit de seulement {v}', prGap: 'Plus longue coupure de seulement {v}',
+      cnSun: 'Au soleil seulement {v} de la période', cnLink: 'Liaison directe seulement {v} du temps', cnOps: 'Énergie et liaison ensemble seulement {v} du temps',
+      cnNight: 'Une nuit de {v} : batteries et chauffage doivent tenir seuls', cnGap: 'Une coupure de {v} : pas de commandes directes',
+      profNow: 'À l’instant du curseur', profBack: 'Fermer les détails', profOpen: 'Voir les détails',
+      profPower: 'L’énergie dépend de la position du Soleil ; la communication dépend de la position de la Terre.',
+      rngSun: 'Hauteur du Soleil (min–max)', rngEarth: 'Hauteur de la Terre (min–max)', litWin: 'Fenêtres au soleil', profOthers: 'Autres sites sélectionnés (contour)',
       selected: 'sélectionnés', noSel: 'Cochez au moins un site dans la liste.', computing: 'Calcul des éphémérides…',
       sunNow: 'Soleil', earthNow: 'Terre', clearance: 'au-dessus du relief', visibleDisk: 'du disque visible', phase: 'Phase de la Terre',
       dsnNow: 'DSN en vue', none: 'aucune', power: 'Énergie', link: 'Liaison', dark: 'Sans énergie', noLink: 'Sans liaison',
@@ -494,6 +526,7 @@
   function renderCursorDependent() {
     renderCursorLabel();
     if (state.tab === '3d') update3D();
+    else if (state.tab === 'profile') renderProfile();
     else if (state.tab === 'compare') { renderTable(); drawStrip(); }
     else if (state.tab === 'timeline') drawTimeline();
     else if (state.tab === 'sky') renderSky();
@@ -506,6 +539,7 @@
     if (tab === 'method') { renderMethod(); return; }
     if (!state.grid) return;
     if (tab === '3d') render3D();
+    else if (tab === 'profile') renderProfile();
     else if (tab === 'compare') { renderTable(); drawStrip(); }
     else if (tab === 'timeline') drawTimeline();
     else if (tab === 'sky') renderSky();
@@ -618,6 +652,99 @@
     const th = e.target.closest('th[data-k]');
     if (th) { const k = th.dataset.k; if (state.sortKey === k) state.sortDir *= -1; else { state.sortKey = k; state.sortDir = COLS.find(c => c.k === k).low ? 1 : -1; } renderTable(); return; }
     const tr = e.target.closest('tr[data-id]'); if (tr) setFocus(tr.dataset.id);
+  });
+
+  /* ---------- profile: hexagon of 0-100 scores, strengths/weaknesses, details */
+  const AXES = [
+    { k: 'axSun', d: 'dSun', v: (m) => m.litPct },
+    { k: 'axEnergy', d: 'dEnergy', v: (m) => m.energyPct },
+    { k: 'axLink', d: 'dLink', v: (m) => m.dtePct },
+    { k: 'axOps', d: 'dOps', v: (m) => m.opsPct },
+    { k: 'axNight', d: 'dNight', v: (m, H) => 100 * (1 - m.longestNightH / H) },
+    { k: 'axGap', d: 'dGap', v: (m, H) => 100 * (1 - m.longestBlackoutH / H) }
+  ];
+  const tf = (k, v) => t(k).replace('{v}', v);
+  function profileScores(id) {
+    const m = state.sums[id]; if (!m || !state.grid) return null;
+    const H = state.grid.n * state.grid.stepMs / HOUR;
+    return AXES.map(a => Math.max(0, Math.min(100, a.v(m, H))));
+  }
+  function hexPoints(scores, cx, cy, R) {
+    return scores.map((s, i) => {
+      const a = -Math.PI / 2 + i * Math.PI / 3, r = R * s / 100;
+      return (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1);
+    }).join(' ');
+  }
+  function hexSvg(id) {
+    const cx = 170, cy = 150, R = 100, sc = profileScores(id);
+    let g = '';
+    [25, 50, 75, 100].forEach(p => { g += `<polygon class="hx-ring" points="${hexPoints(AXES.map(() => p), cx, cy, R)}"/>`; });
+    AXES.forEach((a, i) => {
+      const an = -Math.PI / 2 + i * Math.PI / 3, c = Math.cos(an), s = Math.sin(an);
+      g += `<line class="hx-spoke" x1="${cx}" y1="${cy}" x2="${(cx + R * c).toFixed(1)}" y2="${(cy + R * s).toFixed(1)}"/>`;
+      const anchor = Math.abs(c) < 0.2 ? 'middle' : c > 0 ? 'start' : 'end';
+      g += `<text class="hx-lab" x="${(cx + (R + 12) * c).toFixed(1)}" y="${(cy + (R + 14) * s + 4).toFixed(1)}" text-anchor="${anchor}">${esc(t(a.k))}</text>`;
+    });
+    state.selected.filter(o => o !== id && state.sums[o]).forEach(o => {
+      g += `<polygon class="hx-other" style="stroke:${colorOf(o)}" points="${hexPoints(profileScores(o), cx, cy, R)}"/>`;
+    });
+    const col = colorOf(id) || cssv('--accent');
+    g += `<polygon class="hx-area" style="fill:${col};stroke:${col}" points="${hexPoints(sc, cx, cy, R)}"/>`;
+    sc.forEach((s, i) => {
+      const an = -Math.PI / 2 + i * Math.PI / 3;
+      g += `<circle class="hx-pt" style="fill:${col}" r="3.5" cx="${(cx + R * s / 100 * Math.cos(an)).toFixed(1)}" cy="${(cy + R * s / 100 * Math.sin(an)).toFixed(1)}"/>`;
+    });
+    return `<svg viewBox="-30 0 400 300" role="img" aria-label="${esc(t('profTitle'))}: ${esc(site(id).name)}">${g}</svg>`;
+  }
+  function prosCons(m) {
+    const pr = [], cn = [], pc = v => fmt(v, 0) + '%';
+    if (m.litPct >= 70) pr.push(tf('prSun', pc(m.litPct))); else if (m.litPct < 40) cn.push(tf('cnSun', pc(m.litPct)));
+    if (m.dtePct >= 80) pr.push(tf('prLink', pc(m.dtePct))); else if (m.dtePct < 60) cn.push(tf('cnLink', pc(m.dtePct)));
+    if (m.opsPct >= 60) pr.push(tf('prOps', pc(m.opsPct))); else if (m.opsPct < 30) cn.push(tf('cnOps', pc(m.opsPct)));
+    if (m.longestNightH <= 48) pr.push(tf('prNight', dur(m.longestNightH))); else if (m.longestNightH >= 100) cn.push(tf('cnNight', dur(m.longestNightH)));
+    if (m.longestBlackoutH <= 24) pr.push(tf('prGap', dur(m.longestBlackoutH))); else if (m.longestBlackoutH >= 72) cn.push(tf('cnGap', dur(m.longestBlackoutH)));
+    return { pr, cn };
+  }
+  let profOpen = false;
+  function renderProfile() {
+    const box = $('#prof'); if (!box) return;
+    const id = state.focus, m = state.sums[id], s = state.series[id];
+    if (!m || !s) { box.innerHTML = `<p class="muted">${t('computing')}</p>`; return; }
+    const c = E.conditionsAt(s, state.grid, state.cursor), sc = profileScores(id), { pr, cn } = prosCons(m);
+    const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
+    const others = state.selected.filter(o => o !== id).length;
+    box.className = 'prof' + (profOpen ? ' open' : '');
+    box.innerHTML = `
+      <div class="prof-main">
+        <h3><i class="dot" style="background:${colorOf(id)}"></i>${esc(site(id).name)}</h3>
+        <button class="hexbtn" type="button" id="hexBtn" aria-expanded="${profOpen}" aria-label="${esc(profOpen ? t('profBack') : t('profOpen'))}">${hexSvg(id)}</button>
+        ${others ? `<p class="muted small">${t('profOthers')}</p>` : ''}
+        <div class="now-line">${stPill(c)} ${cdHtml(changeInfo(c, 'sun'))} ${cdHtml(changeInfo(c, 'earth'))}</div>
+        <div class="pc">
+          <div><h4>${t('pros')}</h4><ul class="pro">${pr.length ? li(pr) : `<li class="none">${t('noPros')}</li>`}</ul></div>
+          <div><h4>${t('cons')}</h4><ul class="con">${cn.length ? li(cn) : `<li class="none">${t('noCons')}</li>`}</ul></div>
+        </div>
+      </div>
+      <div class="prof-detail" aria-hidden="${!profOpen}"><div class="prof-detail-in">
+        <button class="btn ghost" type="button" id="hexClose">${t('profBack')}</button>
+        <p class="small">${t('profPower')}</p>
+        ${AXES.map((a, i) => `<div class="dm" style="--i:${i}">
+          <div class="dm-h"><b>${t(a.k)}</b><span class="num">${fmt(sc[i], 0)}</span></div>
+          <div class="dm-bar"><i style="width:${sc[i].toFixed(0)}%"></i></div>
+          <p class="muted small">${t(a.d)}</p></div>`).join('')}
+        <div class="dm-x" style="--i:6">
+          <div class="r"><span>${t('rngSun')}</span><span class="num">${fmt(m.sunMin, 1)}° → ${fmt(m.sunMax, 1)}°</span></div>
+          <div class="r"><span>${t('rngEarth')}</span><span class="num">${fmt(m.earthMin, 1)}° → ${fmt(m.earthMax, 1)}°</span></div>
+          <div class="r"><span>${t('litWin')}</span><span class="num">${m.litWindows}</span></div>
+          <div class="r"><span>${t('profNow')}</span><span class="num">${t('sunNow')} ${fmt(c.sunClearance, 1)}° · ${t('earthNow')} ${fmt(c.earthClearance, 1)}°</span></div>
+        </div>
+      </div></div>`;
+  }
+  $('#prof').addEventListener('click', e => {
+    if (e.target.closest('#hexBtn')) profOpen = !profOpen;
+    else if (e.target.closest('#hexClose')) profOpen = false;
+    else return;
+    renderProfile();
   });
 
   /* ---------- state strip */
@@ -1805,7 +1932,7 @@
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
-  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
+  const okTabs = ['3d', 'profile', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();
