@@ -40,7 +40,7 @@
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
-      modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
+      dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
       axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
       dSun: 'Share of the period with the Sun above the local terrain horizon.',
@@ -126,7 +126,7 @@
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
-      modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
+      dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
       axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
       dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
@@ -528,14 +528,52 @@
   }
 
   /* ------------------------------------------------------------ rendering */
-  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); update3DButtons(); }
+  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); drawCursorTrack(); update3DButtons(); }
   function renderCursorLabel() {
     if (!state.grid) return;
     $('#cursorLabel').textContent = utc(timeOf(state.cursor)) + ' UTC';
     const ct = $('#cursorTime');
     if (document.activeElement !== ct) ct.value = utc(timeOf(state.cursor)).replace(' ', 'T');
     ct.min = utc(state.grid.start).replace(' ', 'T'); ct.max = utc(timeOf(state.grid.n - 1)).replace(' ', 'T');
+    renderCursorChips();
   }
+  /* time bar: the slider track shows the focused site's state over the whole period, with sunset / Earthset marks */
+  function drawCursorTrack() {
+    const cv = $('#cursorTrack'); if (!cv || !state.grid) return;
+    const { ctx, w, h } = canvasSetup(cv), s = state.series[state.focus]; if (!s) return;
+    const n = state.grid.n, bh = 10, y0 = Math.round((h - bh) / 2), x0 = 8, x1 = w - 8;
+    const colors = { ops: cssv('--ops'), sun: cssv('--sun'), earth: cssv('--earth'), none: cssv('--none') };
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y0, x1 - x0, bh, bh / 2) : ctx.rect(x0, y0, x1 - x0, bh); ctx.clip();
+    for (let x = 0; x < x1 - x0; x++) {
+      const i = Math.min(n - 1, Math.floor(x / (x1 - x0) * n));
+      ctx.fillStyle = s.ops[i] ? colors.ops : s.lit[i] ? colors.sun : s.dte[i] ? colors.earth : colors.none;
+      ctx.fillRect(x0 + x, y0, 1.5, bh);
+    }
+    ctx.restore();
+    const X = i => x0 + (i + 0.5) / n * (x1 - x0);
+    const mark = (i, up, col) => {
+      const x = X(i), y = up ? y0 - 2 : y0 + bh + 2, d = up ? -5 : 5;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - 4, y + d); ctx.lineTo(x + 4, y + d); ctx.lineTo(x, y); ctx.closePath(); ctx.fill();
+    };
+    let cnt = 0;
+    for (let i = 1; i < n && cnt < 80; i++) {
+      if (s.lit[i - 1] && !s.lit[i]) { mark(i, true, colors.sun); cnt++; }
+      if (s.earthUp[i - 1] && !s.earthUp[i]) { mark(i, false, colors.earth); cnt++; }
+    }
+  }
+  function renderCursorChips() {
+    const box = $('#cursorChips'), s = state.series[state.focus]; if (!box || !s || !state.grid) return;
+    const c = E.conditionsAt(s, state.grid, state.cursor);
+    box.innerHTML = `<span class="cb-site"><i class="dot" style="background:${colorOf(state.focus)}"></i>${esc(site(state.focus).name)}</span> ${stPill(c)} ${cdHtml(changeInfo(c, 'sun'))} ${cdHtml(changeInfo(c, 'earth'))}` +
+      `<span class="cb-key"><i class="mk down" style="border-top-color:var(--sun)"></i>${t('mkSunset')}<i class="mk up" style="border-bottom-color:var(--earth)"></i>${t('mkEarthset')}</span>`;
+  }
+  function stepDays(d) {
+    if (!state.grid) return;
+    setCursor(Math.max(0, Math.min(state.grid.n - 1, state.cursor + d * Math.round(DAY / state.grid.stepMs))));
+  }
+  $('#dayBack').addEventListener('click', () => stepDays(-1));
+  $('#dayFwd').addEventListener('click', () => stepDays(1));
   $('#cursorTime').addEventListener('change', e => {
     const ms = Date.parse(e.target.value + ':00Z');
     if (!isFinite(ms) || !state.grid) return;
@@ -1943,6 +1981,7 @@
   function applyI18n() {
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => { const v = I18N[lang][el.dataset.i18n]; if (v) el.textContent = v; });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => { const v = I18N[lang][el.dataset.i18nAria]; if (v) { el.setAttribute('aria-label', v); el.title = v; } });
     $('#lang').textContent = lang === 'en' ? 'FR' : 'EN';
     buildMethod(); renderMethod();
   }
@@ -1951,7 +1990,7 @@
   try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', reTheme); } catch (e) { /* old browser */ }
   new MutationObserver(reTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   let rz;
-  new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => renderTab(), 80); }).observe(document.querySelector('.main'));
+  new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { renderTab(); drawCursorTrack(); }, 80); }).observe(document.querySelector('.main'));
 
   /* ---------- boot */
   applyI18n();

@@ -386,6 +386,31 @@ body[data-mode="simple"] .sub { display: none; }
   .cursor-bar { border-radius: 18px; }
 }
 
+/* time bar: coloured track with sunset / Earthset marks */
+.cursor-bar { flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 14px 12px; }
+.cb-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cb-track { position: relative; flex: 1 1 240px; height: 30px; min-width: 0; }
+.cb-track canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cb-track input[type="range"] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.cb-track input[type="range"]::-webkit-slider-runnable-track { background: transparent; height: 30px; }
+.cb-track input[type="range"]::-moz-range-track { background: transparent; height: 30px; }
+.cb-track input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 6px; height: 26px; margin-top: 2px; border-radius: 3px; background: var(--fg); box-shadow: 0 0 0 2px var(--panel), 0 2px 6px rgb(0 0 0 / .35); }
+.cb-track input[type="range"]::-moz-range-thumb { width: 6px; height: 26px; border: 0; border-radius: 3px; background: var(--fg); box-shadow: 0 0 0 2px var(--panel); }
+.btn.icon.day { font-size: 20px; line-height: 1; }
+.cb-chips { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 12.5px; }
+.cb-site { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.cb-site .dot { width: 9px; height: 9px; border-radius: 50%; }
+.cb-key { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11.5px; }
+.cb-key .mk { display: inline-block; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; margin-left: 6px; }
+.cb-key .mk.down { border-top: 6px solid; } .cb-key .mk.up { border-bottom: 6px solid; }
+.progress { border-radius: 0 0 22px 22px; }
+@media (max-width: 700px) {
+  .cb-track { order: -1; flex-basis: 100%; }
+  .cb-row { gap: 8px; }
+  .cb-key, .utc-tag { display: none; }
+  .cb-chips { gap: 4px 10px; }
+}
+
 </style>
 
 <header class="topbar">
@@ -677,16 +702,24 @@ body[data-mode="simple"] .sub { display: none; }
       <div class="panel" id="methodText"></div>
     </section>
     <div class="cursor-bar panel">
-      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
-      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
-      <output id="cursorLabel" class="mono" hidden></output>
-      <div class="cursor-tools">
-        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
-        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
-        <span class="utc-tag">UTC</span>
-        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
-        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+      <div class="cb-row">
+        <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
+        <button class="btn icon day" id="dayBack" type="button" aria-label="-1 day" data-i18n-aria="dayBack">‹</button>
+        <div class="cb-track" id="cbTrack">
+          <canvas id="cursorTrack" aria-hidden="true"></canvas>
+          <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
+        </div>
+        <button class="btn icon day" id="dayFwd" type="button" aria-label="+1 day" data-i18n-aria="dayFwd">›</button>
+        <output id="cursorLabel" class="mono" hidden></output>
+        <div class="cursor-tools">
+          <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
+          <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
+          <span class="utc-tag">UTC</span>
+          <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
+          <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+        </div>
       </div>
+      <div class="cb-chips" id="cursorChips"></div>
       <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
     </div>
   </main>
@@ -1949,7 +1982,7 @@ body[data-mode="simple"] .sub { display: none; }
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
-      modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
+      dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
       axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
       dSun: 'Share of the period with the Sun above the local terrain horizon.',
@@ -2035,7 +2068,7 @@ body[data-mode="simple"] .sub { display: none; }
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
-      modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
+      dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
       axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
       dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
@@ -2437,14 +2470,52 @@ body[data-mode="simple"] .sub { display: none; }
   }
 
   /* ------------------------------------------------------------ rendering */
-  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); update3DButtons(); }
+  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); drawCursorTrack(); update3DButtons(); }
   function renderCursorLabel() {
     if (!state.grid) return;
     $('#cursorLabel').textContent = utc(timeOf(state.cursor)) + ' UTC';
     const ct = $('#cursorTime');
     if (document.activeElement !== ct) ct.value = utc(timeOf(state.cursor)).replace(' ', 'T');
     ct.min = utc(state.grid.start).replace(' ', 'T'); ct.max = utc(timeOf(state.grid.n - 1)).replace(' ', 'T');
+    renderCursorChips();
   }
+  /* time bar: the slider track shows the focused site's state over the whole period, with sunset / Earthset marks */
+  function drawCursorTrack() {
+    const cv = $('#cursorTrack'); if (!cv || !state.grid) return;
+    const { ctx, w, h } = canvasSetup(cv), s = state.series[state.focus]; if (!s) return;
+    const n = state.grid.n, bh = 10, y0 = Math.round((h - bh) / 2), x0 = 8, x1 = w - 8;
+    const colors = { ops: cssv('--ops'), sun: cssv('--sun'), earth: cssv('--earth'), none: cssv('--none') };
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y0, x1 - x0, bh, bh / 2) : ctx.rect(x0, y0, x1 - x0, bh); ctx.clip();
+    for (let x = 0; x < x1 - x0; x++) {
+      const i = Math.min(n - 1, Math.floor(x / (x1 - x0) * n));
+      ctx.fillStyle = s.ops[i] ? colors.ops : s.lit[i] ? colors.sun : s.dte[i] ? colors.earth : colors.none;
+      ctx.fillRect(x0 + x, y0, 1.5, bh);
+    }
+    ctx.restore();
+    const X = i => x0 + (i + 0.5) / n * (x1 - x0);
+    const mark = (i, up, col) => {
+      const x = X(i), y = up ? y0 - 2 : y0 + bh + 2, d = up ? -5 : 5;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - 4, y + d); ctx.lineTo(x + 4, y + d); ctx.lineTo(x, y); ctx.closePath(); ctx.fill();
+    };
+    let cnt = 0;
+    for (let i = 1; i < n && cnt < 80; i++) {
+      if (s.lit[i - 1] && !s.lit[i]) { mark(i, true, colors.sun); cnt++; }
+      if (s.earthUp[i - 1] && !s.earthUp[i]) { mark(i, false, colors.earth); cnt++; }
+    }
+  }
+  function renderCursorChips() {
+    const box = $('#cursorChips'), s = state.series[state.focus]; if (!box || !s || !state.grid) return;
+    const c = E.conditionsAt(s, state.grid, state.cursor);
+    box.innerHTML = `<span class="cb-site"><i class="dot" style="background:${colorOf(state.focus)}"></i>${esc(site(state.focus).name)}</span> ${stPill(c)} ${cdHtml(changeInfo(c, 'sun'))} ${cdHtml(changeInfo(c, 'earth'))}` +
+      `<span class="cb-key"><i class="mk down" style="border-top-color:var(--sun)"></i>${t('mkSunset')}<i class="mk up" style="border-bottom-color:var(--earth)"></i>${t('mkEarthset')}</span>`;
+  }
+  function stepDays(d) {
+    if (!state.grid) return;
+    setCursor(Math.max(0, Math.min(state.grid.n - 1, state.cursor + d * Math.round(DAY / state.grid.stepMs))));
+  }
+  $('#dayBack').addEventListener('click', () => stepDays(-1));
+  $('#dayFwd').addEventListener('click', () => stepDays(1));
   $('#cursorTime').addEventListener('change', e => {
     const ms = Date.parse(e.target.value + ':00Z');
     if (!isFinite(ms) || !state.grid) return;
@@ -3852,6 +3923,7 @@ body[data-mode="simple"] .sub { display: none; }
   function applyI18n() {
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => { const v = I18N[lang][el.dataset.i18n]; if (v) el.textContent = v; });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => { const v = I18N[lang][el.dataset.i18nAria]; if (v) { el.setAttribute('aria-label', v); el.title = v; } });
     $('#lang').textContent = lang === 'en' ? 'FR' : 'EN';
     buildMethod(); renderMethod();
   }
@@ -3860,7 +3932,7 @@ body[data-mode="simple"] .sub { display: none; }
   try { window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', reTheme); } catch (e) { /* old browser */ }
   new MutationObserver(reTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   let rz;
-  new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => renderTab(), 80); }).observe(document.querySelector('.main'));
+  new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { renderTab(); drawCursorTrack(); }, 80); }).observe(document.querySelector('.main'));
 
   /* ---------- boot */
   applyI18n();

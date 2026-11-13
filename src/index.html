@@ -299,16 +299,24 @@
       <div class="panel" id="methodText"></div>
     </section>
     <div class="cursor-bar panel">
-      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
-      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
-      <output id="cursorLabel" class="mono" hidden></output>
-      <div class="cursor-tools">
-        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
-        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
-        <span class="utc-tag">UTC</span>
-        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
-        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+      <div class="cb-row">
+        <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
+        <button class="btn icon day" id="dayBack" type="button" aria-label="-1 day" data-i18n-aria="dayBack">‹</button>
+        <div class="cb-track" id="cbTrack">
+          <canvas id="cursorTrack" aria-hidden="true"></canvas>
+          <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
+        </div>
+        <button class="btn icon day" id="dayFwd" type="button" aria-label="+1 day" data-i18n-aria="dayFwd">›</button>
+        <output id="cursorLabel" class="mono" hidden></output>
+        <div class="cursor-tools">
+          <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
+          <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
+          <span class="utc-tag">UTC</span>
+          <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
+          <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+        </div>
       </div>
+      <div class="cb-chips" id="cursorChips"></div>
       <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
     </div>
   </main>
