@@ -29,10 +29,13 @@
   /* the 3D stage is space: always black, in both themes (deliberate) */
   --space: #000000; --space-ink: #eef1f5; --space-mut: #a7afbb;
   --st-ops: #2fbf8c; --st-sun: #f2b84b; --st-comm: #5fa2f0; --st-none: #343a43;
-  --f-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
-  --f-body: "IBM Plex Sans", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+  --f-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
-  --r: 6px;
+  --r: 10px;
+  --rl: 18px;
+  --shadow: 0 1px 2px rgb(0 0 0 / .05), 0 10px 30px rgb(0 0 0 / .07);
+  --glass: color-mix(in srgb, var(--panel) 78%, transparent);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -325,6 +328,64 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
 .dm-x .r { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--line); }
 @media (min-width: 860px) { .prof.open { grid-template-columns: minmax(320px, 440px) minmax(0, 1fr); } }
 
+/* ---------- Apple-style layer: rounded, quiet, glassy ---------- */
+.panel { border-radius: var(--rl); box-shadow: var(--shadow); padding: 16px; }
+h1 { font-weight: 650; letter-spacing: -.02em; font-size: 20px; }
+h2, h3 { letter-spacing: -.01em; }
+.btn { border-radius: 999px; min-height: 34px; padding: 6px 14px; transition: background .15s, border-color .15s, transform .1s; }
+.btn:active { transform: scale(.97); }
+.btn.icon { border-radius: 50%; }
+input[type="date"], input[type="number"], input[type="text"], input[type="datetime-local"], select { border-radius: var(--r); min-height: 36px; }
+.topbar { background: var(--glass); -webkit-backdrop-filter: saturate(1.6) blur(20px); backdrop-filter: saturate(1.6) blur(20px); border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.top-actions { display: flex; gap: 10px; align-items: center; }
+.seg { display: inline-flex; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.seg button { border: 0; background: transparent; padding: 5px 16px; border-radius: 999px; cursor: pointer; color: var(--fg2); font-weight: 500; transition: background .2s, color .2s, box-shadow .2s; }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / .18); }
+/* tabs as a segmented control */
+.tabs { border: 0; background: color-mix(in srgb, var(--fg) 7%, transparent); padding: 3px; border-radius: 14px; gap: 2px; align-self: flex-start; max-width: 100%; }
+.tabs button { border: 0; border-radius: 11px; font-family: var(--f-body); font-size: 13.5px; font-weight: 500; letter-spacing: 0; padding: 6px 14px; }
+.tabs button[aria-selected="true"] { background: var(--panel); box-shadow: 0 1px 3px rgb(0 0 0 / .18); border: 0; }
+/* accordions */
+details.acc { display: block; }
+details.acc > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; font-weight: 600; font-size: 15px; -webkit-user-select: none; user-select: none; }
+details.acc > summary::-webkit-details-marker { display: none; }
+details.acc > summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .25s; flex: none; margin-left: auto; margin-right: 4px; }
+details.acc[open] > summary::after { transform: rotate(-135deg); }
+details.acc[open] > summary { margin-bottom: 10px; }
+details.acc > *:not(summary) { margin-top: 8px; }
+details.acc > summary .small { margin-left: auto; font-weight: 400; }
+/* 3D stage */
+.v3d-top { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; justify-content: space-between; }
+.site-quick select { font-weight: 600; min-width: 220px; border-radius: 999px; padding-inline: 14px; }
+.v3d-stage { border-radius: var(--rl); }
+.v3d-hud, .v3d-status, .v3d-caption { background: rgb(18 20 24 / .5); -webkit-backdrop-filter: blur(14px) saturate(1.4); backdrop-filter: blur(14px) saturate(1.4); border-radius: 12px; border: 1px solid rgb(255 255 255 / .08); }
+.v3d-hud { left: 14px; top: 14px; padding: 8px 12px; }
+.v3d-status { right: 14px; top: 14px; padding: 6px 10px; }
+.v3d-caption { border-left: 1px solid rgb(255 255 255 / .08); }
+.v3d-toolbar { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
+/* time bar, always reachable at the bottom */
+.cursor-bar { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 15; background: var(--glass); -webkit-backdrop-filter: saturate(1.6) blur(20px); backdrop-filter: saturate(1.6) blur(20px); border-radius: 22px; box-shadow: 0 8px 30px rgb(0 0 0 / .18); }
+.progress { border-radius: 0 0 22px 22px; }
+.prof .dm-bar, .dm-bar i { border-radius: 999px; }
+.site { border-radius: 10px; }
+.tooltip { border-radius: 12px; }
+/* Simple mode: the 3D scene is the page */
+body[data-mode="simple"] .tabs { display: none; }
+body[data-mode="simple"] .layout { grid-template-columns: minmax(0, 1fr); max-width: 1180px; }
+body[data-mode="simple"] .main { order: 1; }
+body[data-mode="simple"] .side { order: 2; position: static; max-height: none; overflow: visible; }
+body[data-mode="simple"] .v3d-panel { background: transparent; border: 0; box-shadow: none; padding: 0; }
+body[data-mode="simple"] .v3d-stage { height: min(76vh, 880px); }
+body[data-mode="simple"] .site-list { max-height: 50vh; }
+body[data-mode="simple"] .sub { display: none; }
+@media (max-width: 900px) { .side { order: 2; } .main { order: 1; } .layout { max-width: none; } }
+@media (max-width: 700px) {
+  .top-actions { width: 100%; justify-content: space-between; }
+  .site-quick select { min-width: 0; width: 100%; }
+  .site-quick { flex: 1 1 100%; }
+  .cursor-bar { border-radius: 18px; }
+}
+
 </style>
 
 <header class="topbar">
@@ -336,14 +397,11 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
         <p class="sub" data-i18n="tagline">Sun and Earth over the real south-pole horizon</p>
       </div>
     </div>
-    <div class="range" role="group" aria-label="Time range">
-      <label><span data-i18n="from">From (UTC)</span><input type="date" id="start"></label>
-      <label><span data-i18n="to">To (UTC)</span><input type="date" id="end"></label>
-      <label><span data-i18n="step">Step</span>
-        <select id="step">
-          <option value="auto">Auto</option><option value="10">10 min</option><option value="20">20 min</option>
-          <option value="30">30 min</option><option value="60">1 h</option><option value="180">3 h</option>
-        </select></label>
+    <div class="top-actions">
+      <div class="seg" id="modeSwitch" role="group" aria-label="Mode">
+        <button type="button" data-mode="simple" aria-pressed="true" data-i18n="modeSimple">Simple</button>
+        <button type="button" data-mode="advanced" aria-pressed="false" data-i18n="modeAdvanced">Advanced</button>
+      </div>
       <button class="btn ghost" id="lang" type="button" aria-label="Langue / Language">FR</button>
     </div>
   </div>
@@ -351,11 +409,8 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
 
 <div class="wrap layout">
   <aside class="side" aria-label="Sites and constraints">
-    <section class="panel">
-      <div class="panel-head">
-        <h2 data-i18n="sites">Sites</h2>
-        <span class="muted small" id="selCount"></span>
-      </div>
+    <details class="panel acc" id="accSites">
+      <summary><span data-i18n="sites">Sites</span><span class="muted small" id="selCount"></span></summary>
       <p class="muted small" data-i18n="sitesHelp">Tick up to 8 sites to compare. Click a name to focus it.</p>
       <div id="siteList" class="site-list"></div>
       <details class="add-site" id="addSiteBox">
@@ -370,10 +425,23 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
           <p class="form-msg full" id="addMsg" role="status"></p>
         </form>
       </details>
-    </section>
+    </details>
 
-    <section class="panel">
-      <h2 data-i18n="rules">Mission rules</h2>
+    <details class="panel acc" id="accPeriod">
+      <summary data-i18n="period">Period</summary>
+      <div class="range" role="group" aria-label="Time range">
+        <label><span data-i18n="from">From (UTC)</span><input type="date" id="start"></label>
+        <label><span data-i18n="to">To (UTC)</span><input type="date" id="end"></label>
+        <label><span data-i18n="step">Step</span>
+          <select id="step">
+            <option value="auto">Auto</option><option value="10">10 min</option><option value="20">20 min</option>
+            <option value="30">30 min</option><option value="60">1 h</option><option value="180">3 h</option>
+          </select></label>
+      </div>
+    </details>
+
+    <details class="panel acc" id="accRules">
+      <summary data-i18n="rules">Mission rules</summary>
       <label class="rule"><span data-i18n="sunRule">Counts as sunlit when</span>
         <select id="sunFrac">
           <option value="0.001" data-i18n="anyDisk">any part of the Sun is visible</option>
@@ -385,37 +453,22 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       <label class="rule check"><input id="reqDSN" type="checkbox" checked> <span data-i18n="dsnRule">Direct-to-Earth also needs a Deep Space Network dish to see the Moon</span></label>
       <label class="rule"><span data-i18n="dsnMin">DSN minimum elevation</span>
         <span class="inline"><input id="dsnMin" type="number" min="0" max="30" step="1" value="10"><span class="unit">°</span></span></label>
-    </section>
+    </details>
 
-    <section class="panel legend-panel">
-      <h2 data-i18n="legend">Legend</h2>
+    <details class="panel acc legend-panel" id="accLegend">
+      <summary data-i18n="legend">Legend</summary>
       <ul class="legend">
         <li><i class="sw st-ops"></i><span data-i18n="lgOps">Power and direct-to-Earth link</span></li>
         <li><i class="sw st-sun"></i><span data-i18n="lgSun">Sunlit, no Earth link</span></li>
         <li><i class="sw st-comm"></i><span data-i18n="lgComm">Earth link, in shadow</span></li>
         <li><i class="sw st-none"></i><span data-i18n="lgNone">Dark and out of contact</span></li>
       </ul>
-    </section>
+    </details>
   </aside>
 
   <main class="main">
-    <div class="cursor-bar panel">
-      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
-      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
-      <output id="cursorLabel" class="mono" hidden></output>
-      <div class="cursor-tools">
-        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
-        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
-        <span class="utc-tag">UTC</span>
-        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
-        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
-      </div>
-      <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
-    </div>
-
     <nav class="tabs" role="tablist" aria-label="Views">
       <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
-      <button role="tab" id="tab-profile" aria-selected="false" data-tab="profile" data-i18n="tProfile">Profile</button>
       <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
       <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-i18n="tScen">Scenarios</button>
       <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
@@ -429,22 +482,9 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
     <!-- 3D -->
     <section class="view" id="view-3d" role="tabpanel" aria-labelledby="tab-3d">
       <div class="panel v3d-panel">
-        <div class="v3d-toolbar">
-          <label><span data-i18n="v3dRegion">Area</span>
-            <select id="v3dRegion">
-              <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
-              <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
-            </select></label>
-          <label><span data-i18n="v3dShow">Show</span>
-            <select id="v3dMode">
-              <option value="sun" data-i18n="mSun">Sunlight now</option>
-              <option value="plan" data-i18n="mPlan">Power and Earth link now</option>
-              <option value="avgSun" data-i18n="mAvgSun">Sunlight, share of the period</option>
-              <option value="avgEarth" data-i18n="mAvgEarth">Earth link, share of the period</option>
-              <option value="avgOps" data-i18n="mAvgOps">Power + link, share of the period</option>
-            </select></label>
-          <label class="v3d-range"><span data-i18n="exag">Vertical stretch</span>
-            <input type="range" id="v3dExag" min="1" max="8" step="0.5" value="3"><output id="v3dExagOut" class="mono">3×</output></label>
+        <div class="v3d-top">
+          <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
+            <select id="siteQuick" aria-label="Site"></select></label>
           <div class="actions">
             <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
@@ -464,19 +504,36 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
           <p class="muted small" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
         </div>
       </div>
+
+      <details class="panel acc" id="accProfile" open>
+        <summary id="profTitle" data-i18n="profTitle">Site profile</summary>
+        <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
+        <div class="prof" id="prof"></div>
+      </details>
+
+      <details class="panel acc" id="accView">
+        <summary data-i18n="viewOpts">View options</summary>
+        <div class="v3d-toolbar">
+          <label><span data-i18n="v3dRegion">Area</span>
+            <select id="v3dRegion">
+              <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
+              <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
+            </select></label>
+          <label><span data-i18n="v3dShow">Show</span>
+            <select id="v3dMode">
+              <option value="sun" data-i18n="mSun">Sunlight now</option>
+              <option value="plan" data-i18n="mPlan">Power and Earth link now</option>
+              <option value="avgSun" data-i18n="mAvgSun">Sunlight, share of the period</option>
+              <option value="avgEarth" data-i18n="mAvgEarth">Earth link, share of the period</option>
+              <option value="avgOps" data-i18n="mAvgOps">Power + link, share of the period</option>
+            </select></label>
+          <label class="v3d-range"><span data-i18n="exag">Vertical stretch</span>
+            <input type="range" id="v3dExag" min="1" max="8" step="0.5" value="3"><output id="v3dExagOut" class="mono">3×</output></label>
+        </div>
+      </details>
     </section>
 
     <!-- COMPARE -->
-    <section class="view" id="view-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
-      <div class="panel">
-        <div class="panel-head">
-          <h2 id="profTitle" data-i18n="profTitle">Site profile</h2>
-        </div>
-        <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
-        <div class="prof" id="prof"></div>
-      </div>
-    </section>
-
     <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
       <div class="panel">
         <div class="panel-head">
@@ -619,6 +676,19 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
     <section class="view prose" id="view-method" role="tabpanel" aria-labelledby="tab-method" hidden>
       <div class="panel" id="methodText"></div>
     </section>
+    <div class="cursor-bar panel">
+      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
+      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
+      <output id="cursorLabel" class="mono" hidden></output>
+      <div class="cursor-tools">
+        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
+        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
+        <span class="utc-tag">UTC</span>
+        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
+        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+      </div>
+      <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
+    </div>
   </main>
 </div>
 
@@ -1879,6 +1949,7 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
+      modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
       axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
       dSun: 'Share of the period with the Sun above the local terrain horizon.',
@@ -1964,6 +2035,7 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
+      modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
       axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
       dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
@@ -2195,8 +2267,20 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
       }
     }
     list.innerHTML = html;
+    const q = $('#siteQuick');
+    if (q) {
+      q.innerHTML = groups.map(g => `<optgroup label="${esc(groupLabel(g))}">` + state.sites.filter(x => (x.custom ? 'My sites' : x.group) === g)
+        .map(s => `<option value="${esc(s.id)}"${s.id === state.focus ? ' selected' : ''}>${esc(s.name)}</option>`).join('') + '</optgroup>').join('');
+    }
     $('#selCount').textContent = `${state.selected.length}/${MAX_SEL} ${t('selected')}`;
   }
+  $('#siteQuick').addEventListener('change', e => {
+    const id = e.target.value;
+    if (state.selected.includes(id)) { setFocus(id); return; }
+    if (!selectSite(id)) { toast(t('maxSel')); renderSiteList(); return; }
+    state.focus = id; store.set('selected', state.selected);
+    computeSeries();
+  });
   $('#siteList').addEventListener('change', e => {
     const id = e.target.dataset.id; if (!id) return;
     if (e.target.checked) {
@@ -2325,16 +2409,30 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
   }
   function setCursor(i) { state.cursor = i; $('#cursor').value = i; renderCursorDependent(); }
 
+  /* mode: Simple = 3D first, details in drop-downs; Advanced = every tab and number */
+  let mode = store.get('mode', 'simple');
+  function applyMode(initial) {
+    document.body.dataset.mode = mode;
+    document.querySelectorAll('#modeSwitch [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    if (!initial) document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
+  }
+  function setMode(m) {
+    mode = m; store.set('mode', m); applyMode();
+    showTab(m === 'advanced' ? store.get('tab', '3d') : '3d');
+  }
+  $('#modeSwitch').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
+
   /* tabs */
   document.querySelector('.tabs').addEventListener('click', e => {
     const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab);
   });
   function showTab(tab) {
+    if (mode === 'simple') tab = '3d';
     state.tab = tab;
     document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
     document.querySelectorAll('.view').forEach(v => { v.hidden = v.id !== 'view-' + tab; });
     try { history.replaceState(null, '', '#' + tab); } catch (e) { /* ignore */ }
-    store.set('tab', tab);
+    if (mode === 'advanced') store.set('tab', tab);
     renderTab();
   }
 
@@ -2364,8 +2462,7 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
   $('#jumpSunset').addEventListener('click', () => jump(false));
   function renderCursorDependent() {
     renderCursorLabel();
-    if (state.tab === '3d') update3D();
-    else if (state.tab === 'profile') renderProfile();
+    if (state.tab === '3d') { update3D(); renderProfile(); }
     else if (state.tab === 'compare') { renderTable(); drawStrip(); }
     else if (state.tab === 'timeline') drawTimeline();
     else if (state.tab === 'sky') renderSky();
@@ -2377,8 +2474,7 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
     const tab = state.tab;
     if (tab === 'method') { renderMethod(); return; }
     if (!state.grid) return;
-    if (tab === '3d') render3D();
-    else if (tab === 'profile') renderProfile();
+    if (tab === '3d') { render3D(); renderProfile(); }
     else if (tab === 'compare') { renderTable(); drawStrip(); }
     else if (tab === 'timeline') drawTimeline();
     else if (tab === 'sky') renderSky();
@@ -3771,7 +3867,10 @@ td .tag { font-size: 10.5px; color: var(--muted); margin-left: 6px; text-transfo
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
-  const okTabs = ['3d', 'profile', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
+  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
+  if (hashTab && hashTab !== '3d' && okTabs.includes(hashTab)) mode = 'advanced';
+  applyMode(true);
+  document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();

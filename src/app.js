@@ -40,6 +40,7 @@
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
+      modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
       axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
       dSun: 'Share of the period with the Sun above the local terrain horizon.',
@@ -125,6 +126,7 @@
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
+      modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
       axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
       dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
@@ -356,8 +358,20 @@
       }
     }
     list.innerHTML = html;
+    const q = $('#siteQuick');
+    if (q) {
+      q.innerHTML = groups.map(g => `<optgroup label="${esc(groupLabel(g))}">` + state.sites.filter(x => (x.custom ? 'My sites' : x.group) === g)
+        .map(s => `<option value="${esc(s.id)}"${s.id === state.focus ? ' selected' : ''}>${esc(s.name)}</option>`).join('') + '</optgroup>').join('');
+    }
     $('#selCount').textContent = `${state.selected.length}/${MAX_SEL} ${t('selected')}`;
   }
+  $('#siteQuick').addEventListener('change', e => {
+    const id = e.target.value;
+    if (state.selected.includes(id)) { setFocus(id); return; }
+    if (!selectSite(id)) { toast(t('maxSel')); renderSiteList(); return; }
+    state.focus = id; store.set('selected', state.selected);
+    computeSeries();
+  });
   $('#siteList').addEventListener('change', e => {
     const id = e.target.dataset.id; if (!id) return;
     if (e.target.checked) {
@@ -486,16 +500,30 @@
   }
   function setCursor(i) { state.cursor = i; $('#cursor').value = i; renderCursorDependent(); }
 
+  /* mode: Simple = 3D first, details in drop-downs; Advanced = every tab and number */
+  let mode = store.get('mode', 'simple');
+  function applyMode(initial) {
+    document.body.dataset.mode = mode;
+    document.querySelectorAll('#modeSwitch [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+    if (!initial) document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
+  }
+  function setMode(m) {
+    mode = m; store.set('mode', m); applyMode();
+    showTab(m === 'advanced' ? store.get('tab', '3d') : '3d');
+  }
+  $('#modeSwitch').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
+
   /* tabs */
   document.querySelector('.tabs').addEventListener('click', e => {
     const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab);
   });
   function showTab(tab) {
+    if (mode === 'simple') tab = '3d';
     state.tab = tab;
     document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
     document.querySelectorAll('.view').forEach(v => { v.hidden = v.id !== 'view-' + tab; });
     try { history.replaceState(null, '', '#' + tab); } catch (e) { /* ignore */ }
-    store.set('tab', tab);
+    if (mode === 'advanced') store.set('tab', tab);
     renderTab();
   }
 
@@ -525,8 +553,7 @@
   $('#jumpSunset').addEventListener('click', () => jump(false));
   function renderCursorDependent() {
     renderCursorLabel();
-    if (state.tab === '3d') update3D();
-    else if (state.tab === 'profile') renderProfile();
+    if (state.tab === '3d') { update3D(); renderProfile(); }
     else if (state.tab === 'compare') { renderTable(); drawStrip(); }
     else if (state.tab === 'timeline') drawTimeline();
     else if (state.tab === 'sky') renderSky();
@@ -538,8 +565,7 @@
     const tab = state.tab;
     if (tab === 'method') { renderMethod(); return; }
     if (!state.grid) return;
-    if (tab === '3d') render3D();
-    else if (tab === 'profile') renderProfile();
+    if (tab === '3d') { render3D(); renderProfile(); }
     else if (tab === 'compare') { renderTable(); drawStrip(); }
     else if (tab === 'timeline') drawTimeline();
     else if (tab === 'sky') renderSky();
@@ -1932,7 +1958,10 @@
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
-  const okTabs = ['3d', 'profile', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
+  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
+  if (hashTab && hashTab !== '3d' && okTabs.includes(hashTab)) mode = 'advanced';
+  applyMode(true);
+  document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();

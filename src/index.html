@@ -17,14 +17,11 @@
         <p class="sub" data-i18n="tagline">Sun and Earth over the real south-pole horizon</p>
       </div>
     </div>
-    <div class="range" role="group" aria-label="Time range">
-      <label><span data-i18n="from">From (UTC)</span><input type="date" id="start"></label>
-      <label><span data-i18n="to">To (UTC)</span><input type="date" id="end"></label>
-      <label><span data-i18n="step">Step</span>
-        <select id="step">
-          <option value="auto">Auto</option><option value="10">10 min</option><option value="20">20 min</option>
-          <option value="30">30 min</option><option value="60">1 h</option><option value="180">3 h</option>
-        </select></label>
+    <div class="top-actions">
+      <div class="seg" id="modeSwitch" role="group" aria-label="Mode">
+        <button type="button" data-mode="simple" aria-pressed="true" data-i18n="modeSimple">Simple</button>
+        <button type="button" data-mode="advanced" aria-pressed="false" data-i18n="modeAdvanced">Advanced</button>
+      </div>
       <button class="btn ghost" id="lang" type="button" aria-label="Langue / Language">FR</button>
     </div>
   </div>
@@ -32,11 +29,8 @@
 
 <div class="wrap layout">
   <aside class="side" aria-label="Sites and constraints">
-    <section class="panel">
-      <div class="panel-head">
-        <h2 data-i18n="sites">Sites</h2>
-        <span class="muted small" id="selCount"></span>
-      </div>
+    <details class="panel acc" id="accSites">
+      <summary><span data-i18n="sites">Sites</span><span class="muted small" id="selCount"></span></summary>
       <p class="muted small" data-i18n="sitesHelp">Tick up to 8 sites to compare. Click a name to focus it.</p>
       <div id="siteList" class="site-list"></div>
       <details class="add-site" id="addSiteBox">
@@ -51,10 +45,23 @@
           <p class="form-msg full" id="addMsg" role="status"></p>
         </form>
       </details>
-    </section>
+    </details>
 
-    <section class="panel">
-      <h2 data-i18n="rules">Mission rules</h2>
+    <details class="panel acc" id="accPeriod">
+      <summary data-i18n="period">Period</summary>
+      <div class="range" role="group" aria-label="Time range">
+        <label><span data-i18n="from">From (UTC)</span><input type="date" id="start"></label>
+        <label><span data-i18n="to">To (UTC)</span><input type="date" id="end"></label>
+        <label><span data-i18n="step">Step</span>
+          <select id="step">
+            <option value="auto">Auto</option><option value="10">10 min</option><option value="20">20 min</option>
+            <option value="30">30 min</option><option value="60">1 h</option><option value="180">3 h</option>
+          </select></label>
+      </div>
+    </details>
+
+    <details class="panel acc" id="accRules">
+      <summary data-i18n="rules">Mission rules</summary>
       <label class="rule"><span data-i18n="sunRule">Counts as sunlit when</span>
         <select id="sunFrac">
           <option value="0.001" data-i18n="anyDisk">any part of the Sun is visible</option>
@@ -66,37 +73,22 @@
       <label class="rule check"><input id="reqDSN" type="checkbox" checked> <span data-i18n="dsnRule">Direct-to-Earth also needs a Deep Space Network dish to see the Moon</span></label>
       <label class="rule"><span data-i18n="dsnMin">DSN minimum elevation</span>
         <span class="inline"><input id="dsnMin" type="number" min="0" max="30" step="1" value="10"><span class="unit">°</span></span></label>
-    </section>
+    </details>
 
-    <section class="panel legend-panel">
-      <h2 data-i18n="legend">Legend</h2>
+    <details class="panel acc legend-panel" id="accLegend">
+      <summary data-i18n="legend">Legend</summary>
       <ul class="legend">
         <li><i class="sw st-ops"></i><span data-i18n="lgOps">Power and direct-to-Earth link</span></li>
         <li><i class="sw st-sun"></i><span data-i18n="lgSun">Sunlit, no Earth link</span></li>
         <li><i class="sw st-comm"></i><span data-i18n="lgComm">Earth link, in shadow</span></li>
         <li><i class="sw st-none"></i><span data-i18n="lgNone">Dark and out of contact</span></li>
       </ul>
-    </section>
+    </details>
   </aside>
 
   <main class="main">
-    <div class="cursor-bar panel">
-      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
-      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
-      <output id="cursorLabel" class="mono" hidden></output>
-      <div class="cursor-tools">
-        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
-        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
-        <span class="utc-tag">UTC</span>
-        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
-        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
-      </div>
-      <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
-    </div>
-
     <nav class="tabs" role="tablist" aria-label="Views">
       <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
-      <button role="tab" id="tab-profile" aria-selected="false" data-tab="profile" data-i18n="tProfile">Profile</button>
       <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
       <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-i18n="tScen">Scenarios</button>
       <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
@@ -110,22 +102,9 @@
     <!-- 3D -->
     <section class="view" id="view-3d" role="tabpanel" aria-labelledby="tab-3d">
       <div class="panel v3d-panel">
-        <div class="v3d-toolbar">
-          <label><span data-i18n="v3dRegion">Area</span>
-            <select id="v3dRegion">
-              <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
-              <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
-            </select></label>
-          <label><span data-i18n="v3dShow">Show</span>
-            <select id="v3dMode">
-              <option value="sun" data-i18n="mSun">Sunlight now</option>
-              <option value="plan" data-i18n="mPlan">Power and Earth link now</option>
-              <option value="avgSun" data-i18n="mAvgSun">Sunlight, share of the period</option>
-              <option value="avgEarth" data-i18n="mAvgEarth">Earth link, share of the period</option>
-              <option value="avgOps" data-i18n="mAvgOps">Power + link, share of the period</option>
-            </select></label>
-          <label class="v3d-range"><span data-i18n="exag">Vertical stretch</span>
-            <input type="range" id="v3dExag" min="1" max="8" step="0.5" value="3"><output id="v3dExagOut" class="mono">3×</output></label>
+        <div class="v3d-top">
+          <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
+            <select id="siteQuick" aria-label="Site"></select></label>
           <div class="actions">
             <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
@@ -145,19 +124,36 @@
           <p class="muted small" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
         </div>
       </div>
+
+      <details class="panel acc" id="accProfile" open>
+        <summary id="profTitle" data-i18n="profTitle">Site profile</summary>
+        <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
+        <div class="prof" id="prof"></div>
+      </details>
+
+      <details class="panel acc" id="accView">
+        <summary data-i18n="viewOpts">View options</summary>
+        <div class="v3d-toolbar">
+          <label><span data-i18n="v3dRegion">Area</span>
+            <select id="v3dRegion">
+              <option value="pole" data-i18n="v3dPole">Pole, 87.5–90°S (240 m)</option>
+              <option value="south" data-i18n="v3dSouth">South polar region, 75–90°S (1 km)</option>
+            </select></label>
+          <label><span data-i18n="v3dShow">Show</span>
+            <select id="v3dMode">
+              <option value="sun" data-i18n="mSun">Sunlight now</option>
+              <option value="plan" data-i18n="mPlan">Power and Earth link now</option>
+              <option value="avgSun" data-i18n="mAvgSun">Sunlight, share of the period</option>
+              <option value="avgEarth" data-i18n="mAvgEarth">Earth link, share of the period</option>
+              <option value="avgOps" data-i18n="mAvgOps">Power + link, share of the period</option>
+            </select></label>
+          <label class="v3d-range"><span data-i18n="exag">Vertical stretch</span>
+            <input type="range" id="v3dExag" min="1" max="8" step="0.5" value="3"><output id="v3dExagOut" class="mono">3×</output></label>
+        </div>
+      </details>
     </section>
 
     <!-- COMPARE -->
-    <section class="view" id="view-profile" role="tabpanel" aria-labelledby="tab-profile" hidden>
-      <div class="panel">
-        <div class="panel-head">
-          <h2 id="profTitle" data-i18n="profTitle">Site profile</h2>
-        </div>
-        <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
-        <div class="prof" id="prof"></div>
-      </div>
-    </section>
-
     <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
       <div class="panel">
         <div class="panel-head">
@@ -302,6 +298,19 @@
     <section class="view prose" id="view-method" role="tabpanel" aria-labelledby="tab-method" hidden>
       <div class="panel" id="methodText"></div>
     </section>
+    <div class="cursor-bar panel">
+      <button class="btn icon" id="play" type="button" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="playIcon" d="M4 2.5v11l9-5.5z" fill="currentColor"/></svg></button>
+      <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
+      <output id="cursorLabel" class="mono" hidden></output>
+      <div class="cursor-tools">
+        <label class="sr" for="cursorTime" data-i18n="goTo">Go to (UTC)</label>
+        <input type="datetime-local" id="cursorTime" step="600" class="mono" title="UTC">
+        <span class="utc-tag">UTC</span>
+        <button class="btn ghost small-btn" type="button" id="jumpSunrise" data-i18n="nextSunrise">Next sunrise</button>
+        <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
+      </div>
+      <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
+    </div>
   </main>
 </div>
 
