@@ -40,6 +40,7 @@
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
+      searchPh: 'Search a site…', searchNone: 'No match', popTitle: 'New site here', popName: 'Site name', popOk: 'Add', popCancel: 'Cancel', heatWindow: 'next 10 days from the cursor',
       bestBtn: 'Best site', bestMsg: 'Best south-pole site for the 10 days from {d}: {n}, grade {g} ({p}%).', vwLive: 'Live', vwHeat: 'Heat map', gradeTitle: 'Power + link score, next 10 days', gradeWord: 'Grade', poor: 'Poor', good: 'Good', stretched: 'colours stretched to show differences',
       gradeNote: 'A score of the next 10 days from the cursor time, not a landing-success probability.', dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
@@ -87,7 +88,7 @@
       v3dShow: 'Show', mSun: 'Sunlight now', mPlan: 'Power and Earth link now', mAvgSun: 'Sunlight, share of the period',
       mAvgEarth: 'Earth link, share of the period', mAvgOps: 'Power + link, share of the period',
       vOverview: 'Overview', vSun: 'Look toward the Sun', vStand: 'Stand at', vTour: 'Guided tour', vTourStop: 'Stop the tour',
-      v3dNote: 'Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.',
+      v3dNote: 'Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Right-click the terrain (without dragging) to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -127,6 +128,7 @@
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
+      searchPh: 'Chercher un site…', searchNone: 'Aucun résultat', popTitle: 'Nouveau site ici', popName: 'Nom du site', popOk: 'Ajouter', popCancel: 'Annuler', heatWindow: 'les 10 jours suivant le curseur',
       bestBtn: 'Meilleur site', bestMsg: 'Meilleur site du pôle Sud pour les 10 jours à partir du {d} : {n}, note {g} ({p} %).', vwLive: 'Direct', vwHeat: 'Carte thermique', gradeTitle: 'Score énergie + liaison, 10 prochains jours', gradeWord: 'Note', poor: 'Mauvais', good: 'Bon', stretched: 'couleurs étirées pour montrer les écarts',
       gradeNote: 'Un score sur les 10 jours à partir du curseur, pas une probabilité de réussite de l’atterrissage.', dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
@@ -174,7 +176,7 @@
       v3dShow: 'Afficher', mSun: 'Ensoleillement maintenant', mPlan: 'Énergie et liaison maintenant', mAvgSun: 'Ensoleillement, part de la période',
       mAvgEarth: 'Liaison Terre, part de la période', mAvgOps: 'Énergie + liaison, part de la période',
       vOverview: 'Vue d’ensemble', vSun: 'Regarder vers le Soleil', vStand: 'Se placer sur', vTour: 'Visite guidée', vTourStop: 'Arrêter la visite',
-      v3dNote: 'Glissez pour tourner, clic droit ou Maj + glisser pour déplacer, molette pour zoomer. Cliquez sur le relief pour y ajouter un site. Ombres et visibilité de la Terre sont calculées par votre carte graphique à partir du relief LOLA ; l’étirement vertical est seulement visuel.',
+      v3dNote: 'Glissez pour tourner, clic droit ou Maj + glisser pour déplacer, molette pour zoomer. Clic droit sur le relief (sans glisser) pour y ajouter un site. Ombres et visibilité de la Terre sont calculées par votre carte graphique à partir du relief LOLA ; l’étirement vertical est seulement visuel.',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -1424,6 +1426,84 @@
     tip.style.left = Math.min(window.innerWidth - r.width - 8, x + 14) + 'px';
     tip.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y + 14)) + 'px';
   }
+  /* open a site: select it, fly the camera to it, scroll down to its profile */
+  function openSite(id, scroll = true) {
+    const s = site(id); if (!s) return;
+    if (!state.selected.includes(id)) {
+      if (!selectSite(id)) { state.selected.pop(); selectSite(id); }
+      store.set('selected', state.selected);
+      state.focus = id; computeSeries();
+    } else setFocus(id);
+    if (v3d) {
+      if (!v3d.inRegion(s) && s.lat <= -75) { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); }
+      v3d.flyTo(s, 900);
+    }
+    if (scroll && state.tab === '3d') {
+      const acc = $('#accProfile'); acc.open = true;
+      setTimeout(() => acc.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+    }
+  }
+  /* right-click on the terrain: small popover to name and add a site */
+  let popCoords = null;
+  function showAddPop(lat, lon, x, y) {
+    popCoords = [lat, lon];
+    const pop = $('#addPop'); pop.hidden = false;
+    $('#addPopCoords').textContent = `${Math.abs(lat).toFixed(3)}°${lat < 0 ? 'S' : 'N'} ${lon.toFixed(3)}°E`;
+    const r = pop.getBoundingClientRect();
+    pop.style.left = Math.max(8, Math.min(window.innerWidth - r.width - 8, x)) + 'px';
+    pop.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y)) + 'px';
+    $('#addPopName').value = ''; $('#addPopName').focus();
+  }
+  function hideAddPop() { $('#addPop').hidden = true; popCoords = null; }
+  function submitAddPop() {
+    if (!popCoords) return;
+    $('#newLat').value = popCoords[0].toFixed(4); $('#newLon').value = popCoords[1].toFixed(4);
+    $('#newName').value = $('#addPopName').value.trim(); $('#newSnap').checked = false;
+    hideAddPop(); $('#addSiteForm').requestSubmit();
+  }
+  $('#addPopOk').addEventListener('click', submitAddPop);
+  $('#addPopNo').addEventListener('click', hideAddPop);
+  $('#addPopName').addEventListener('keydown', e => { if (e.key === 'Enter') submitAddPop(); else if (e.key === 'Escape') hideAddPop(); });
+  document.addEventListener('pointerdown', e => { if (!$('#addPop').hidden && !e.target.closest('#addPop')) hideAddPop(); });
+
+  /* search box */
+  const sIn = $('#siteSearch'), sRes = $('#searchRes');
+  function runSearch() {
+    const q = sIn.value.trim().toLowerCase();
+    if (!q) { sRes.hidden = true; return; }
+    const hits = state.sites.filter(s => (s.name + ' ' + s.id + ' ' + (s.group || '')).toLowerCase().includes(q)).slice(0, 8);
+    sRes.innerHTML = hits.length ? hits.map(s => `<button type="button" role="option" data-id="${esc(s.id)}">${esc(s.name)}<small>${Math.abs(s.lat).toFixed(1)}°${s.lat < 0 ? 'S' : 'N'}</small></button>`).join('')
+      : `<p class="muted small">${t('searchNone')}</p>`;
+    sRes.hidden = false;
+  }
+  sIn.addEventListener('input', runSearch);
+  sIn.addEventListener('focus', runSearch);
+  sIn.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { sRes.hidden = true; sIn.blur(); }
+    if (e.key === 'Enter') { const f = sRes.querySelector('button'); if (f) f.click(); }
+  });
+  sRes.addEventListener('click', e => {
+    const b = e.target.closest('[data-id]'); if (!b) return;
+    sRes.hidden = true; sIn.value = '';
+    if (state.tab !== '3d') showTab('3d');
+    openSite(b.dataset.id);
+  });
+  document.addEventListener('pointerdown', e => { if (!e.target.closest('.search')) sRes.hidden = true; });
+
+  /* heat map follows the cursor: score over the 10 days from the cursor time */
+  let heatWin = false, heatT = 0;
+  function windowSamples() {
+    const g = state.grid, w = Math.round(10 * DAY / g.stepMs);
+    const i0 = Math.min(state.cursor, Math.max(0, g.n - 2)), i1 = Math.min(g.n, i0 + w);
+    const N = Math.max(2, Math.min(60, i1 - i0)), out = [];
+    for (let k = 0; k < N; k++) out.push(v3dStateAt(Math.min(g.n - 1, Math.floor(i0 + (k + 0.5) * (i1 - i0) / N))));
+    return out;
+  }
+  const heatOn = () => heatWin && $('#v3dMode').value.startsWith('avg');
+  function scheduleHeat() {
+    clearTimeout(heatT);
+    heatT = setTimeout(() => { if (v3d && heatOn() && state.grid) v3d.setSamples(windowSamples()); }, 250);
+  }
   function init3D() {
     if (v3d || v3dFailed) return Promise.resolve(v3d);
     if (!v3dInit) {
@@ -1433,8 +1513,8 @@
         const T = await loadTerrain();
         v3d = LunarView3D.create($('#v3dStage'), T, {
           t,
-          onPick: (lat, lon) => fillNewSite(lat, lon),
-          onSite: id => setFocus(id),
+          onSite: id => openSite(id),
+          onContext: (lat, lon, x, y) => showAddPop(lat, lon, x, y),
           onHover: onSiteHover,
           onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
           onUserInput: () => { if (tour) stopTour(); }
@@ -1477,7 +1557,7 @@
     init3D().then(v => {
       if (!v || !state.grid) return;
       v.setRules(state.cfg);
-      v.setSamples(v3dSamples());
+      v.setSamples(heatOn() ? windowSamples() : v3dSamples());
       v3dSitesKey = '';
       update3D();
       v.resize();
@@ -1485,6 +1565,7 @@
   }
   function update3D() {
     if (!v3d || !state.grid) return;
+    if (heatOn()) scheduleHeat();
     const list = v3dSites();
     const key = list.map(s => s.id + (s.selected ? 1 : 0) + (s.focus ? 1 : 0) + s.color + s.lat).join('|');
     v3d.setSites(list, key !== v3dSitesKey); v3dSitesKey = key;
@@ -1510,7 +1591,7 @@
     else if (mode === 'plan') L.innerHTML = [['ops', 'lgOps'], ['sun', 'lgSun'], ['comm', 'lgComm'], ['none', 'lgNone']]
       .map(([k, l]) => `<span><i class="sw" style="background:var(--st-${k})"></i> ${t(l)}</span>`).join('');
     else {
-      L.innerHTML = `<span>${t('poor')}</span><span class="ramp" style="background:linear-gradient(90deg,#b2182b,#ef8a62,#f5f5f5,#67a9cf,#2166ac)"></span><span>${t('good')} (${t('ofPeriod')})</span><span class="muted">${t('stretched')}</span>`;
+      L.innerHTML = `<span>${t('poor')}</span><span class="ramp" style="background:linear-gradient(90deg,#b2182b,#ef8a62,#f5f5f5,#67a9cf,#2166ac)"></span><span>${t('good')} (${heatWin ? t('heatWindow') : t('ofPeriod')})</span><span class="muted">${t('stretched')}</span>`;
     }
     document.querySelectorAll('#v3dView [data-view]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.view === 'heat') === mode.startsWith('avg'))));
   }
@@ -1527,10 +1608,12 @@
     v3d.view('site', s, ms);
   }
   $('#v3dRegion').addEventListener('change', e => init3D().then(v => { if (v) { v.setRegion(e.target.value); update3D(); } }));
-  $('#v3dMode').addEventListener('change', e => set3DMode(e.target.value));
+  $('#v3dMode').addEventListener('change', e => { heatWin = false; set3DMode(e.target.value); if (v3d && state.grid) v3d.setSamples(v3dSamples()); });
   $('#v3dView').addEventListener('click', e => {
     const b = e.target.closest('[data-view]'); if (!b) return;
-    set3DMode(b.dataset.view === 'heat' ? 'avgOps' : 'sun');
+    heatWin = b.dataset.view === 'heat';
+    set3DMode(heatWin ? 'avgOps' : 'sun');
+    if (v3d && state.grid) v3d.setSamples(heatWin ? windowSamples() : v3dSamples());
     if (b.dataset.view === 'heat' && v3d) {
       if (v3d.region() !== 'south') { $('#v3dRegion').value = 'south'; v3d.setRegion('south'); update3D(); }
       v3d.view('overview');
@@ -2055,6 +2138,7 @@
   function applyI18n() {
     document.documentElement.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach(el => { const v = I18N[lang][el.dataset.i18n]; if (v) el.textContent = v; });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { const v = I18N[lang][el.dataset.i18nPh]; if (v) { el.placeholder = v; el.setAttribute('aria-label', v); } });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => { const v = I18N[lang][el.dataset.i18nAria]; if (v) { el.setAttribute('aria-label', v); el.title = v; } });
     $('#lang').textContent = lang === 'en' ? 'FR' : 'EN';
     buildMethod(); renderMethod();

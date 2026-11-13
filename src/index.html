@@ -18,6 +18,10 @@
       </div>
     </div>
     <div class="top-actions">
+      <div class="search">
+        <input type="search" id="siteSearch" autocomplete="off" aria-label="Search a site" data-i18n-ph="searchPh" placeholder="Search a site…">
+        <div class="search-res" id="searchRes" role="listbox" hidden></div>
+      </div>
       <div class="seg" id="modeSwitch" role="group" aria-label="Mode">
         <button type="button" data-mode="simple" aria-pressed="true" data-i18n="modeSimple">Simple</button>
         <button type="button" data-mode="advanced" aria-pressed="false" data-i18n="modeAdvanced">Advanced</button>
@@ -325,6 +329,13 @@
       <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
     </div>
   </main>
+</div>
+
+<div class="addpop" id="addPop" role="dialog" hidden>
+  <b data-i18n="popTitle">New site here</b>
+  <span class="mono muted small" id="addPopCoords"></span>
+  <input type="text" id="addPopName" maxlength="40" data-i18n-ph="popName" placeholder="Site name">
+  <div class="actions"><button class="btn primary" type="button" id="addPopOk" data-i18n="popOk">Add</button><button class="btn ghost" type="button" id="addPopNo" data-i18n="popCancel">Cancel</button></div>
 </div>
 
 <div class="tooltip" id="tip" role="tooltip" hidden></div>
