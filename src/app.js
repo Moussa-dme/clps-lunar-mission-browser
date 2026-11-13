@@ -529,6 +529,23 @@
   }
   $('#modeSwitch').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
 
+  /* drop-down panels open and close smoothly */
+  const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.addEventListener('click', e => {
+    const sm = e.target.closest('details.acc > summary'); if (!sm) return;
+    e.preventDefault();
+    const d = sm.parentElement, opening = !d.open;
+    if (d._anim) d._anim.cancel();
+    if (reduceMotion() || !d.animate) { d.open = opening; return; }
+    const from = d.offsetHeight;
+    let to;
+    if (opening) { d.open = true; to = d.offsetHeight; } else { d.open = false; to = d.offsetHeight; d.open = true; }
+    d.style.overflow = 'hidden';
+    d._anim = d.animate({ height: [from + 'px', to + 'px'] }, { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    const done = () => { d.open = opening; d.style.overflow = ''; d._anim = null; };
+    d._anim.onfinish = done; d._anim.oncancel = () => { d.style.overflow = ''; };
+  });
+
   /* tabs */
   document.querySelector('.tabs').addEventListener('click', e => {
     const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab);
@@ -537,7 +554,11 @@
     if (mode === 'simple') tab = '3d';
     state.tab = tab;
     document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
-    document.querySelectorAll('.view').forEach(v => { v.hidden = v.id !== 'view-' + tab; });
+    document.querySelectorAll('.view').forEach(v => {
+      const show = v.id === 'view-' + tab, was = !v.hidden;
+      v.hidden = !show;
+      if (show && !was) { v.classList.remove('view-in'); void v.offsetWidth; v.classList.add('view-in'); }
+    });
     try { history.replaceState(null, '', '#' + tab); } catch (e) { /* ignore */ }
     if (mode === 'advanced') store.set('tab', tab);
     renderTab();
@@ -785,7 +806,7 @@
     if (m.longestBlackoutH <= 24) pr.push(tf('prGap', dur(m.longestBlackoutH))); else if (m.longestBlackoutH >= 72) cn.push(tf('cnGap', dur(m.longestBlackoutH)));
     return { pr, cn };
   }
-  let profOpen = false;
+  let profOpen = false, profLast = null;
   function renderProfile() {
     const box = $('#prof'); if (!box) return;
     const id = state.focus, m = state.sums[id], s = state.series[id];
@@ -793,6 +814,7 @@
     const c = E.conditionsAt(s, state.grid, state.cursor), sc = profileScores(id), { pr, cn } = prosCons(m);
     const li = a => a.map(x => `<li>${esc(x)}</li>`).join('');
     const others = state.selected.filter(o => o !== id).length;
+    const grow = profLast !== id; profLast = id;
     box.className = 'prof' + (profOpen ? ' open' : '');
     box.innerHTML = `
       <div class="prof-main">
@@ -820,12 +842,16 @@
           <div class="r"><span>${t('profNow')}</span><span class="num">${t('sunNow')} ${fmt(c.sunClearance, 1)}° · ${t('earthNow')} ${fmt(c.earthClearance, 1)}°</span></div>
         </div>
       </div></div>`;
+    if (grow) { const sv = box.querySelector('.hexbtn svg'); if (sv) sv.classList.add('grow'); }
   }
   $('#prof').addEventListener('click', e => {
     if (e.target.closest('#hexBtn')) profOpen = !profOpen;
     else if (e.target.closest('#hexClose')) profOpen = false;
     else return;
-    renderProfile();
+    // toggle in place so the CSS transitions can run (a rebuild would skip them)
+    const box = $('#prof'); box.classList.toggle('open', profOpen);
+    const d = box.querySelector('.prof-detail'); if (d) d.setAttribute('aria-hidden', String(!profOpen));
+    const hb = $('#hexBtn'); if (hb) { hb.setAttribute('aria-expanded', String(profOpen)); hb.setAttribute('aria-label', profOpen ? t('profBack') : t('profOpen')); }
   });
 
   /* ---------- state strip */
