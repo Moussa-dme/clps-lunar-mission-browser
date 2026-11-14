@@ -3091,6 +3091,7 @@
     $('#helpCard').classList.remove('tour'); hideSpot();
     setPlaying(false);
     // put everything back as the visitor had it
+    if (S.snap.lang !== lang) { lang = S.snap.lang; applyI18n(); renderAll(); }
     state.mission = S.snap.mission; saveMission();
     if (S.snap.flat !== flat) $('#v3dLight').click();
     const heatBtn = document.querySelector(`#v3dView [data-view="${S.snap.heat ? 'heat' : 'live'}"]`); if (heatBtn) heatBtn.click();
@@ -3138,7 +3139,8 @@
     if (!state.grid) { toast(t('computing')); return; }
     setHelp(false); $('#chat').hidden = true;
     kind = kind === 'story' ? 'story' : 'site';
-    siteTour = { k: 0, timer: 0, kind, steps: kind === 'story' ? STORY_STEPS : TOUR_STEPS, snap: { mode, tab: state.tab, region: $('#v3dRegion').value, heat: heatWin, flat, mission: JSON.parse(JSON.stringify(state.mission)), cursor: state.cursor, focus: state.focus, spOpen, cmp: state.cmp.mode } };
+    siteTour = { k: 0, timer: 0, kind, steps: kind === 'story' ? STORY_STEPS : TOUR_STEPS, snap: { mode, tab: state.tab, region: $('#v3dRegion').value, heat: heatWin, flat, mission: JSON.parse(JSON.stringify(state.mission)), cursor: state.cursor, focus: state.focus, spOpen, cmp: state.cmp.mode, lang } };
+    if (kind === 'story' && lang !== 'en') { lang = 'en'; applyI18n(); renderAll(); }   // the demo always plays in English (not saved: the visitor's language comes back at the end)
     document.body.classList.add('tour-on');
     if (kind === 'story') {
       setDemoBtn(true);
