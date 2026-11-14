@@ -606,3 +606,24 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   .cf-head-row { display: none; }
   .cf-pin .nm { flex-basis: 100%; }
 }
+
+/* ---- mission: landing flag + length on the time bar, context strip in the header */
+.cb-track { height: 44px; }
+.cb-track input[type="range"] { top: 14px; bottom: 0; height: 30px; }
+.lm { position: absolute; top: 0; width: 22px; height: 16px; margin-left: -11px; z-index: 3; cursor: grab; background: var(--accent); clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%); touch-action: none; }
+.lm:active { cursor: grabbing; } .lm[hidden] { display: none; }
+.lm:focus-visible { outline: none; filter: drop-shadow(0 0 3px var(--fg)) drop-shadow(0 0 2px var(--fg)); }
+.cb-mission { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12.5px; }
+.cb-mission .ms-when { font-weight: 600; }
+.cb-mission .ms-dur { display: inline-flex; align-items: center; gap: 6px; color: var(--fg2); }
+.cb-mission select { padding: 2px 6px; font-size: 12.5px; }
+.cb-mission .ms-hint { color: var(--fg2); }
+.cb-mission .ms-res { margin-left: auto; font-weight: 600; }
+.cb-mission .ms-btn { padding: 3px 10px; min-height: 26px; font-size: 12px; }
+.cb-mission .ms-rh { color: var(--fg2); font-weight: 400; }
+.cursor-bar.compact .cb-mission .ms-hint { display: none; }
+.ctx { display: flex; flex-wrap: wrap; gap: 2px 18px; margin-top: 8px; font-size: 13px; color: var(--fg2); }
+.ctx:empty { display: none; }
+.ctx .cx-site { color: var(--fg); font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx .ok { color: var(--ops); } .ctx .no { color: var(--fg2); }
+@media (max-width: 700px) { .ctx { gap: 2px 12px; font-size: 12.5px; } .ctx .cx-date { display: none; } .cb-mission .ms-hint { display: none; } }

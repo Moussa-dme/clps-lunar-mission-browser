@@ -614,6 +614,27 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   .cf-pin .nm { flex-basis: 100%; }
 }
 
+/* ---- mission: landing flag + length on the time bar, context strip in the header */
+.cb-track { height: 44px; }
+.cb-track input[type="range"] { top: 14px; bottom: 0; height: 30px; }
+.lm { position: absolute; top: 0; width: 22px; height: 16px; margin-left: -11px; z-index: 3; cursor: grab; background: var(--accent); clip-path: polygon(0 0, 100% 0, 100% 62%, 50% 100%, 0 62%); touch-action: none; }
+.lm:active { cursor: grabbing; } .lm[hidden] { display: none; }
+.lm:focus-visible { outline: none; filter: drop-shadow(0 0 3px var(--fg)) drop-shadow(0 0 2px var(--fg)); }
+.cb-mission { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12.5px; }
+.cb-mission .ms-when { font-weight: 600; }
+.cb-mission .ms-dur { display: inline-flex; align-items: center; gap: 6px; color: var(--fg2); }
+.cb-mission select { padding: 2px 6px; font-size: 12.5px; }
+.cb-mission .ms-hint { color: var(--fg2); }
+.cb-mission .ms-res { margin-left: auto; font-weight: 600; }
+.cb-mission .ms-btn { padding: 3px 10px; min-height: 26px; font-size: 12px; }
+.cb-mission .ms-rh { color: var(--fg2); font-weight: 400; }
+.cursor-bar.compact .cb-mission .ms-hint { display: none; }
+.ctx { display: flex; flex-wrap: wrap; gap: 2px 18px; margin-top: 8px; font-size: 13px; color: var(--fg2); }
+.ctx:empty { display: none; }
+.ctx .cx-site { color: var(--fg); font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx .ok { color: var(--ops); } .ctx .no { color: var(--fg2); }
+@media (max-width: 700px) { .ctx { gap: 2px 12px; font-size: 12.5px; } .ctx .cx-date { display: none; } .cb-mission .ms-hint { display: none; } }
+
 </style>
 
 <header class="topbar">
@@ -637,6 +658,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       <button class="btn ghost" id="lang" type="button" aria-label="Langue / Language">FR</button>
     </div>
   </div>
+  <div class="wrap ctx" id="ctxBar" role="status"></div>
 </header>
 
 <div class="wrap layout">
@@ -939,6 +961,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
         <div class="cb-track" id="cbTrack">
           <canvas id="cursorTrack" aria-hidden="true"></canvas>
           <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
+          <div class="lm" id="lmFlag" role="slider" tabindex="0" hidden></div>
         </div>
         <button class="btn icon day" id="dayFwd" type="button" aria-label="+1 day" data-i18n-aria="dayFwd">›</button>
         <output id="cursorLabel" class="mono" hidden></output>
@@ -950,6 +973,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
           <button class="btn ghost small-btn" type="button" id="jumpSunset" data-i18n="nextSunset">Next sunset</button>
         </div>
       </div>
+      <div class="cb-mission" id="cbMission"></div>
       <div class="cb-chips" id="cursorChips"></div>
       <div class="progress" id="progress" hidden><div class="bar" id="progressBar"></div></div>
     </div>
@@ -2510,9 +2534,9 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       mapNote: 'Arrows from the pole show where the Sun and Earth stand at the cursor time. Filled rings: sunlit now. Polar stereographic projection, 0° longitude (toward Earth) at the top.',
       colSite: 'Site', colLit: 'Sunlit', colEnergy: 'Solar energy', colEarth: 'Earth visible', colDte: 'Earth link', colOps: 'Power + link',
       colNight: 'Longest night', colGap: 'Longest link gap', colElev: 'Elevation', colHz: 'Horizon',
-      qualLabel: 'Quality', qualStd: 'Standard', qualHigh: 'High (sharper, heavier)', searchPh: 'Search a site…', searchNone: 'No match', popTitle: 'New site here', popName: 'Site name', popOk: 'Add', popCancel: 'Cancel', heatWindow: 'next 10 days from the cursor',
-      bestBtn: 'Best site', bestMsg: 'Best south-pole site for the 10 days from {d}: {n}, grade {g} ({p}%).', vwLive: 'Live', vwHeat: 'Heat map', gradeTitle: 'Power + link score, next 10 days', gradeWord: 'Grade', poor: 'Poor', good: 'Good', stretched: 'colours stretched to show differences',
-      gradeNote: 'A score of the next 10 days from the cursor time, not a landing-success probability.', dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
+      qualLabel: 'Quality', qualStd: 'Standard', qualHigh: 'High (sharper, heavier)', searchPh: 'Search a site…', searchNone: 'No match', popTitle: 'New site here', popName: 'Site name', popOk: 'Add', popCancel: 'Cancel', heatWindow: 'the {days}-day window',
+      bestBtn: 'Best site', bestMsg: 'Best south-pole site for {days} days from {d}: {n}, grade {g} ({p}%).', vwLive: 'Live', vwHeat: 'Heat map', gradeTitle: 'Power + link, {days}-day window', gradeWord: 'Grade', poor: 'Poor', good: 'Good', stretched: 'colours stretched to show differences',
+      gradeNote: 'Share of a {days}-day window (the mission if a landing date is set, otherwise from the cursor) with power + link. Not a landing-success probability.', dayBack: '1 day earlier', dayFwd: '1 day later', mkSunset: 'Sunset', mkEarthset: 'Earthset', modeSimple: 'Simple', modeAdvanced: 'Advanced', siteLabel: 'Site', viewOpts: 'View options', period: 'Period',
       tProfile: 'Profile', profTitle: 'Site profile', profHelp: 'Click the hexagon for details. Scores run from 0 to 100, higher is better.',
       axSun: 'Sunlight', axEnergy: 'Solar energy', axLink: 'Earth link', axOps: 'Power + link', axNight: 'Short nights', axGap: 'Short link gaps',
       dSun: 'Share of the period with the Sun above the local terrain horizon.',
@@ -2577,6 +2601,8 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       cfNoScore: 'No overall score: the verdict uses power + link (time with both); the lines below show the trade-offs.',
       why_litPct: '{n} gets more sunlight (+{d})', why_earthPct: '{n} sees the Earth more often (+{d})', why_dtePct: '{n} has a direct link more often (+{d})',
       why_longestNightH: '{n} has a shorter longest night (−{d})', why_longestBlackoutH: '{n} has a shorter longest blackout (−{d})', spCollapse: 'Collapse', spExpand: 'Expand',
+      msSet: 'Set landing date', msLength: 'Mission length', msHint: 'Drop the flag, then drag it along the bar to try other landing dates.', msClear: 'Remove landing date',
+      msOpsWord: 'of the mission with power and a link', msFlag: 'Landing date',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -2616,9 +2642,9 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       mapNote: 'Les flèches partant du pôle indiquent la direction du Soleil et de la Terre à l’instant choisi. Anneau plein : site au soleil. Projection stéréographique polaire, longitude 0° (vers la Terre) en haut.',
       colSite: 'Site', colLit: 'Au soleil', colEnergy: 'Énergie solaire', colEarth: 'Terre visible', colDte: 'Liaison Terre', colOps: 'Énergie + liaison',
       colNight: 'Plus longue nuit', colGap: 'Plus longue coupure', colElev: 'Altitude', colHz: 'Horizon',
-      qualLabel: 'Qualité', qualStd: 'Standard', qualHigh: 'Haute (plus net, plus lourd)', searchPh: 'Chercher un site…', searchNone: 'Aucun résultat', popTitle: 'Nouveau site ici', popName: 'Nom du site', popOk: 'Ajouter', popCancel: 'Annuler', heatWindow: 'les 10 jours suivant le curseur',
-      bestBtn: 'Meilleur site', bestMsg: 'Meilleur site du pôle Sud pour les 10 jours à partir du {d} : {n}, note {g} ({p} %).', vwLive: 'Direct', vwHeat: 'Carte thermique', gradeTitle: 'Score énergie + liaison, 10 prochains jours', gradeWord: 'Note', poor: 'Mauvais', good: 'Bon', stretched: 'couleurs étirées pour montrer les écarts',
-      gradeNote: 'Un score sur les 10 jours à partir du curseur, pas une probabilité de réussite de l’atterrissage.', dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
+      qualLabel: 'Qualité', qualStd: 'Standard', qualHigh: 'Haute (plus net, plus lourd)', searchPh: 'Chercher un site…', searchNone: 'Aucun résultat', popTitle: 'Nouveau site ici', popName: 'Nom du site', popOk: 'Ajouter', popCancel: 'Annuler', heatWindow: 'la fenêtre de {days} jours',
+      bestBtn: 'Meilleur site', bestMsg: 'Meilleur site du pôle Sud pour {days} jours à partir du {d} : {n}, note {g} ({p} %).', vwLive: 'Direct', vwHeat: 'Carte thermique', gradeTitle: 'Énergie + liaison, fenêtre de {days} jours', gradeWord: 'Note', poor: 'Mauvais', good: 'Bon', stretched: 'couleurs étirées pour montrer les écarts',
+      gradeNote: 'Part d’une fenêtre de {days} jours (la mission si une date d’atterrissage est posée, sinon à partir du curseur) avec énergie et liaison. Pas une probabilité de réussite de l’atterrissage.', dayBack: '1 jour plus tôt', dayFwd: '1 jour plus tard', mkSunset: 'Coucher du Soleil', mkEarthset: 'Coucher de la Terre', modeSimple: 'Simple', modeAdvanced: 'Avancé', siteLabel: 'Site', viewOpts: 'Options d’affichage', period: 'Période',
       tProfile: 'Profil', profTitle: 'Profil du site', profHelp: 'Cliquez sur l’hexagone pour les détails. Les scores vont de 0 à 100, plus c’est haut, mieux c’est.',
       axSun: 'Ensoleillement', axEnergy: 'Énergie solaire', axLink: 'Liaison Terre', axOps: 'Énergie + liaison', axNight: 'Nuits courtes', axGap: 'Coupures courtes',
       dSun: 'Part de la période où le Soleil est au-dessus de l’horizon du relief local.',
@@ -2683,6 +2709,8 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       cfNoScore: 'Pas de score global : le verdict s’appuie sur énergie + liaison (temps avec les deux) ; les lignes ci-dessous montrent les compromis.',
       why_litPct: '{n} reçoit plus de soleil (+{d})', why_earthPct: '{n} voit plus souvent la Terre (+{d})', why_dtePct: '{n} a plus souvent une liaison directe (+{d})',
       why_longestNightH: '{n} a une nuit maximale plus courte (−{d})', why_longestBlackoutH: '{n} a une coupure maximale plus courte (−{d})', spCollapse: 'Réduire', spExpand: 'Déplier',
+      msSet: 'Poser la date d’atterrissage', msLength: 'Durée de la mission', msHint: 'Posez le drapeau, puis faites-le glisser sur la barre pour essayer d’autres dates.', msClear: 'Retirer la date d’atterrissage',
+      msOpsWord: 'de la mission avec énergie et liaison', msFlag: 'Date d’atterrissage',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -2703,7 +2731,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     set(k, v) { try { localStorage.setItem('clps.' + k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
   };
   let lang = store.get('lang', (navigator.language || 'en').toLowerCase().startsWith('fr') ? 'fr' : 'en');
-  const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
+  const t = k => { const v = (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; return v.indexOf('{days}') >= 0 ? v.replace('{days}', state.mission ? state.mission.days : 10) : v; };
   const locale = () => (lang === 'fr' ? 'fr-FR' : 'en-GB');
 
   /* ----------------------------------------------------------------- sites */
@@ -3093,7 +3121,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   }
 
   /* ------------------------------------------------------------ rendering */
-  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); drawCursorTrack(); update3DButtons(); }
+  function renderAll() { renderSiteList(); renderTab(); renderCursorLabel(); drawCursorTrack(); update3DButtons(); renderMission(); }
   function renderCursorLabel() {
     if (!state.grid) return;
     $('#cursorLabel').textContent = utc(timeOf(state.cursor)) + ' UTC';
@@ -3101,12 +3129,13 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     if (document.activeElement !== ct) ct.value = utc(timeOf(state.cursor)).replace(' ', 'T');
     ct.min = utc(state.grid.start).replace(' ', 'T'); ct.max = utc(timeOf(state.grid.n - 1)).replace(' ', 'T');
     renderCursorChips();
+    renderCtx();
   }
   /* time bar: the slider track shows the focused site's state over the whole period, with sunset / Earthset marks */
   function drawCursorTrack() {
     const cv = $('#cursorTrack'); if (!cv || !state.grid) return;
     const { ctx, w, h } = canvasSetup(cv), s = state.series[state.focus]; if (!s) return;
-    const n = state.grid.n, bh = 10, y0 = Math.round((h - bh) / 2), x0 = 8, x1 = w - 8;
+    const n = state.grid.n, bh = 10, topPad = 14, y0 = topPad + Math.round((h - topPad - bh) / 2), x0 = 8, x1 = w - 8;
     const colors = { ops: cssv('--ops'), sun: cssv('--sun'), earth: cssv('--earth'), none: cssv('--none') };
     ctx.save();
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y0, x1 - x0, bh, bh / 2) : ctx.rect(x0, y0, x1 - x0, bh); ctx.clip();
@@ -3126,6 +3155,20 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       if (s.lit[i - 1] && !s.lit[i]) { mark(i, true, colors.sun); cnt++; }
       if (s.earthUp[i - 1] && !s.earthUp[i]) { mark(i, false, colors.earth); cnt++; }
     }
+    drawMissionBand(ctx, X, y0, bh, n);
+  }
+  function drawMissionBand(ctx, X, y0, bh, n) {
+    const fl = $('#lmFlag'), li = missionIdx();
+    if (li == null) { fl.hidden = true; return; }
+    const wI = Math.max(1, Math.round(state.mission.days * DAY / state.grid.stepMs)), xa = X(li), xb = X(Math.min(n - 1, li + wI));
+    ctx.save();
+    ctx.fillStyle = cssv('--accent'); ctx.globalAlpha = 0.16;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(xa, y0 - 4, Math.max(2, xb - xa), bh + 8, 6) : ctx.rect(xa, y0 - 4, Math.max(2, xb - xa), bh + 8); ctx.fill();
+    ctx.globalAlpha = 1; ctx.strokeStyle = cssv('--accent'); ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+    fl.hidden = false; fl.style.left = xa + 'px';
+    fl.setAttribute('aria-label', t('msFlag')); fl.setAttribute('aria-valuetext', utc(timeOf(li)) + ' UTC');
+    fl.setAttribute('aria-valuemin', '0'); fl.setAttribute('aria-valuemax', String(n - 1)); fl.setAttribute('aria-valuenow', String(li));
   }
   function renderCursorChips() {
     const box = $('#cursorChips'), s = state.series[state.focus]; if (!box || !s || !state.grid) return;
@@ -3933,7 +3976,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     f.innerHTML = `<div><p>${esc(msg)}</p><p class="small" style="margin-top:8px;color:var(--space-mut)">${t('noWebGLHelp')}</p></div>`;
     $('#v3dStatus').textContent = '';
   }
-  /* grade for any site: share of the next 10 days with power + link, from the cursor time */
+  /* grade for any site: share of the mission window (landing date + length, else cursor + length) with power + link */
   const GRADES = [[60, 'A', '#2166ac'], [45, 'B', '#4393c3'], [30, 'C', '#8c929b'], [15, 'D', '#d6604d'], [-1, 'E', '#b2182b']];
   const allSer = {}, allSum = {};
   let allSerGrid = null, allSerCfg = '', allSumGrid = null, allSumCfg = '';
@@ -3954,8 +3997,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   }
   function siteGrade(id) {
     const ser = anySeries(id); if (!ser) return null;
-    const g = state.grid, w = Math.round(10 * DAY / g.stepMs);
-    const i0 = Math.min(state.cursor, Math.max(0, g.n - 2)), i1 = Math.min(g.n, i0 + w);
+    const g = state.grid, W = missionWindow(), i0 = W.i0, i1 = W.i1;
     const m = E.summarize(ser, g, i0, i1), pct = m.opsPct;
     const [, letter, color] = GRADES.find(([min]) => pct >= min);
     return { pct, letter, color, days: (i1 - i0) * g.stepMs / DAY };
@@ -3973,7 +4015,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       store.set('selected', state.selected);
       state.focus = b.id; computeSeries();
     } else setFocus(b.id);
-    toast(t('bestMsg').replace('{n}', s.name).replace('{g}', b.gr.letter).replace('{p}', fmt(b.gr.pct, 0)).replace('{d}', utc(timeOf(state.cursor), false)));
+    toast(t('bestMsg').replace('{n}', s.name).replace('{g}', b.gr.letter).replace('{p}', fmt(b.gr.pct, 0)).replace('{d}', utc(timeOf(missionWindow().i0), false)));
     if (v3d) { if (v3d.region() === 'moon' || !v3d.inRegion(s)) setRegionUI('south'); v3d.view('overview'); }
   }
   $('#bestBtn').addEventListener('click', bestSite);
@@ -4056,8 +4098,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   try { const q = store.get('quality', 'high'); $('#v3dQuality').value = q === 'standard' ? 'standard' : 'high'; } catch (e) { /* ignore */ }
   let heatWin = false, heatT = 0;
   function windowSamples() {
-    const g = state.grid, w = Math.round(10 * DAY / g.stepMs);
-    const i0 = Math.min(state.cursor, Math.max(0, g.n - 2)), i1 = Math.min(g.n, i0 + w);
+    const g = state.grid, W = missionWindow(), i0 = W.i0, i1 = W.i1;
     const N = Math.max(2, Math.min(60, i1 - i0)), out = [];
     for (let k = 0; k < N; k++) out.push(v3dStateAt(Math.min(g.n - 1, Math.floor(i0 + (k + 0.5) * (i1 - i0) / N))));
     return out;
@@ -4133,6 +4174,83 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       v.resize();
     });
   }
+  /* ---------- mission: landing date + length, shared by the time bar, the header, grades and the heat map */
+  const MISSION_DAYS = [3, 5, 7, 10, 14, 21, 30];
+  state.mission = (() => { const m = store.get('mission', null) || {}; return { landing: typeof m.landing === 'number' ? m.landing : null, days: MISSION_DAYS.includes(m.days) ? m.days : 10 }; })();
+  const saveMission = () => store.set('mission', state.mission);
+  function missionIdx() {
+    const g = state.grid, m = state.mission.landing;
+    if (!g || m == null || m < state.start || m > timeOf(g.n - 1)) return null;
+    return indexOf(m);
+  }
+  function missionWindow() {
+    const g = state.grid, li = missionIdx(), days = state.mission.days;
+    const i0 = li != null ? Math.min(li, g.n - 2) : Math.min(state.cursor, Math.max(0, g.n - 2));
+    return { i0, i1: Math.min(g.n, i0 + Math.max(2, Math.round(days * DAY / g.stepMs))), days, set: li != null };
+  }
+  function afterMissionChange() {
+    renderMission(); drawCursorTrack(); renderCtx();
+    if (state.tab === '3d') { update3D(); renderProfile(); } else if (state.tab === 'compare') renderCmpFocus();
+  }
+  function setLanding(ms, follow) {
+    const g = state.grid; if (!g) return;
+    const i = indexOf(Math.max(state.start, Math.min(timeOf(g.n - 1), ms)));
+    state.mission.landing = timeOf(i); saveMission();
+    if (follow) setCursor(i);
+    afterMissionChange();
+  }
+  function renderMission() {
+    const box = $('#cbMission'), g = state.grid; if (!box) return;
+    if (!g) { box.innerHTML = ''; return; }
+    const li = missionIdx(), days = state.mission.days;
+    const sel = `<label class="ms-dur"><span>${t('msLength')}</span><select id="msDays">${MISSION_DAYS.map(d => `<option value="${d}"${d === days ? ' selected' : ''}>${d} ${t('d')}</option>`).join('')}</select></label>`;
+    if (li == null) { box.innerHTML = `<button type="button" class="btn ms-btn" data-ms="set">🚩 ${t('msSet')}</button>${sel}<span class="ms-hint">${t('msHint')}</span>`; return; }
+    const sh = d => `<button type="button" class="btn ghost ms-btn${Math.abs(d) > 1 ? ' adv-only' : ''}" data-ms-shift="${d}">${d > 0 ? '+' : '−'}${Math.abs(d)} ${t('d')}</button>`;
+    const ser = state.series[state.focus] || anySeries(state.focus), W = missionWindow();
+    const m = ser ? E.summarize(ser, g, W.i0, W.i1) : null;
+    const res = m ? `<span class="ms-res"><span class="adv-only">☀️ ${fmt(m.litPct, 0)}% · 🌍 ${fmt(m.earthPct, 0)}% · </span>⚡ ${fmt(m.opsPct, 0)}% <span class="ms-rh">${t('msOpsWord')}</span></span>` : '';
+    box.innerHTML = `<span class="ms-when">🚩 ${utc(state.mission.landing)} UTC</span>${sel}${[-7, -3, -1, 1, 3, 7].map(sh).join('')}<button type="button" class="btn ghost ms-btn" data-ms="clear" aria-label="${t('msClear')}" title="${t('msClear')}">✕</button>${res}`;
+  }
+  $('#cbMission').addEventListener('click', e => {
+    const b = e.target.closest('[data-ms]'), sh = e.target.closest('[data-ms-shift]');
+    if (b && b.dataset.ms === 'set' && state.grid) setLanding(timeOf(state.cursor), false);
+    else if (b && b.dataset.ms === 'clear') { state.mission.landing = null; saveMission(); afterMissionChange(); }
+    else if (sh) setLanding((state.mission.landing != null ? state.mission.landing : timeOf(state.cursor)) + (+sh.dataset.msShift) * DAY, true);
+  });
+  $('#cbMission').addEventListener('change', e => {
+    if (e.target.id === 'msDays') { state.mission.days = +e.target.value; saveMission(); afterMissionChange(); }
+  });
+  /* drag the landing flag along the bar; the cursor follows it */
+  (() => {
+    const fl = $('#lmFlag'); let drag = false, pend = null, raf = 0;
+    const apply = () => { raf = 0; if (pend == null) return; const i = pend; pend = null; if (i !== missionIdx()) { state.mission.landing = timeOf(i); setCursor(i); drawCursorTrack(); renderCtx(); } };
+    fl.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fl.setPointerCapture(e.pointerId); drag = true; });
+    fl.addEventListener('pointermove', e => {
+      if (!drag || !state.grid) return;
+      const r = $('#cbTrack').getBoundingClientRect(), n = state.grid.n;
+      pend = Math.max(0, Math.min(n - 1, Math.round((e.clientX - r.left - 8) / (r.width - 16) * n - 0.5)));
+      if (!raf) raf = requestAnimationFrame(apply);
+    });
+    const end = () => { if (!drag) return; drag = false; apply(); saveMission(); afterMissionChange(); };
+    fl.addEventListener('pointerup', end); fl.addEventListener('pointercancel', end);
+    fl.addEventListener('keydown', e => {
+      const k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!k) return;
+      e.preventDefault(); setLanding(state.mission.landing + k * (e.shiftKey ? 7 : 1) * DAY, true);
+    });
+  })();
+  /* context strip under the title: site, moment, Sun and Earth, always visible */
+  let ctxLast = '';
+  function renderCtx() {
+    const box = $('#ctxBar'), s = site(state.focus), ser = state.series[state.focus], g = state.grid;
+    if (!box) return;
+    if (!s || !ser || !g) { if (ctxLast) { box.innerHTML = ''; ctxLast = ''; } return; }
+    const c = E.conditionsAt(ser, g, state.cursor);
+    const st = (on, ico, m) => `<span class="${on ? 'ok' : 'no'}">${ico} ${on ? '✓ ' + t('spVisible') : '✕ ' + t(m)}</span>`;
+    const html = `<span class="cx-site">📍 ${esc(s.name)}</span><span class="cx-date">📅 ${utc(timeOf(state.cursor))} UTC</span>` +
+      st(c.sunlit, '☀️', 'spHiddenM') + st(c.earthUp, '🌍', 'spHiddenF') + (missionIdx() != null ? `<span>🚩 ${state.mission.days} ${t('d')}</span>` : '');
+    if (html !== ctxLast) { ctxLast = html; box.innerHTML = html; }
+  }
+
   /* ---------- compare: chooser, ranking against the chosen site, side-by-side with reasons */
   state.cmp = { mode: store.get('cmpMode', 'all') === 'one' ? 'one' : 'all', other: store.get('cmpOther', null) };
   const CM = [
