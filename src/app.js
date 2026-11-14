@@ -1638,7 +1638,7 @@
       state.focus = b.id; computeSeries();
     } else setFocus(b.id);
     toast(t('bestMsg').replace('{n}', s.name).replace('{g}', b.gr.letter).replace('{p}', fmt(b.gr.pct, 0)).replace('{d}', utc(timeOf(missionWindow().i0), false)));
-    if (v3d) { if (v3d.region() === 'moon' || !v3d.inRegion(s)) setRegionUI('south'); v3d.view('overview'); }
+    if (v3d) { if (v3d.region() === 'moon' || !v3d.inRegion(s)) setRegionUI('south'); v3d.view('overview'); v3d.highlight(b.id, `★ ${t('bestBtn')} · ${s.name}`); }
   }
   $('#bestBtn').addEventListener('click', bestSite);
   const gradeChip = gr => `<span class="grade" style="background:${gr.color}">${gr.letter}</span>`;
