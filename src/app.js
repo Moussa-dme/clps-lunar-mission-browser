@@ -122,6 +122,9 @@
       pzBest: 'Best days to land', pzUse: 'Use this date', pzNone: 'No safe landing date for this site in the selected period. Try another site or a longer period.',
       pzPlaced: 'Landing date set: {d}', pzAria: 'Quality of each landing day over the selected period; click to set the landing date',
       cbDateTip: 'Date, sunrise / sunset jumps and mission',
+      hintGlobe: 'Drag to rotate · scroll to zoom · click a site',
+      lgSunset: 'Sunset (on the time bar)', lgEarthset: 'Earthset (on the time bar)', lgFlags: 'A and B: landing dates. The outlined band is the mission.',
+      lgUp: 'Green arrow: better than your site', lgDown: 'Red arrow: worse than your site', lgGrade: 'Grade: share of the mission with power and a link (A is best). Not a landing-success probability.',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -243,6 +246,9 @@
       pzBest: 'Meilleurs jours pour atterrir', pzUse: 'Utiliser cette date', pzNone: 'Aucune date d’atterrissage sûre pour ce site sur la période choisie. Essayez un autre site ou une période plus longue.',
       pzPlaced: 'Date d’atterrissage posée : {d}', pzAria: 'Qualité de chaque jour d’atterrissage sur la période choisie ; cliquez pour poser la date d’atterrissage',
       cbDateTip: 'Date, sauts lever / coucher et mission',
+      hintGlobe: 'Glissez pour tourner · molette pour zoomer · cliquez sur un site',
+      lgSunset: 'Coucher du Soleil (sur la barre de temps)', lgEarthset: 'Coucher de la Terre (sur la barre de temps)', lgFlags: 'A et B : dates d’atterrissage. La bande encadrée est la mission.',
+      lgUp: 'Flèche verte : mieux que votre site', lgDown: 'Flèche rouge : moins bien que votre site', lgGrade: 'Note : part de la mission avec énergie et liaison (A est la meilleure). Pas une probabilité de réussite.',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -594,7 +600,7 @@
   function applyMode(initial) {
     document.body.dataset.mode = mode;
     document.querySelectorAll('#modeSwitch [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
-    if (!initial) document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
+    if (!initial) { document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced' || d.id === 'accLegend'; }); $('#accProfile').open = mode === 'advanced'; }
   }
   function setMode(m) {
     mode = m; store.set('mode', m); applyMode();
@@ -623,7 +629,7 @@
   const SECTIONS = { explore: ['3d', 'map', 'sky', 'timeline'], compare: ['compare', 'scen'], plan: ['plan'], learn: ['learn', 'method'] };
   const VIEW_SEC = {};
   Object.keys(SECTIONS).forEach(sec => SECTIONS[sec].forEach(v => { VIEW_SEC[v] = sec; }));
-  const ADV_VIEWS = ['timeline', 'sky'];               // angle and horizon graphs: Advanced only
+  const ADV_VIEWS = ['timeline', 'sky', 'map', 'scen'];  // graphs, 2D map and the scenario table: Advanced only (old links still work)
   const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
   const lastView = store.get('views', {});
   for (const nav of ['#sections', '#subnav']) document.querySelector(nav).addEventListener('keydown', e => {
@@ -1723,7 +1729,7 @@
           onZone: openZone, onZoneHover,
           basemap: baseImg, basemapMeta: DATA.assets.basemap,
           onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
-          onUserInput: () => { if (tour) stopTour(); }
+          onUserInput: () => { if (tour) stopTour(); const h = $('#v3dHint'); if (h) h.classList.add('gone'); }
         });
         v3d.setRules(state.cfg);
         v3d.setQuality($('#v3dQuality').value);
@@ -2129,6 +2135,7 @@
   }
   function renderLegend() {
     const L = $('#v3dLegend'), mode = $('#v3dMode').value, moon = $('#v3dRegion').value === 'moon';
+    L.classList.toggle('is-heat', mode.startsWith('avg') && !moon);
     if (flat) { L.innerHTML = `<span>${t('flatTag')}</span>`; return; }
     if (moon) { L.innerHTML = `<span>${t('lgMoon')}</span>`; return; }
     if (mode === 'sun') L.innerHTML = `<span>${t('lgReal')}</span>`;
@@ -2715,7 +2722,8 @@
   const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method', 'explore'];   // old view ids stay valid links
   if (ADV_VIEWS.includes(hashTab)) mode = 'advanced';
   applyMode(true);
-  document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
+  document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced' || d.id === 'accLegend'; });   // the legend stays open in Simple
+  $('#accProfile').open = mode === 'advanced';
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();
