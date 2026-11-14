@@ -121,6 +121,7 @@
       pzGood: 'Good (60% or more)', pzFair: 'Fair (30 to 60%)', pzPoor: 'Poor (under 30%)', pzNo: 'Not possible (no sunlight or no link at touchdown)',
       pzBest: 'Best days to land', pzUse: 'Use this date', pzNone: 'No safe landing date for this site in the selected period. Try another site or a longer period.',
       pzPlaced: 'Landing date set: {d}', pzAria: 'Quality of each landing day over the selected period; click to set the landing date',
+      cbDateTip: 'Date, sunrise / sunset jumps and mission',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -241,6 +242,7 @@
       pzGood: 'Bon (60 % ou plus)', pzFair: 'Moyen (30 à 60 %)', pzPoor: 'Mauvais (moins de 30 %)', pzNo: 'Impossible (pas de soleil ou pas de liaison à l’atterrissage)',
       pzBest: 'Meilleurs jours pour atterrir', pzUse: 'Utiliser cette date', pzNone: 'Aucune date d’atterrissage sûre pour ce site sur la période choisie. Essayez un autre site ou une période plus longue.',
       pzPlaced: 'Date d’atterrissage posée : {d}', pzAria: 'Qualité de chaque jour d’atterrissage sur la période choisie ; cliquez pour poser la date d’atterrissage',
+      cbDateTip: 'Date, sauts lever / coucher et mission',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -552,17 +554,23 @@
   }
   ['#start', '#end', '#step'].forEach(s => $(s).addEventListener('change', readRange));
 
-  /* time bar: compact when scrolling up / at the top, full when scrolling down */
+  /* time bar: always slim. The date button opens a drop-down with the exact date, sunrise/sunset jumps and the mission controls */
   (function () {
-    const bar = $('.cursor-bar'); let lastY = window.scrollY;
-    const upd = () => {
-      const y = window.scrollY, dy = y - lastY;
-      if (y < 60 || dy < -6) bar.classList.add('compact'); else if (dy > 6) bar.classList.remove('compact');
-      if (Math.abs(dy) > 6) lastY = y;
-    };
+    const bar = $('.cursor-bar'), drop = $('#cbDrop'), btn = $('#cbDate');
     bar.classList.add('compact');
-    window.addEventListener('scroll', upd, { passive: true });
+    drop.append(document.querySelector('.cursor-tools'), $('#cbMission'));
+    const setOpen = on => { drop.hidden = !on; btn.setAttribute('aria-expanded', String(on)); };
+    btn.addEventListener('click', () => setOpen(drop.hidden));
+    document.addEventListener('pointerdown', e => { if (!drop.hidden && !e.target.closest('#cbDrop') && !e.target.closest('#cbDate')) setOpen(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !drop.hidden) { setOpen(false); btn.focus(); } });
   })();
+  function renderDateChip() {
+    const b = $('#cbDate'); if (!b || !state.grid) return;
+    const flag = state.mission && missionIdx() != null ? '🚩 ' : '';
+    const d = utc(timeOf(state.cursor));
+    b.textContent = `${flag}${window.matchMedia && window.matchMedia('(max-width: 700px)').matches ? d.slice(5) : d} ▾`;
+    b.title = t('cbDateTip');
+  }
 
   /* cursor + play */
   $('#cursor').addEventListener('input', e => { state.cursor = +e.target.value; renderCursorDependent(); });
@@ -667,6 +675,7 @@
     ct.min = utc(state.grid.start).replace(' ', 'T'); ct.max = utc(timeOf(state.grid.n - 1)).replace(' ', 'T');
     renderCursorChips();
     renderCtx();
+    renderDateChip();
   }
   /* time bar: the slider track shows the focused site's state over the whole period, with sunset / Earthset marks */
   function drawCursorTrack() {
@@ -1780,7 +1789,7 @@
     return { i0, i1: Math.min(g.n, i0 + Math.max(2, Math.round(days * DAY / g.stepMs))), days, set: li != null };
   }
   function afterMissionChange() {
-    renderMission(); drawCursorTrack(); renderCtx();
+    renderMission(); drawCursorTrack(); renderCtx(); renderDateChip();
     if (state.tab === '3d') { update3D(); renderProfile(); } else if (state.tab === 'compare') renderCmpFocus(); else if (state.tab === 'plan') renderPlanEasy();
     try { $('#planDays').value = state.mission.days; } catch (e) { /* ignore */ }
   }
