@@ -36,7 +36,7 @@
 
 <div class="wrap layout">
   <aside class="side" aria-label="Sites and constraints">
-    <details class="panel acc" id="accSites">
+    <details class="panel acc adv-only" id="accSites">
       <summary><span data-i18n="sites">Sites</span><span class="muted small" id="selCount"></span></summary>
       <p class="muted small" data-i18n="sitesHelp">Tick up to 8 sites to compare. Click a name to focus it.</p>
       <div id="siteList" class="site-list"></div>
@@ -89,6 +89,12 @@
         <li><i class="sw st-sun"></i><span data-i18n="lgSun">Sunlit, no Earth link</span></li>
         <li><i class="sw st-comm"></i><span data-i18n="lgComm">Earth link, in shadow</span></li>
         <li><i class="sw st-none"></i><span data-i18n="lgNone">Dark and out of contact</span></li>
+        <li><span class="lg-sym" style="color:var(--sun-ink)" aria-hidden="true">▼</span><span data-i18n="lgSunset">Sunset (on the time bar)</span></li>
+        <li><span class="lg-sym" style="color:var(--earth-ink)" aria-hidden="true">▲</span><span data-i18n="lgEarthset">Earthset (on the time bar)</span></li>
+        <li><span class="lg-sym" aria-hidden="true">🚩</span><span data-i18n="lgFlags">A and B: landing dates. The outlined band is the mission.</span></li>
+        <li><span class="lg-sym" style="color:var(--ops-ink)" aria-hidden="true">▲</span><span data-i18n="lgUp">Green arrow: better than your site</span></li>
+        <li><span class="lg-sym" style="color:var(--danger)" aria-hidden="true">▼</span><span data-i18n="lgDown">Red arrow: worse than your site</span></li>
+        <li><span class="lg-sym" aria-hidden="true">A–E</span><span data-i18n="lgGrade">Grade: share of the mission with power and a link (A is best). Not a landing-success probability.</span></li>
       </ul>
     </details>
   </aside>
@@ -116,7 +122,7 @@
     <section class="view" id="view-3d" role="tabpanel" aria-labelledby="tab-3d">
       <div class="panel v3d-panel">
         <div class="v3d-top">
-          <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
+          <label class="site-quick adv-only"><span class="sr" data-i18n="siteLabel">Site</span>
             <select id="siteQuick" aria-label="Site"></select></label>
           <div class="seg" id="v3dScope" role="group" aria-label="Scope">
             <button type="button" data-scope="moon" aria-pressed="false" data-i18n="scMoon">Whole Moon</button>
@@ -129,15 +135,16 @@
           <div class="actions">
             <button class="btn toggle" type="button" id="v3dLight" aria-pressed="false" data-i18n="vwLight" data-i18n-title="lightTip">Light everywhere</button>
             <button class="btn" type="button" id="bestBtn" data-i18n="bestBtn">Best site</button>
-            <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
+            <button class="btn ghost adv-only" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost adv-only" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
-            <button class="btn ghost" type="button" id="v3dStand"></button>
+            <button class="btn ghost adv-only" type="button" id="v3dStand"></button>
             <button class="btn primary" type="button" id="v3dTour" data-i18n="vTour">Guided tour</button>
           </div>
         </div>
         <div class="v3d-stage" id="v3dStage">
           <canvas class="v3d-labels" id="v3dLabels" aria-hidden="true"></canvas>
           <aside class="site-panel" id="sitePanel" aria-live="polite"></aside>
+          <div class="v3d-hint" id="v3dHint" data-i18n="hintGlobe">Drag to rotate · scroll to zoom · click a site</div>
           <div class="v3d-status" id="v3dStatus" role="status"></div>
           <div class="v3d-flat" id="v3dFlatTag" hidden data-i18n="flatTag">Fictional lighting: real shadows and colours are hidden</div>
           <div class="v3d-caption" id="v3dCaption" hidden></div>
@@ -145,11 +152,11 @@
         </div>
         <div class="v3d-foot">
           <div class="legend-row" id="v3dLegend"></div>
-          <p class="muted small" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
+          <p class="muted small adv-only" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
         </div>
       </div>
 
-      <details class="panel acc" id="accProfile" open>
+      <details class="panel acc" id="accProfile">
         <summary id="profTitle" data-i18n="profTitle">Site profile</summary>
         <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
         <div class="prof" id="prof"></div>

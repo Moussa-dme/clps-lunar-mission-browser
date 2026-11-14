@@ -744,6 +744,39 @@ body.help-on, body.help-on * { cursor: help !important; }
 .help-card.tour .hc-tour { display: flex; } .hc-tour .btn { padding: 2px 12px; min-height: 26px; font-size: 12px; }
 .help-card.tour h3 { font-size: 21px; margin-bottom: 8px; } .help-card.tour p { font-size: 16px; line-height: 1.45; color: var(--fg); margin-bottom: 10px; }
 body.tour-on, body.tour-on * { cursor: default !important; }
+/* ---- Simple mode: the globe is the page. Tools float on it, everything else is Advanced */
+.v3d-hint { position: absolute; left: 50%; bottom: 82px; transform: translateX(-50%); z-index: 2; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; color: var(--space-ink); background: rgb(18 20 24 / .55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid rgb(255 255 255 / .1); pointer-events: none; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; transition: opacity .6s ease; animation: hintOut 1s ease 9s forwards; }
+.v3d-hint.gone { opacity: 0; animation: none; }
+@keyframes hintOut { to { opacity: 0; } }
+body[data-mode="advanced"] .v3d-hint { display: none; }
+body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
+@media (min-width: 701px) {
+  body[data-mode="simple"] .v3d-panel { position: relative; }
+  body[data-mode="simple"] .v3d-top { position: absolute; top: 12px; right: 12px; z-index: 3; flex-direction: column; align-items: flex-end; flex-wrap: nowrap; gap: 8px; pointer-events: none; }
+  body[data-mode="simple"] .v3d-top > *, body[data-mode="simple"] .v3d-top .actions > * { pointer-events: auto; }
+  body[data-mode="simple"] .v3d-top .actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  body[data-mode="simple"] .v3d-top .seg { background: rgb(18 20 24 / .6); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid rgb(255 255 255 / .12); }
+  body[data-mode="simple"] .v3d-top .seg::before { background: rgb(255 255 255 / .22); box-shadow: none; }
+  body[data-mode="simple"] .v3d-top .seg button { color: #c9d0da; background: transparent; }
+  body[data-mode="simple"] .v3d-top .seg button[aria-pressed="true"] { color: #fff; background: transparent; box-shadow: none; }
+  body[data-mode="simple"] .v3d-top .btn { background: rgb(18 20 24 / .6); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #fff; border: 1px solid rgb(255 255 255 / .18); }
+  body[data-mode="simple"] .v3d-top .btn:hover { background: rgb(255 255 255 / .16); }
+  body[data-mode="simple"] .v3d-top .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  body[data-mode="simple"] .v3d-top .btn.toggle[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 55%, #000 0%); border-color: var(--accent); }
+  body[data-mode="simple"] .v3d-stage { height: clamp(440px, calc(100vh - 235px), 940px); }
+}
+@media (min-width: 701px) {
+  body[data-mode="simple"] .v3d-flat { top: auto; right: auto; left: 14px; bottom: 82px; max-width: 260px; }
+  body[data-mode="simple"] .v3d-hint { left: auto; right: 14px; transform: none; }
+}
+@media (max-width: 700px) {
+  body[data-mode="simple"] .v3d-top { gap: 6px 8px; justify-content: flex-start; }
+  body[data-mode="simple"] .v3d-top .seg button { padding: 4px 9px; font-size: 12px; }
+  body[data-mode="simple"] .v3d-top .btn { min-height: 30px; padding: 4px 11px; font-size: 12.5px; }
+  body[data-mode="simple"] .v3d-hint { bottom: 76px; font-size: 11.5px; }
+}
+
+.legend .lg-sym { display: inline-block; min-width: 26px; text-align: center; font-weight: 700; font-size: 13px; margin-right: 8px; }
 
 </style>
 
@@ -775,7 +808,7 @@ body.tour-on, body.tour-on * { cursor: default !important; }
 
 <div class="wrap layout">
   <aside class="side" aria-label="Sites and constraints">
-    <details class="panel acc" id="accSites">
+    <details class="panel acc adv-only" id="accSites">
       <summary><span data-i18n="sites">Sites</span><span class="muted small" id="selCount"></span></summary>
       <p class="muted small" data-i18n="sitesHelp">Tick up to 8 sites to compare. Click a name to focus it.</p>
       <div id="siteList" class="site-list"></div>
@@ -828,6 +861,12 @@ body.tour-on, body.tour-on * { cursor: default !important; }
         <li><i class="sw st-sun"></i><span data-i18n="lgSun">Sunlit, no Earth link</span></li>
         <li><i class="sw st-comm"></i><span data-i18n="lgComm">Earth link, in shadow</span></li>
         <li><i class="sw st-none"></i><span data-i18n="lgNone">Dark and out of contact</span></li>
+        <li><span class="lg-sym" style="color:var(--sun-ink)" aria-hidden="true">▼</span><span data-i18n="lgSunset">Sunset (on the time bar)</span></li>
+        <li><span class="lg-sym" style="color:var(--earth-ink)" aria-hidden="true">▲</span><span data-i18n="lgEarthset">Earthset (on the time bar)</span></li>
+        <li><span class="lg-sym" aria-hidden="true">🚩</span><span data-i18n="lgFlags">A and B: landing dates. The outlined band is the mission.</span></li>
+        <li><span class="lg-sym" style="color:var(--ops-ink)" aria-hidden="true">▲</span><span data-i18n="lgUp">Green arrow: better than your site</span></li>
+        <li><span class="lg-sym" style="color:var(--danger)" aria-hidden="true">▼</span><span data-i18n="lgDown">Red arrow: worse than your site</span></li>
+        <li><span class="lg-sym" aria-hidden="true">A–E</span><span data-i18n="lgGrade">Grade: share of the mission with power and a link (A is best). Not a landing-success probability.</span></li>
       </ul>
     </details>
   </aside>
@@ -855,7 +894,7 @@ body.tour-on, body.tour-on * { cursor: default !important; }
     <section class="view" id="view-3d" role="tabpanel" aria-labelledby="tab-3d">
       <div class="panel v3d-panel">
         <div class="v3d-top">
-          <label class="site-quick"><span class="sr" data-i18n="siteLabel">Site</span>
+          <label class="site-quick adv-only"><span class="sr" data-i18n="siteLabel">Site</span>
             <select id="siteQuick" aria-label="Site"></select></label>
           <div class="seg" id="v3dScope" role="group" aria-label="Scope">
             <button type="button" data-scope="moon" aria-pressed="false" data-i18n="scMoon">Whole Moon</button>
@@ -868,15 +907,16 @@ body.tour-on, body.tour-on * { cursor: default !important; }
           <div class="actions">
             <button class="btn toggle" type="button" id="v3dLight" aria-pressed="false" data-i18n="vwLight" data-i18n-title="lightTip">Light everywhere</button>
             <button class="btn" type="button" id="bestBtn" data-i18n="bestBtn">Best site</button>
-            <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
+            <button class="btn ghost adv-only" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost adv-only" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
-            <button class="btn ghost" type="button" id="v3dStand"></button>
+            <button class="btn ghost adv-only" type="button" id="v3dStand"></button>
             <button class="btn primary" type="button" id="v3dTour" data-i18n="vTour">Guided tour</button>
           </div>
         </div>
         <div class="v3d-stage" id="v3dStage">
           <canvas class="v3d-labels" id="v3dLabels" aria-hidden="true"></canvas>
           <aside class="site-panel" id="sitePanel" aria-live="polite"></aside>
+          <div class="v3d-hint" id="v3dHint" data-i18n="hintGlobe">Drag to rotate · scroll to zoom · click a site</div>
           <div class="v3d-status" id="v3dStatus" role="status"></div>
           <div class="v3d-flat" id="v3dFlatTag" hidden data-i18n="flatTag">Fictional lighting: real shadows and colours are hidden</div>
           <div class="v3d-caption" id="v3dCaption" hidden></div>
@@ -884,11 +924,11 @@ body.tour-on, body.tour-on * { cursor: default !important; }
         </div>
         <div class="v3d-foot">
           <div class="legend-row" id="v3dLegend"></div>
-          <p class="muted small" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
+          <p class="muted small adv-only" id="v3dNote" data-i18n="v3dNote">Drag to rotate, right-drag or Shift-drag to pan, scroll to zoom. Click the terrain to add a site there. Shadows and Earth visibility are computed on your graphics card from LOLA terrain; the vertical stretch is visual only.</p>
         </div>
       </div>
 
-      <details class="panel acc" id="accProfile" open>
+      <details class="panel acc" id="accProfile">
         <summary id="profTitle" data-i18n="profTitle">Site profile</summary>
         <p class="muted small" data-i18n="profHelp">Click the hexagon for details. Scores run from 0 to 100, higher is better.</p>
         <div class="prof" id="prof"></div>
@@ -2751,6 +2791,9 @@ body.tour-on, body.tour-on * { cursor: default !important; }
       helpBtnLabel: 'Explain: click here, then click anything', chatBtnLabel: 'Assistant', helpBanner: 'Click anything to see what it does. Esc to stop.', helpOk: 'Got it', helpAsk: 'Ask the assistant', helpExit: 'Stop help',
       chatTitle: 'Assistant', chatSub: 'Built-in help, no AI model', chatPh: 'Ask a question…', chatSend: 'Send', chatShow: 'Show me', chatClose: 'Close',
       tourStopBtn: 'Stop',
+      hintGlobe: 'Drag to rotate · scroll to zoom · click a site',
+      lgSunset: 'Sunset (on the time bar)', lgEarthset: 'Earthset (on the time bar)', lgFlags: 'A and B: landing dates. The outlined band is the mission.',
+      lgUp: 'Green arrow: better than your site', lgDown: 'Red arrow: worse than your site', lgGrade: 'Grade: share of the mission with power and a link (A is best). Not a landing-success probability.',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -2875,6 +2918,9 @@ body.tour-on, body.tour-on * { cursor: default !important; }
       helpBtnLabel: 'Expliquer : cliquez ici, puis sur n’importe quoi', chatBtnLabel: 'Assistant', helpBanner: 'Cliquez sur n’importe quoi pour voir à quoi ça sert. Échap pour arrêter.', helpOk: 'Compris', helpAsk: 'Demander à l’assistant', helpExit: 'Arrêter l’aide',
       chatTitle: 'Assistant', chatSub: 'Aide intégrée, sans modèle d’IA', chatPh: 'Posez une question…', chatSend: 'Envoyer', chatShow: 'Montre-moi', chatClose: 'Fermer',
       tourStopBtn: 'Arrêter',
+      hintGlobe: 'Glissez pour tourner · molette pour zoomer · cliquez sur un site',
+      lgSunset: 'Coucher du Soleil (sur la barre de temps)', lgEarthset: 'Coucher de la Terre (sur la barre de temps)', lgFlags: 'A et B : dates d’atterrissage. La bande encadrée est la mission.',
+      lgUp: 'Flèche verte : mieux que votre site', lgDown: 'Flèche rouge : moins bien que votre site', lgGrade: 'Note : part de la mission avec énergie et liaison (A est la meilleure). Pas une probabilité de réussite.',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -3226,7 +3272,7 @@ body.tour-on, body.tour-on * { cursor: default !important; }
   function applyMode(initial) {
     document.body.dataset.mode = mode;
     document.querySelectorAll('#modeSwitch [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
-    if (!initial) document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
+    if (!initial) { document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced' || d.id === 'accLegend'; }); $('#accProfile').open = mode === 'advanced'; }
   }
   function setMode(m) {
     mode = m; store.set('mode', m); applyMode();
@@ -3255,7 +3301,7 @@ body.tour-on, body.tour-on * { cursor: default !important; }
   const SECTIONS = { explore: ['3d', 'map', 'sky', 'timeline'], compare: ['compare', 'scen'], plan: ['plan'], learn: ['learn', 'method'] };
   const VIEW_SEC = {};
   Object.keys(SECTIONS).forEach(sec => SECTIONS[sec].forEach(v => { VIEW_SEC[v] = sec; }));
-  const ADV_VIEWS = ['timeline', 'sky'];               // angle and horizon graphs: Advanced only
+  const ADV_VIEWS = ['timeline', 'sky', 'map', 'scen'];  // graphs, 2D map and the scenario table: Advanced only (old links still work)
   const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
   const lastView = store.get('views', {});
   for (const nav of ['#sections', '#subnav']) document.querySelector(nav).addEventListener('keydown', e => {
@@ -4355,7 +4401,7 @@ body.tour-on, body.tour-on * { cursor: default !important; }
           onZone: openZone, onZoneHover,
           basemap: baseImg, basemapMeta: DATA.assets.basemap,
           onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
-          onUserInput: () => { if (tour) stopTour(); }
+          onUserInput: () => { if (tour) stopTour(); const h = $('#v3dHint'); if (h) h.classList.add('gone'); }
         });
         v3d.setRules(state.cfg);
         v3d.setQuality($('#v3dQuality').value);
@@ -4761,6 +4807,7 @@ body.tour-on, body.tour-on * { cursor: default !important; }
   }
   function renderLegend() {
     const L = $('#v3dLegend'), mode = $('#v3dMode').value, moon = $('#v3dRegion').value === 'moon';
+    L.classList.toggle('is-heat', mode.startsWith('avg') && !moon);
     if (flat) { L.innerHTML = `<span>${t('flatTag')}</span>`; return; }
     if (moon) { L.innerHTML = `<span>${t('lgMoon')}</span>`; return; }
     if (mode === 'sun') L.innerHTML = `<span>${t('lgReal')}</span>`;
@@ -5144,6 +5191,7 @@ body.tour-on, body.tour-on * { cursor: default !important; }
       ? `Part du temps au soleil sur la période, calculée avec le relief LOLA pour ${esc(P.name)} (centre) et 16 points à 250 m et 500 m. Au pôle, le Soleil est si bas qu’un petit relief voisin suffit à le cacher.`
       : `Share of the period in sunlight, computed with LOLA terrain at ${esc(P.name)} (centre) and 16 points 250 m and 500 m away. At the pole the Sun is so low that a small nearby rise is enough to hide it.`;
     const { ctx, w, h } = canvasSetup($('#lc5c'));
+    if (w < 70 || h < 70) return;   // the card is hidden or not laid out yet
     const cx = w / 2, cy = h / 2 + 2, R = Math.min(w, h) / 2 - 26, ramp = [cssv('--heat0'), cssv('--heat1'), cssv('--heat2'), cssv('--heat3')].map(hex2rgb);
     ctx.strokeStyle = cssv('--line'); ctx.lineWidth = 1;
     for (const r of [0.5, 1]) { ctx.beginPath(); ctx.arc(cx, cy, R * r, 0, 7); ctx.stroke(); }
@@ -5774,7 +5822,8 @@ body.tour-on, body.tour-on * { cursor: default !important; }
   const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method', 'explore'];   // old view ids stay valid links
   if (ADV_VIEWS.includes(hashTab)) mode = 'advanced';
   applyMode(true);
-  document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
+  document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced' || d.id === 'accLegend'; });   // the legend stays open in Simple
+  $('#accProfile').open = mode === 'advanced';
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
 })();
