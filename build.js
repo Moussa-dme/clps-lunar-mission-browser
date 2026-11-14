@@ -7,7 +7,7 @@
  *
  * Inputs: src/index.html, src/styles.css, src/engine.js, src/app.js,
  *         data/sites.json, data/horizons.json, data/assets.json,
- *         data/basemap.jpg, data/dem_fine.i16.gz, data/dem_coarse.i16.gz
+ *         data/basemap.jpg, data/zone_relief.png, data/dem_fine.i16.gz, data/dem_coarse.i16.gz
  * The data files are produced by tools/horizon_from_dem.py and tools/make_assets.py.
  */
 const fs = require('fs');
@@ -36,6 +36,7 @@ const DATA = {
   sites: sites.map(({ snap_m, ...s }) => s),
   horizons, assets, validation, validationMean,
   basemap: 'data:image/jpeg;base64,' + r('data/basemap.jpg').toString('base64'),
+  zoneRelief: 'data:image/png;base64,' + r('data/zone_relief.png').toString('base64'),
   demFine: r('data/dem_fine.i16.gz').toString('base64'),
   demCoarse: r('data/dem_coarse.i16.gz').toString('base64')
 };
