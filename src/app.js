@@ -96,6 +96,17 @@
       zoneTip: '{n} sites · click to zoom', zoneToast: '{z}: LOLA terrain only covers the south pole, so these sites use a smooth horizon (less precise). Click a marker for its profile.', hudSubSolar: 'Sun overhead',
       secExplore: 'Explore', secCompare: 'Compare', secPlan: 'Plan mission', secLearn: 'Learn & Method',
       sub3d: 'Globe 3D', subMap: 'Map 2D', subSky: 'Horizon', subElev: 'Elevation', subSites: 'Sites', subScen: 'Scenarios', subLearn: 'Learn', subMethod: 'Method',
+      spKicker: 'Selected site', spSun: 'Sun', spEarth: 'Earth', spLink: 'Direct link to Earth', spVisible: 'Visible', spHiddenM: 'Hidden', spHiddenF: 'Hidden',
+      spAvail: 'Available', spUnavail: 'Unavailable', spAnalyze: 'Analyze this site', spCompare: 'Compare this site',
+      spSunPos: 'Sun height / bearing', spEarthPos: 'Earth height / bearing', spState: 'State', spPole: 'At the pole: Sun / Earth',
+      cdTitle: 'Compare {n} with…', cdAll: 'All sites', cdAllSub: 'Rank every site against this one', cdOne: 'One specific site', cdOneSub: 'Side by side, with the reasons', cdGo: 'Compare', cdCancel: 'Cancel',
+      cfTitle: 'Comparing', cfWithAll: 'With all sites', cfWithOne: 'With one site', cfPeriod: 'From {a} to {b} (the selected period)', cfRank: '{n} ranks {r} of {t} sites for power + link',
+      cfHint: 'Click a site to compare it side by side.', cfApprox: '≈ smooth horizon: no LOLA terrain for this site, so its numbers are approximate.',
+      cmSun: 'Sunlight', cmEarth: 'Earth in view', cmOps: 'Power + link', cmDte: 'Direct link', cmNight: 'Longest night', cmGap: 'Longest blackout', cmSame: 'same', cmSite: 'Site', cmDiff: 'Difference',
+      cfBetter: '{n} is better for power + link ({d})', cfAbout: 'About the same for power + link', cfWith: 'With',
+      cfNoScore: 'No overall score: the verdict uses power + link (time with both); the lines below show the trade-offs.',
+      why_litPct: '{n} gets more sunlight (+{d})', why_earthPct: '{n} sees the Earth more often (+{d})', why_dtePct: '{n} has a direct link more often (+{d})',
+      why_longestNightH: '{n} has a shorter longest night (−{d})', why_longestBlackoutH: '{n} has a shorter longest blackout (−{d})', spCollapse: 'Collapse', spExpand: 'Expand',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -191,6 +202,17 @@
       zoneTip: '{n} sites · cliquer pour zoomer', zoneToast: '{z} : le relief LOLA ne couvre que le pôle sud, ces sites utilisent donc un horizon lisse (moins précis). Cliquez sur un marqueur pour son profil.', hudSubSolar: 'Soleil au zénith',
       secExplore: 'Explorer', secCompare: 'Comparer', secPlan: 'Planifier la mission', secLearn: 'Comprendre et méthode',
       sub3d: 'Globe 3D', subMap: 'Carte 2D', subSky: 'Horizon', subElev: 'Élévation', subSites: 'Sites', subScen: 'Scénarios', subLearn: 'Comprendre', subMethod: 'Méthode',
+      spKicker: 'Site sélectionné', spSun: 'Soleil', spEarth: 'Terre', spLink: 'Liaison directe avec la Terre', spVisible: 'Visible', spHiddenM: 'Caché', spHiddenF: 'Cachée',
+      spAvail: 'Disponible', spUnavail: 'Indisponible', spAnalyze: 'Analyser ce site', spCompare: 'Comparer ce site',
+      spSunPos: 'Soleil : hauteur / azimut', spEarthPos: 'Terre : hauteur / azimut', spState: 'État', spPole: 'Au pôle : Soleil / Terre',
+      cdTitle: 'Comparer {n} avec…', cdAll: 'Tous les sites', cdAllSub: 'Classer tous les sites par rapport à celui-ci', cdOne: 'Un site précis', cdOneSub: 'Côte à côte, avec les raisons', cdGo: 'Comparer', cdCancel: 'Annuler',
+      cfTitle: 'Comparaison', cfWithAll: 'Avec tous les sites', cfWithOne: 'Avec un site', cfPeriod: 'Du {a} au {b} (la période choisie)', cfRank: '{n} : n° {r} sur {t} sites pour énergie + liaison',
+      cfHint: 'Cliquez sur un site pour le comparer côte à côte.', cfApprox: '≈ horizon lisse : pas de relief LOLA pour ce site, ses chiffres sont approximatifs.',
+      cmSun: 'Ensoleillement', cmEarth: 'Terre visible', cmOps: 'Énergie + liaison', cmDte: 'Liaison directe', cmNight: 'Nuit la plus longue', cmGap: 'Plus longue coupure', cmSame: 'égal', cmSite: 'Site', cmDiff: 'Écart',
+      cfBetter: '{n} est meilleur pour énergie + liaison ({d})', cfAbout: 'À peu près pareil pour énergie + liaison', cfWith: 'Avec',
+      cfNoScore: 'Pas de score global : le verdict s’appuie sur énergie + liaison (temps avec les deux) ; les lignes ci-dessous montrent les compromis.',
+      why_litPct: '{n} reçoit plus de soleil (+{d})', why_earthPct: '{n} voit plus souvent la Terre (+{d})', why_dtePct: '{n} a plus souvent une liaison directe (+{d})',
+      why_longestNightH: '{n} a une nuit maximale plus courte (−{d})', why_longestBlackoutH: '{n} a une coupure maximale plus courte (−{d})', spCollapse: 'Réduire', spExpand: 'Déplier',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -340,6 +362,7 @@
   function computeSeries() {
     if (!state.grid) return;
     state.series = {}; state.sums = {};
+    allSumGrid = null; allSerGrid = null;
     for (const id of state.selected) {
       const s = site(id);
       state.series[id] = E.siteSeries(state.grid, s, state.cfg);
@@ -564,7 +587,7 @@
   const SECTIONS = { explore: ['3d', 'map', 'sky', 'timeline'], compare: ['compare', 'scen'], plan: ['plan'], learn: ['learn', 'method'] };
   const VIEW_SEC = {};
   Object.keys(SECTIONS).forEach(sec => SECTIONS[sec].forEach(v => { VIEW_SEC[v] = sec; }));
-  const ADV_VIEWS = ['timeline'];                     // angle graphs: Advanced only
+  const ADV_VIEWS = ['timeline', 'sky'];               // angle and horizon graphs: Advanced only
   const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
   const lastView = store.get('views', {});
   document.querySelector('#sections').addEventListener('click', e => {
@@ -676,7 +699,7 @@
     if (tab === 'method') { renderMethod(); return; }
     if (!state.grid) return;
     if (tab === '3d') { render3D(); renderProfile(); }
-    else if (tab === 'compare') { renderTable(); drawStrip(); }
+    else if (tab === 'compare') { renderCmpFocus(); renderTable(); drawStrip(); }
     else if (tab === 'timeline') drawTimeline();
     else if (tab === 'sky') renderSky();
     else if (tab === 'plan') renderPlan();
@@ -1442,14 +1465,22 @@
   }
   /* grade for any site: share of the next 10 days with power + link, from the cursor time */
   const GRADES = [[60, 'A', '#2166ac'], [45, 'B', '#4393c3'], [30, 'C', '#8c929b'], [15, 'D', '#d6604d'], [-1, 'E', '#b2182b']];
-  const allSer = {};
-  let allSerGrid = null;
+  const allSer = {}, allSum = {};
+  let allSerGrid = null, allSerCfg = '', allSumGrid = null, allSumCfg = '';
   function anySeries(id) {
     if (!state.grid) return null;
     if (state.series[id]) return state.series[id];
-    if (allSerGrid !== state.grid) { for (const k in allSer) delete allSer[k]; allSerGrid = state.grid; }
+    const ck = JSON.stringify(state.cfg);
+    if (allSerGrid !== state.grid || allSerCfg !== ck) { for (const k in allSer) delete allSer[k]; allSerGrid = state.grid; allSerCfg = ck; }
     if (!allSer[id]) allSer[id] = E.siteSeries(state.grid, site(id), state.cfg);
     return allSer[id];
+  }
+  /* full-period summary for any site (cached, reset when the period or the rules change) */
+  function anySum(id) {
+    const ser = anySeries(id); if (!ser) return null;
+    const ck = JSON.stringify(state.cfg);
+    if (allSumGrid !== state.grid || allSumCfg !== ck) { for (const k in allSum) delete allSum[k]; allSumGrid = state.grid; allSumCfg = ck; }
+    return allSum[id] || (allSum[id] = E.summarize(ser, state.grid));
   }
   function siteGrade(id) {
     const ser = anySeries(id); if (!ser) return null;
@@ -1488,7 +1519,7 @@
     tip.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y + 14)) + 'px';
   }
   /* open a site: select it, fly the camera to it, scroll down to its profile */
-  function openSite(id, scroll = true) {
+  function openSite(id, scroll = false) {
     const s = site(id); if (!s) return;
     if (!state.selected.includes(id)) {
       if (!selectSite(id)) { state.selected.pop(); selectSite(id); }
@@ -1632,6 +1663,147 @@
       v.resize();
     });
   }
+  /* ---------- compare: chooser, ranking against the chosen site, side-by-side with reasons */
+  state.cmp = { mode: store.get('cmpMode', 'all') === 'one' ? 'one' : 'all', other: store.get('cmpOther', null) };
+  const CM = [
+    { k: 'litPct', l: 'cmSun', ico: '☀️', hi: true, pct: true },
+    { k: 'earthPct', l: 'cmEarth', ico: '🌍', hi: true, pct: true },
+    { k: 'opsPct', l: 'cmOps', ico: '⚡', hi: true, pct: true },
+    { k: 'dtePct', l: 'cmDte', ico: '📡', hi: true, pct: true, adv: true },
+    { k: 'longestNightH', l: 'cmNight', ico: '🌑', hi: false, adv: true },
+    { k: 'longestBlackoutH', l: 'cmGap', ico: '📵', hi: false, adv: true }
+  ];
+  const cmVal = (m, v) => m.pct ? fmt(v, 0) + '%' : dur(v);
+  function cmDelta(m, v, ref) {
+    const d = v - ref;
+    if (m.pct ? Math.abs(d) < 0.5 : Math.abs(d) < 1) return { cls: 'eq', txt: '＝ ' + t('cmSame'), same: true };
+    const better = m.hi ? d > 0 : d < 0, mag = m.pct ? Math.abs(d).toFixed(0) + ' pp' : dur(Math.abs(d));
+    return { cls: better ? 'up' : 'down', txt: `${better ? '▲' : '▼'} ${d > 0 ? '+' : '−'}${mag}`, better, mag };
+  }
+  const cmpRows = () => state.sites.map(s => ({ s, m: anySum(s.id) })).filter(r => r.m)
+    .sort((a, b) => b.m.opsPct - a.m.opsPct || b.m.litPct - a.m.litPct);
+  function renderCmpFocus() {
+    const box = $('#cmpFocus'); if (!box) return;
+    if (!state.grid || !site(state.focus)) { box.innerHTML = ''; return; }
+    const rows = cmpRows(), A = rows.find(r => r.s.id === state.focus);
+    if (!A) { box.innerHTML = ''; return; }
+    const per = t('cfPeriod').replace('{a}', utc(state.start, false)).replace('{b}', utc(timeOf(state.grid.n - 1), false));
+    const seg = `<div class="seg" role="group" aria-label="${t('cfTitle')}"><button type="button" data-cm="all" aria-pressed="${state.cmp.mode === 'all'}">${t('cfWithAll')}</button><button type="button" data-cm="one" aria-pressed="${state.cmp.mode === 'one'}">${t('cfWithOne')}</button></div>`;
+    const top = `<div class="cf-top"><h2>${t('cfTitle')}: ${esc(A.s.name)}</h2>${seg}</div><p class="cf-sub">${esc(per)}</p>`;
+    const approx = n => n.s.hsrc === 'smooth' ? ' ≈' : '';
+    const adv = m => m.adv ? ' adv-only' : '';
+    let body = '';
+    if (state.cmp.mode === 'all') {
+      const rank = rows.indexOf(A) + 1;
+      const pin = `<div class="cf-pin"><div class="nm">${esc(A.s.name)}<span class="rk">${t('cfRank').replace('{n}', esc(A.s.name)).replace('{r}', rank).replace('{t}', rows.length)}</span></div>` +
+        CM.map(m => `<div class="cf-m${adv(m)}"><small>${m.ico} ${t(m.l)}</small><b>${cmVal(m, A.m[m.k])}</b></div>`).join('') + '</div>';
+      const head = `<div class="cf-row cf-head-row"><span></span><span>${t('cmSite')}</span>${CM.map(m => `<span class="${adv(m).trim()}">${m.ico} ${t(m.l)}</span>`).join('')}</div>`;
+      const list = rows.map((r, k) => {
+        const me = r === A;
+        const cells = CM.map(m => { const d = me ? null : cmDelta(m, r.m[m.k], A.m[m.k]);
+          return `<span class="mx${adv(m)}"><span class="cv">${cmVal(m, r.m[m.k])}</span>${d ? `<span class="dl ${d.cls}">${d.txt}</span>` : ''}</span>`; }).join('');
+        return `<button type="button" class="cf-row${me ? ' me' : ''}" ${me ? 'disabled aria-current="true"' : `data-pick="${esc(r.s.id)}"`}><span class="rn">${k + 1}</span><span class="nm">${esc(r.s.name)}${approx(r)}<small>${esc(groupLabel(r.s.custom ? 'My sites' : r.s.group))}</small></span>${cells}</button>`;
+      }).join('');
+      body = pin + `<div class="cf-list" tabindex="0" role="region" aria-label="${t('cfWithAll')}">${head}${list}</div><p class="cf-note">${t('cfHint')} ${rows.some(r => r.s.hsrc === 'smooth') ? t('cfApprox') : ''}</p>`;
+    } else {
+      let B = rows.find(r => r.s.id === state.cmp.other && r !== A) || rows.find(r => r !== A);
+      if (!B) { box.innerHTML = top; return; }
+      state.cmp.other = B.s.id;
+      const opts = rows.filter(r => r !== A).map(r => `<option value="${esc(r.s.id)}"${r === B ? ' selected' : ''}>${esc(r.s.name)}</option>`).join('');
+      const trs = CM.map(m => { const d = cmDelta(m, B.m[m.k], A.m[m.k]);
+        return `<tr class="${adv(m).trim()}"><td>${m.ico} ${t(m.l)}</td><td class="cv">${cmVal(m, A.m[m.k])}</td><td class="cv">${cmVal(m, B.m[m.k])}</td><td><span class="dl ${d.cls}">${d.txt}</span></td></tr>`; }).join('');
+      const dOps = cmDelta(CM[2], B.m.opsPct, A.m.opsPct);
+      const win = dOps.same ? null : (dOps.better ? B : A), lose = win === A ? B : A;
+      const verdict = dOps.same ? t('cfAbout') : t('cfBetter').replace('{n}', esc(win.s.name)).replace('{d}', `+${dOps.mag}`);
+      const whys = CM.filter(m => m.k !== 'opsPct').map(m => {
+        const d = cmDelta(m, B.m[m.k], A.m[m.k]); if (d.same) return '';
+        const better = d.better ? B : A, forWinner = better === win || !win;
+        const text = t('why_' + m.k).replace('{n}', `<b>${esc(better.s.name)}</b>`).replace('{d}', m.pct ? d.mag : d.mag);
+        return `<li class="${adv(m).trim()}"><span class="dl ${forWinner ? 'up' : 'down'}" aria-hidden="true">${forWinner ? '▲' : '▼'}</span><span>${text}</span></li>`;
+      }).join('');
+      body = `<table class="cf-two"><thead><tr><th>${t('cmSite')}</th><th>${esc(A.s.name)}</th><th><select id="cmpOther" aria-label="${t('cfWith')}">${opts}</select></th><th>${t('cmDiff')}</th></tr></thead><tbody>${trs}</tbody></table>` +
+        `<p class="cf-verdict">${verdict}</p><ul class="cf-why">${whys}</ul><p class="cf-note">${t('cfNoScore')} ${[A, B].some(r => r.s.hsrc === 'smooth') ? t('cfApprox') : ''}</p>`;
+    }
+    const html = top + body;
+    const keep = $('#cmpFocus .cf-list') ? $('#cmpFocus .cf-list').scrollTop : 0;
+    box.innerHTML = html;
+    const l = $('#cmpFocus .cf-list'); if (l) l.scrollTop = keep;
+  }
+  $('#cmpFocus').addEventListener('click', e => {
+    const m = e.target.closest('[data-cm]'), pk = e.target.closest('[data-pick]');
+    if (m) { state.cmp.mode = m.dataset.cm; store.set('cmpMode', state.cmp.mode); renderCmpFocus(); }
+    else if (pk) { state.cmp.mode = 'one'; state.cmp.other = pk.dataset.pick; store.set('cmpMode', 'one'); store.set('cmpOther', state.cmp.other); renderCmpFocus(); $('#cmpFocus').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+  $('#cmpFocus').addEventListener('change', e => {
+    if (e.target.id === 'cmpOther') { state.cmp.other = e.target.value; store.set('cmpOther', state.cmp.other); renderCmpFocus(); }
+  });
+  /* "Compare this site" asks: against all sites, or against one */
+  function openCmpDialog() {
+    const A = site(state.focus); if (!A) return;
+    $('#cmpDlgTitle').textContent = t('cdTitle').replace('{n}', A.name);
+    $('#cdSite').innerHTML = state.sites.filter(x => x.id !== A.id).map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+    if (state.cmp.other && state.cmp.other !== A.id) $('#cdSite').value = state.cmp.other;
+    $('#cdPick').hidden = true;
+    document.querySelectorAll('#cmpDlg [data-cd]').forEach(b => b.setAttribute('aria-pressed', 'false'));
+    $('#cmpDlg').showModal();
+  }
+  function goCompare(mode, other) {
+    state.cmp.mode = mode; store.set('cmpMode', mode);
+    if (other) { state.cmp.other = other; store.set('cmpOther', other); }
+    if (!state.selected.includes(state.focus)) {
+      if (!selectSite(state.focus)) { state.selected.pop(); selectSite(state.focus); }
+      store.set('selected', state.selected); computeSeries();
+    }
+    $('#cmpDlg').close();
+    showTab('compare');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  $('#cmpDlg').addEventListener('click', e => {
+    if (e.target === $('#cmpDlg')) { $('#cmpDlg').close(); return; }
+    const b = e.target.closest('[data-cd]'); if (!b) return;
+    if (b.dataset.cd === 'all') goCompare('all');
+    else { document.querySelectorAll('#cmpDlg [data-cd]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); $('#cdPick').hidden = false; $('#cdSite').focus(); }
+  });
+  $('#cdGo').addEventListener('click', () => goCompare('one', $('#cdSite').value));
+
+  /* selected-site panel: plain-language state of the focused site at the cursor time */
+  let spOpen = store.get('spOpen', null), spLast = '';
+  if (spOpen === null) spOpen = !(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+  function renderSitePanel(S) {
+    const box = $('#sitePanel'), s = site(state.focus), ser = state.series[state.focus], g = state.grid;
+    if (!box || !s || !ser || !g) { box.innerHTML = ''; spLast = ''; return; }
+    const i = state.cursor, c = E.conditionsAt(ser, g, i), a1 = changeInfo(c, 'sun'), a2 = changeInfo(c, 'earth'), a3 = changeInfo(c, 'link');
+    const gr = siteGrade(state.focus);
+    const flag = (on, yes, no, noKey) => on ? `<span class="ok">✓ ${t(yes)}</span>` : `<span class="no">✕ ${t(noKey || no)}</span>`;
+    const row = (ico, lab, val, sub) => `<div class="sp-row"><span class="sp-ico" aria-hidden="true">${ico}</span><div><div class="sp-lab">${lab}</div><div class="sp-val">${val}</div>${sub ? `<div class="sp-sub">${sub}</div>` : ''}</div></div>`;
+    let adv = '';
+    const poleEl = v => Math.asin(-v[2] / Math.hypot(v[0], v[1], v[2])) * 180 / Math.PI;
+    const dsnIn = E.DSN.filter((d, k) => g.dsn[i * 3 + k] >= state.cfg.dsnMinDeg).map(d => d.name);
+    const line = (l, v) => `<div><span>${l}</span><span>${v}</span></div>`;
+    adv = `<div class="sp-adv adv-only">${line('UTC', utc(timeOf(i)))}` +
+      line(t('spSunPos'), `${fmt(c.sunEl, 1)}° / ${fmt(c.sunAz, 0)}°`) + line(t('spEarthPos'), `${fmt(c.earthEl, 1)}° / ${fmt(c.earthAz, 0)}°`) +
+      line(t('spState'), t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))) +
+      (gr ? line(t('gradeTitle'), `${fmt(gr.pct, 0)}%`) : '') + line('DSN', dsnIn.length ? dsnIn.join(', ') : t('none')) +
+      line(t('phase'), fmt(S.earthIllum * 100, 0) + '%') + line(t('spPole'), `${fmt(poleEl(S.sun), 2)}° / ${fmt(poleEl([S.earth[0], S.earth[1], S.earth[2] + 1737.4]), 2)}°`) + '</div>';
+    const html = `<div class="sp-kick">${t('spKicker')}</div>` +
+      `<button type="button" class="sp-head" id="spHead" aria-expanded="${spOpen}" title="${t(spOpen ? 'spCollapse' : 'spExpand')}"><span class="sp-name">${esc(s.name)}</span>${gr ? gradeChip(gr) : ''}<span class="sp-chev" aria-hidden="true">${spOpen ? '▾' : '▸'}</span></button>` +
+      `<div class="sp-rows">` +
+      row('☀️', t('spSun'), flag(c.sunlit, 'spVisible', 'spHiddenM'), `${a1.label} ${a1.val}`) +
+      row('🌍', t('spEarth'), flag(c.earthUp, 'spVisible', 'spHiddenF'), `${a2.label} ${a2.val}`) +
+      row('📡', t('spLink'), flag(c.link, 'spAvail', 'spUnavail'), `${a3.label} ${a3.val}`) + `</div>` + adv +
+      `<div class="sp-actions"><button type="button" class="sp-btn main" data-sp="analyze">${t('spAnalyze')}</button><button type="button" class="sp-btn" data-sp="compare">${t('spCompare')}</button></div>`;
+    const cls = 'site-panel' + (spOpen ? '' : ' collapsed'), key = cls + html;
+    if (key === spLast) return;
+    spLast = key; box.className = cls; box.innerHTML = html;
+  }
+  $('#sitePanel').addEventListener('click', e => {
+    if (e.target.closest('#spHead')) { spOpen = !spOpen; store.set('spOpen', spOpen); spLast = ''; renderSitePanel(v3dStateAt(state.cursor)); return; }
+    const b = e.target.closest('[data-sp]'); if (!b) return;
+    if (b.dataset.sp === 'analyze') {
+      const acc = $('#accProfile'); acc.open = true;
+      acc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else openCmpDialog();
+  });
   function update3D() {
     if (!v3d || !state.grid) return;
     if (heatOn()) scheduleHeat();
@@ -1642,20 +1814,7 @@
     const S = v3dStateAt(state.cursor);
     v3d.setState(S);
     renderLegend();
-    // HUD: Sun and Earth as seen from the pole itself
-    const g = state.grid, i = state.cursor;
-    const el = v => Math.asin(-v[2] / Math.hypot(v[0], v[1], v[2])) * 180 / Math.PI;
-    const az = v => ((Math.atan2(v[1], v[0]) * 180 / Math.PI) + 360) % 360;
-    const poleE = [S.earth[0], S.earth[1], S.earth[2] + 1737.4];
-    const dsnIn = E.DSN.filter((d, k) => g.dsn[i * 3 + k] >= state.cfg.dsnMinDeg).map(d => d.name);
-    const subLat = Math.asin(S.sun[2] / Math.hypot(S.sun[0], S.sun[1], S.sun[2])) * 180 / Math.PI, subLon = Math.atan2(S.sun[1], S.sun[0]) * 180 / Math.PI;
-    const sunLine = v3d.region() === 'moon' ? `${t('hudSubSolar')} ${fmt(Math.abs(subLat), 1)}°${subLat < 0 ? 'S' : 'N'} ${fmt(Math.abs(subLon), 0)}°${subLon < 0 ? 'W' : 'E'}`
-      : `${t('hudSun')} ${fmt(el(S.sun), 2)}° · ${t('hudLon')} ${fmt(az(S.sun), 0)}°E`;
-    $('#v3dHud').innerHTML = `<b>${utc(timeOf(i))} UTC</b><br>${sunLine}<br>` +
-      `${t('hudEarth')} ${fmt(el(poleE), 2)}° · ${t('phase')} ${fmt(S.earthIllum * 100, 0)}%<br>DSN: ${dsnIn.length ? dsnIn.join(', ') : t('none')}` +
-      (state.series[state.focus] ? (() => { const c = E.conditionsAt(state.series[state.focus], g, i), a1 = changeInfo(c, 'sun'), a2 = changeInfo(c, 'earth');
-        const gr = siteGrade(state.focus);
-        return `<br><b style="font-size:13px">${esc(site(state.focus).name)}</b>${gr ? ' ' + gradeChip(gr) + ' ' + fmt(gr.pct, 0) + '%' : ''}: ${t('st_' + (c.ops ? 'ops' : c.sunlit ? 'sun' : c.link ? 'comm' : 'none'))} · ${a1.label} ${a1.val} · ${a2.label} ${a2.val}`; })() : '');
+    renderSitePanel(S);
   }
   /* region / scope: 'moon' = whole Moon, 'south' (75-90 S) and 'pole' (87.5-90 S) = LOLA terrain */
   function syncScope() {
