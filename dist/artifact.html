@@ -635,6 +635,29 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
 .ctx .ok { color: var(--ops); } .ctx .no { color: var(--fg2); }
 @media (max-width: 700px) { .ctx { gap: 2px 12px; font-size: 12.5px; } .ctx .cx-date { display: none; } .cb-mission .ms-hint { display: none; } }
 
+/* ---- scenario B flag, dates comparison */
+.lm { font-size: 10px; font-weight: 700; line-height: 12px; text-align: center; color: var(--accent-ink); }
+.lm-b { background: var(--fg); color: var(--bg); }
+.cb-mission .ms-b { color: var(--fg); }
+.seg.seg-plain::before { display: none; }
+.seg.seg-plain button[aria-pressed="true"] { background: var(--panel); color: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / .22); }
+.seg.seg-plain { display: inline-flex; flex-wrap: wrap; }
+.cf-empty { padding: 18px; border: 1px dashed var(--line); border-radius: 14px; text-align: center; } .cf-empty p { margin: 0 0 12px; color: var(--fg2); }
+.cf-shift { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-bottom: 10px; font-size: 13px; color: var(--fg2); }
+.cf-shift .ms-btn { padding: 3px 10px; min-height: 26px; font-size: 12px; }
+.cf-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.cf-two th small { display: block; font-weight: 400; color: var(--fg2); font-size: 11.5px; }
+.cf-two th { white-space: normal; text-transform: none; letter-spacing: 0; }
+.cf-two th small { text-transform: none; letter-spacing: 0; overflow-wrap: anywhere; }
+.cf-two select { width: 100%; max-width: 220px; }
+@media (max-width: 700px) {
+  .seg.seg-plain { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; border-radius: 16px; }
+  .seg.seg-plain button { padding: 6px 6px; font-size: 12.5px; line-height: 1.2; }
+  .cf-two th, .cf-two td { padding: 6px 5px; font-size: 12.5px; } .cf-two { table-layout: fixed; }
+  .cf-two td:first-child, .cf-two th:first-child { width: 34%; }
+}
+@media (max-width: 700px) { .cb-mission [data-ms-shift] { display: none; } }   /* keep the sticky bar short on phones: drag the flag instead */
+
 </style>
 
 <header class="topbar">
@@ -962,6 +985,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
           <canvas id="cursorTrack" aria-hidden="true"></canvas>
           <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
           <div class="lm" id="lmFlag" role="slider" tabindex="0" hidden></div>
+          <div class="lm lm-b" id="lmFlagB" role="slider" tabindex="0" hidden></div>
         </div>
         <button class="btn icon day" id="dayFwd" type="button" aria-label="+1 day" data-i18n-aria="dayFwd">›</button>
         <output id="cursorLabel" class="mono" hidden></output>
@@ -984,6 +1008,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   <form method="dialog" id="cmpDlgForm">
     <h2 id="cmpDlgTitle"></h2>
     <button type="button" class="cd-opt" data-cd="all"><b data-i18n="cdAll">All sites</b><span data-i18n="cdAllSub">Rank every site against this one</span></button>
+    <button type="button" class="cd-opt" data-cd="dates"><b data-i18n="cdDates">Another date</b><span data-i18n="cdDatesSub">Same site: move a second flag to see the effect of a delay</span></button>
     <button type="button" class="cd-opt" data-cd="one"><b data-i18n="cdOne">One specific site</b><span data-i18n="cdOneSub">Side by side, with the reasons</span></button>
     <div class="cd-pick" id="cdPick" hidden>
       <select id="cdSite" aria-label="Site"></select>
@@ -2603,6 +2628,13 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       why_longestNightH: '{n} has a shorter longest night (−{d})', why_longestBlackoutH: '{n} has a shorter longest blackout (−{d})', spCollapse: 'Collapse', spExpand: 'Expand',
       msSet: 'Set landing date', msLength: 'Mission length', msHint: 'Drop the flag, then drag it along the bar to try other landing dates.', msClear: 'Remove landing date',
       msOpsWord: 'of the mission with power and a link', msFlag: 'Landing date',
+      msAddB: 'Add date B', msSeeAB: 'Compare A and B', msClearB: 'Remove date B', msFlagB: 'Landing date B',
+      cfWithDates: 'Another date', scenA: 'Scenario A', scenB: 'Scenario B', cdDates: 'Another date', cdDatesSub: 'Same site: move a second flag to see the effect of a delay',
+      dtPromptA: 'Drop a landing flag (A) on the time bar, then add a second date (B) to compare them.', dtSetA: 'Set landing date A here',
+      dtPromptB: 'Add a second landing date (B) and compare it with A.', dtAddB: 'Add date B (A + 7 days)', dtSiteB: 'Site of scenario B', dtSame: 'Same site as A',
+      dtShift: 'Shift B:', dtToScen: 'Add A and B to my scenarios', dtBetter: 'Find a better landing date', dtExplore: 'Explore this site', dtAdded: 'Added to the scenario list',
+      dtLen: 'Both missions last {days} days; change the length on the time bar.', cmLoss: 'Power + link last for', cmLossNow: 'lost at once',
+      why_loss: '{n} keeps power and a link for longer (+{d})',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -2711,6 +2743,13 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       why_longestNightH: '{n} a une nuit maximale plus courte (−{d})', why_longestBlackoutH: '{n} a une coupure maximale plus courte (−{d})', spCollapse: 'Réduire', spExpand: 'Déplier',
       msSet: 'Poser la date d’atterrissage', msLength: 'Durée de la mission', msHint: 'Posez le drapeau, puis faites-le glisser sur la barre pour essayer d’autres dates.', msClear: 'Retirer la date d’atterrissage',
       msOpsWord: 'de la mission avec énergie et liaison', msFlag: 'Date d’atterrissage',
+      msAddB: 'Ajouter une date B', msSeeAB: 'Comparer A et B', msClearB: 'Retirer la date B', msFlagB: 'Date d’atterrissage B',
+      cfWithDates: 'Autre date', scenA: 'Scénario A', scenB: 'Scénario B', cdDates: 'Une autre date', cdDatesSub: 'Même site : déplacez un second drapeau pour voir l’effet d’un retard',
+      dtPromptA: 'Posez un drapeau d’atterrissage (A) sur la barre de temps, puis ajoutez une seconde date (B) pour les comparer.', dtSetA: 'Poser la date A ici',
+      dtPromptB: 'Ajoutez une seconde date d’atterrissage (B) et comparez-la avec A.', dtAddB: 'Ajouter la date B (A + 7 jours)', dtSiteB: 'Site du scénario B', dtSame: 'Même site que A',
+      dtShift: 'Décaler B :', dtToScen: 'Ajouter A et B à mes scénarios', dtBetter: 'Trouver une meilleure date', dtExplore: 'Explorer ce site', dtAdded: 'Ajoutés à la liste des scénarios',
+      dtLen: 'Les deux missions durent {days} jours ; changez la durée sur la barre de temps.', cmLoss: 'Énergie + liaison tiennent', cmLossNow: 'perdues aussitôt',
+      why_loss: '{n} garde énergie et liaison plus longtemps (+{d})',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -3158,17 +3197,20 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     drawMissionBand(ctx, X, y0, bh, n);
   }
   function drawMissionBand(ctx, X, y0, bh, n) {
-    const fl = $('#lmFlag'), li = missionIdx();
-    if (li == null) { fl.hidden = true; return; }
-    const wI = Math.max(1, Math.round(state.mission.days * DAY / state.grid.stepMs)), xa = X(li), xb = X(Math.min(n - 1, li + wI));
-    ctx.save();
-    ctx.fillStyle = cssv('--accent'); ctx.globalAlpha = 0.16;
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(xa, y0 - 4, Math.max(2, xb - xa), bh + 8, 6) : ctx.rect(xa, y0 - 4, Math.max(2, xb - xa), bh + 8); ctx.fill();
-    ctx.globalAlpha = 1; ctx.strokeStyle = cssv('--accent'); ctx.lineWidth = 2; ctx.stroke();
-    ctx.restore();
-    fl.hidden = false; fl.style.left = xa + 'px';
-    fl.setAttribute('aria-label', t('msFlag')); fl.setAttribute('aria-valuetext', utc(timeOf(li)) + ' UTC');
-    fl.setAttribute('aria-valuemin', '0'); fl.setAttribute('aria-valuemax', String(n - 1)); fl.setAttribute('aria-valuenow', String(li));
+    [['landing', $('#lmFlag'), 'A', cssv('--accent'), 'msFlag', false], ['b', $('#lmFlagB'), 'B', cssv('--fg'), 'msFlagB', true]].forEach(([key, fl, letter, col, lab, dashed]) => {
+      const li = missionIdx(key);
+      if (li == null || (key === 'b' && missionIdx('landing') == null)) { fl.hidden = true; return; }
+      const wI = Math.max(1, Math.round(state.mission.days * DAY / state.grid.stepMs)), xa = X(li), xb = X(Math.min(n - 1, li + wI));
+      ctx.save();
+      ctx.fillStyle = col; ctx.globalAlpha = 0.14;
+      const yy = y0 - (dashed ? 6 : 4), hh = bh + (dashed ? 12 : 8);
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(xa, yy, Math.max(2, xb - xa), hh, 6) : ctx.rect(xa, yy, Math.max(2, xb - xa), hh); ctx.fill();
+      ctx.globalAlpha = 1; ctx.strokeStyle = col; ctx.lineWidth = 2; if (dashed) ctx.setLineDash([5, 3]); ctx.stroke();
+      ctx.restore();
+      fl.hidden = false; fl.style.left = xa + 'px'; fl.textContent = letter;
+      fl.setAttribute('aria-label', t(lab)); fl.setAttribute('aria-valuetext', utc(timeOf(li)) + ' UTC');
+      fl.setAttribute('aria-valuemin', '0'); fl.setAttribute('aria-valuemax', String(n - 1)); fl.setAttribute('aria-valuenow', String(li));
+    });
   }
   function renderCursorChips() {
     const box = $('#cursorChips'), s = state.series[state.focus]; if (!box || !s || !state.grid) return;
@@ -4176,10 +4218,10 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   }
   /* ---------- mission: landing date + length, shared by the time bar, the header, grades and the heat map */
   const MISSION_DAYS = [3, 5, 7, 10, 14, 21, 30];
-  state.mission = (() => { const m = store.get('mission', null) || {}; return { landing: typeof m.landing === 'number' ? m.landing : null, days: MISSION_DAYS.includes(m.days) ? m.days : 10 }; })();
+  state.mission = (() => { const m = store.get('mission', null) || {}; return { landing: typeof m.landing === 'number' ? m.landing : null, days: MISSION_DAYS.includes(m.days) ? m.days : 10, b: typeof m.b === 'number' ? m.b : null, bSite: typeof m.bSite === 'string' ? m.bSite : null }; })();
   const saveMission = () => store.set('mission', state.mission);
-  function missionIdx() {
-    const g = state.grid, m = state.mission.landing;
+  function missionIdx(key = 'landing') {
+    const g = state.grid, m = state.mission[key];
     if (!g || m == null || m < state.start || m > timeOf(g.n - 1)) return null;
     return indexOf(m);
   }
@@ -4192,13 +4234,14 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     renderMission(); drawCursorTrack(); renderCtx();
     if (state.tab === '3d') { update3D(); renderProfile(); } else if (state.tab === 'compare') renderCmpFocus();
   }
-  function setLanding(ms, follow) {
+  function setMissionTime(key, ms, follow) {
     const g = state.grid; if (!g) return;
     const i = indexOf(Math.max(state.start, Math.min(timeOf(g.n - 1), ms)));
-    state.mission.landing = timeOf(i); saveMission();
+    state.mission[key] = timeOf(i); saveMission();
     if (follow) setCursor(i);
     afterMissionChange();
   }
+  const setLanding = (ms, follow) => setMissionTime('landing', ms, follow);
   function renderMission() {
     const box = $('#cbMission'), g = state.grid; if (!box) return;
     if (!g) { box.innerHTML = ''; return; }
@@ -4208,22 +4251,32 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     const sh = d => `<button type="button" class="btn ghost ms-btn${Math.abs(d) > 1 ? ' adv-only' : ''}" data-ms-shift="${d}">${d > 0 ? '+' : '−'}${Math.abs(d)} ${t('d')}</button>`;
     const ser = state.series[state.focus] || anySeries(state.focus), W = missionWindow();
     const m = ser ? E.summarize(ser, g, W.i0, W.i1) : null;
+    const lb = missionIdx('b');
+    const bCtl = lb == null ? `<button type="button" class="btn ms-btn" data-ms="addB">＋ ${t('msAddB')}</button>`
+      : `<span class="ms-when ms-b">B ${utc(state.mission.b)} UTC</span><button type="button" class="btn ghost ms-btn" data-ms="clearB" aria-label="${t('msClearB')}" title="${t('msClearB')}">✕</button><button type="button" class="btn ms-btn" data-ms="seeAB">${t('msSeeAB')}</button>`;
     const res = m ? `<span class="ms-res"><span class="adv-only">☀️ ${fmt(m.litPct, 0)}% · 🌍 ${fmt(m.earthPct, 0)}% · </span>⚡ ${fmt(m.opsPct, 0)}% <span class="ms-rh">${t('msOpsWord')}</span></span>` : '';
-    box.innerHTML = `<span class="ms-when">🚩 ${utc(state.mission.landing)} UTC</span>${sel}${[-7, -3, -1, 1, 3, 7].map(sh).join('')}<button type="button" class="btn ghost ms-btn" data-ms="clear" aria-label="${t('msClear')}" title="${t('msClear')}">✕</button>${res}`;
+    box.innerHTML = `<span class="ms-when">🚩 ${utc(state.mission.landing)} UTC</span>${sel}${[-7, -3, -1, 1, 3, 7].map(sh).join('')}<button type="button" class="btn ghost ms-btn" data-ms="clear" aria-label="${t('msClear')}" title="${t('msClear')}">✕</button>${bCtl}${res}`;
   }
   $('#cbMission').addEventListener('click', e => {
     const b = e.target.closest('[data-ms]'), sh = e.target.closest('[data-ms-shift]');
     if (b && b.dataset.ms === 'set' && state.grid) setLanding(timeOf(state.cursor), false);
     else if (b && b.dataset.ms === 'clear') { state.mission.landing = null; saveMission(); afterMissionChange(); }
+    else if (b && b.dataset.ms === 'addB') addDateB();
+    else if (b && b.dataset.ms === 'clearB') { state.mission.b = null; saveMission(); afterMissionChange(); }
+    else if (b && b.dataset.ms === 'seeAB') goCompare('dates');
     else if (sh) setLanding((state.mission.landing != null ? state.mission.landing : timeOf(state.cursor)) + (+sh.dataset.msShift) * DAY, true);
   });
   $('#cbMission').addEventListener('change', e => {
     if (e.target.id === 'msDays') { state.mission.days = +e.target.value; saveMission(); afterMissionChange(); }
   });
-  /* drag the landing flag along the bar; the cursor follows it */
-  (() => {
-    const fl = $('#lmFlag'); let drag = false, pend = null, raf = 0;
-    const apply = () => { raf = 0; if (pend == null) return; const i = pend; pend = null; if (i !== missionIdx()) { state.mission.landing = timeOf(i); setCursor(i); drawCursorTrack(); renderCtx(); } };
+  function addDateB() {
+    if (missionIdx('landing') == null) setMissionTime('landing', timeOf(state.cursor), false);
+    setMissionTime('b', state.mission.landing + 7 * DAY, false);
+  }
+  /* drag a flag (A = landing, B = second date) along the bar; the cursor follows it */
+  function bindFlag(fl, key) {
+    let drag = false, pend = null, raf = 0;
+    const apply = () => { raf = 0; if (pend == null) return; const i = pend; pend = null; if (i !== missionIdx(key)) { state.mission[key] = timeOf(i); setCursor(i); drawCursorTrack(); renderCtx(); } };
     fl.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fl.setPointerCapture(e.pointerId); drag = true; });
     fl.addEventListener('pointermove', e => {
       if (!drag || !state.grid) return;
@@ -4235,9 +4288,10 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     fl.addEventListener('pointerup', end); fl.addEventListener('pointercancel', end);
     fl.addEventListener('keydown', e => {
       const k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!k) return;
-      e.preventDefault(); setLanding(state.mission.landing + k * (e.shiftKey ? 7 : 1) * DAY, true);
+      e.preventDefault(); setMissionTime(key, state.mission[key] + k * (e.shiftKey ? 7 : 1) * DAY, true);
     });
-  })();
+  }
+  bindFlag($('#lmFlag'), 'landing'); bindFlag($('#lmFlagB'), 'b');
   /* context strip under the title: site, moment, Sun and Earth, always visible */
   let ctxLast = '';
   function renderCtx() {
@@ -4252,7 +4306,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   }
 
   /* ---------- compare: chooser, ranking against the chosen site, side-by-side with reasons */
-  state.cmp = { mode: store.get('cmpMode', 'all') === 'one' ? 'one' : 'all', other: store.get('cmpOther', null) };
+  state.cmp = { mode: ['one', 'dates'].includes(store.get('cmpMode', 'all')) ? store.get('cmpMode', 'all') : 'all', other: store.get('cmpOther', null) };
   const CM = [
     { k: 'litPct', l: 'cmSun', ico: '☀️', hi: true, pct: true },
     { k: 'earthPct', l: 'cmEarth', ico: '🌍', hi: true, pct: true },
@@ -4270,18 +4324,61 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
   }
   const cmpRows = () => state.sites.map(s => ({ s, m: anySum(s.id) })).filter(r => r.m)
     .sort((a, b) => b.m.opsPct - a.m.opsPct || b.m.litPct - a.m.litPct);
+  /* scenario (site + landing date + length) through the engine, cached like the Scenarios tab */
+  function scenRes(siteId, ms, days) {
+    const x = { siteId, t: ms, days }, k = scenKey(x);
+    if (!scenCache.has(k)) scenCache.set(k, E.scenario(site(siteId), ms, days, state.cfg));
+    return scenCache.get(k);
+  }
+  const LOSS = { k: 'loss', l: 'cmLoss', ico: '⏱️', hi: true, h: true };
+  const fv = (m, ent) => m.k === 'loss' ? (ent.lossNone ? t('never') : ent.m.loss === 0 ? t('cmLossNow') : dur(ent.m.loss)) : cmVal(m, ent.m[m.k]);
+  /* side-by-side table, verdict and reasons for two entries { name, sub, m } (period summary or scenario) */
+  function pairHtml(EA, EB, headB) {
+    const adv = m => m.adv ? ' adv-only' : '';
+    const ms = CM.concat(EA.m.loss != null && EB.m.loss != null ? [LOSS] : []).filter(m => EA.m[m.k] != null && EB.m[m.k] != null);
+    const trs = ms.map(m => { const d = cmDelta(m, EB.m[m.k], EA.m[m.k]);
+      return `<tr class="${adv(m).trim()}"><td>${m.ico} ${t(m.l)}</td><td class="cv">${fv(m, EA)}</td><td class="cv">${fv(m, EB)}</td><td><span class="dl ${d.cls}">${d.txt}</span></td></tr>`; }).join('');
+    const dOps = cmDelta(CM[2], EB.m.opsPct, EA.m.opsPct);
+    const win = dOps.same ? null : (dOps.better ? EB : EA);
+    const verdict = dOps.same ? t('cfAbout') : t('cfBetter').replace('{n}', esc(win.name)).replace('{d}', `+${dOps.mag}`);
+    const whys = ms.filter(m => m.k !== 'opsPct').map(m => {
+      const d = cmDelta(m, EB.m[m.k], EA.m[m.k]); if (d.same) return '';
+      const better = d.better ? EB : EA, forWinner = better === win || !win;
+      const text = t('why_' + m.k).replace('{n}', `<b>${esc(better.name)}</b>`).replace('{d}', d.mag);
+      return `<li class="${adv(m).trim()}"><span class="dl ${forWinner ? 'up' : 'down'}" aria-hidden="true">${forWinner ? '▲' : '▼'}</span><span>${text}</span></li>`;
+    }).join('');
+    const th = e => `${esc(e.name)}${e.sub ? `<small>${esc(e.sub)}</small>` : ''}`;
+    return `<table class="cf-two"><thead><tr><th>${t('cmSite')}</th><th>${th(EA)}</th><th>${headB}</th><th>${t('cmDiff')}</th></tr></thead><tbody>${trs}</tbody></table>` +
+      `<p class="cf-verdict">${verdict}</p><ul class="cf-why">${whys}</ul>`;
+  }
+  function datesBody(A) {
+    const li = missionIdx('landing'), lb = missionIdx('b');
+    if (li == null) return `<div class="cf-empty"><p>${t('dtPromptA')}</p><button type="button" class="btn primary" data-dt="setA">🚩 ${t('dtSetA')}</button></div>`;
+    if (lb == null) return `<div class="cf-empty"><p>${t('dtPromptB')}</p><button type="button" class="btn primary" data-dt="addB">＋ ${t('dtAddB')}</button></div>`;
+    const days = state.mission.days, sB = (state.mission.bSite && site(state.mission.bSite)) || A.s;
+    const rA = scenRes(A.s.id, state.mission.landing, days), rB = scenRes(sB.id, state.mission.b, days);
+    const ent = (nm, st, ms, r) => ({ name: t(nm), sub: `${st.name} · ${utc(ms)}`, m: Object.assign({}, r.summary, { loss: r.firstPowerOrLinkLossH == null ? days * 24 : r.firstPowerOrLinkLossH }), lossNone: r.firstPowerOrLinkLossH == null });
+    const EA = ent('scenA', A.s, state.mission.landing, rA), EB = ent('scenB', sB, state.mission.b, rB);
+    const sel = `<select id="dtSiteB" aria-label="${t('dtSiteB')}"><option value=""${sB === A.s ? ' selected' : ''}>${t('dtSame')}</option>` +
+      state.sites.filter(x => x.id !== A.s.id).map(x => `<option value="${esc(x.id)}"${sB.id === x.id && sB !== A.s ? ' selected' : ''}>${esc(x.name)}</option>`).join('') + '</select>';
+    const shift = d => `<button type="button" class="btn ghost ms-btn${[-3, -7].includes(d) ? ' adv-only' : ''}" data-dt-shift="${d}">${d > 0 ? '+' : '−'}${Math.abs(d)} ${t('d')}</button>`;
+    return `<div class="cf-shift"><span>${t('dtShift')}</span>${[-7, -3, -1, 1, 3, 7].map(shift).join('')}</div>` + pairHtml(EA, EB, `${esc(EB.name)}<small>${esc(EB.sub)}</small>${sel}`) +
+      `<p class="cf-note">${t('cfNoScore')} ${t('dtLen').replace('{days}', days)}</p>` +
+      `<div class="cf-actions"><button type="button" class="btn" data-dt="better">${t('dtBetter')}</button><button type="button" class="btn ghost" data-dt="explore">${t('dtExplore')}</button><button type="button" class="btn ghost adv-only" data-dt="toScen">${t('dtToScen')}</button></div>`;
+  }
   function renderCmpFocus() {
     const box = $('#cmpFocus'); if (!box) return;
     if (!state.grid || !site(state.focus)) { box.innerHTML = ''; return; }
-    const rows = cmpRows(), A = rows.find(r => r.s.id === state.focus);
+    const mode = state.cmp.mode, rows = mode === 'dates' ? [] : cmpRows(), A = mode === 'dates' ? { s: site(state.focus) } : rows.find(r => r.s.id === state.focus);
     if (!A) { box.innerHTML = ''; return; }
-    const per = t('cfPeriod').replace('{a}', utc(state.start, false)).replace('{b}', utc(timeOf(state.grid.n - 1), false));
-    const seg = `<div class="seg" role="group" aria-label="${t('cfTitle')}"><button type="button" data-cm="all" aria-pressed="${state.cmp.mode === 'all'}">${t('cfWithAll')}</button><button type="button" data-cm="one" aria-pressed="${state.cmp.mode === 'one'}">${t('cfWithOne')}</button></div>`;
-    const top = `<div class="cf-top"><h2>${t('cfTitle')}: ${esc(A.s.name)}</h2>${seg}</div><p class="cf-sub">${esc(per)}</p>`;
+    const per = mode === 'dates' ? '' : t('cfPeriod').replace('{a}', utc(state.start, false)).replace('{b}', utc(timeOf(state.grid.n - 1), false));
+    const seg = `<div class="seg seg-plain" role="group" aria-label="${t('cfTitle')}">${[['all', 'cfWithAll'], ['one', 'cfWithOne'], ['dates', 'cfWithDates']].map(([k, l]) => `<button type="button" data-cm="${k}" aria-pressed="${mode === k}">${t(l)}</button>`).join('')}</div>`;
+    const top = `<div class="cf-top"><h2>${t('cfTitle')}: ${esc(A.s.name)}</h2>${seg}</div>${per ? `<p class="cf-sub">${esc(per)}</p>` : ''}`;
     const approx = n => n.s.hsrc === 'smooth' ? ' ≈' : '';
     const adv = m => m.adv ? ' adv-only' : '';
     let body = '';
-    if (state.cmp.mode === 'all') {
+    if (mode === 'dates') body = datesBody(A);
+    else if (mode === 'all') {
       const rank = rows.indexOf(A) + 1;
       const pin = `<div class="cf-pin"><div class="nm">${esc(A.s.name)}<span class="rk">${t('cfRank').replace('{n}', esc(A.s.name)).replace('{r}', rank).replace('{t}', rows.length)}</span></div>` +
         CM.map(m => `<div class="cf-m${adv(m)}"><small>${m.ico} ${t(m.l)}</small><b>${cmVal(m, A.m[m.k])}</b></div>`).join('') + '</div>';
@@ -4294,38 +4391,41 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       }).join('');
       body = pin + `<div class="cf-list" tabindex="0" role="region" aria-label="${t('cfWithAll')}">${head}${list}</div><p class="cf-note">${t('cfHint')} ${rows.some(r => r.s.hsrc === 'smooth') ? t('cfApprox') : ''}</p>`;
     } else {
-      let B = rows.find(r => r.s.id === state.cmp.other && r !== A) || rows.find(r => r !== A);
+      const B = rows.find(r => r.s.id === state.cmp.other && r !== A) || rows.find(r => r !== A);
       if (!B) { box.innerHTML = top; return; }
       state.cmp.other = B.s.id;
       const opts = rows.filter(r => r !== A).map(r => `<option value="${esc(r.s.id)}"${r === B ? ' selected' : ''}>${esc(r.s.name)}</option>`).join('');
-      const trs = CM.map(m => { const d = cmDelta(m, B.m[m.k], A.m[m.k]);
-        return `<tr class="${adv(m).trim()}"><td>${m.ico} ${t(m.l)}</td><td class="cv">${cmVal(m, A.m[m.k])}</td><td class="cv">${cmVal(m, B.m[m.k])}</td><td><span class="dl ${d.cls}">${d.txt}</span></td></tr>`; }).join('');
-      const dOps = cmDelta(CM[2], B.m.opsPct, A.m.opsPct);
-      const win = dOps.same ? null : (dOps.better ? B : A), lose = win === A ? B : A;
-      const verdict = dOps.same ? t('cfAbout') : t('cfBetter').replace('{n}', esc(win.s.name)).replace('{d}', `+${dOps.mag}`);
-      const whys = CM.filter(m => m.k !== 'opsPct').map(m => {
-        const d = cmDelta(m, B.m[m.k], A.m[m.k]); if (d.same) return '';
-        const better = d.better ? B : A, forWinner = better === win || !win;
-        const text = t('why_' + m.k).replace('{n}', `<b>${esc(better.s.name)}</b>`).replace('{d}', m.pct ? d.mag : d.mag);
-        return `<li class="${adv(m).trim()}"><span class="dl ${forWinner ? 'up' : 'down'}" aria-hidden="true">${forWinner ? '▲' : '▼'}</span><span>${text}</span></li>`;
-      }).join('');
-      body = `<table class="cf-two"><thead><tr><th>${t('cmSite')}</th><th>${esc(A.s.name)}</th><th><select id="cmpOther" aria-label="${t('cfWith')}">${opts}</select></th><th>${t('cmDiff')}</th></tr></thead><tbody>${trs}</tbody></table>` +
-        `<p class="cf-verdict">${verdict}</p><ul class="cf-why">${whys}</ul><p class="cf-note">${t('cfNoScore')} ${[A, B].some(r => r.s.hsrc === 'smooth') ? t('cfApprox') : ''}</p>`;
+      body = pairHtml({ name: A.s.name, m: A.m }, { name: B.s.name, m: B.m }, `<select id="cmpOther" aria-label="${t('cfWith')}">${opts}</select>`) +
+        `<p class="cf-note">${t('cfNoScore')} ${[A, B].some(r => r.s.hsrc === 'smooth') ? t('cfApprox') : ''}</p>`;
     }
-    const html = top + body;
     const keep = $('#cmpFocus .cf-list') ? $('#cmpFocus .cf-list').scrollTop : 0;
-    box.innerHTML = html;
+    box.innerHTML = top + body;
     const l = $('#cmpFocus .cf-list'); if (l) l.scrollTop = keep;
   }
   $('#cmpFocus').addEventListener('click', e => {
-    const m = e.target.closest('[data-cm]'), pk = e.target.closest('[data-pick]');
+    const m = e.target.closest('[data-cm]'), pk = e.target.closest('[data-pick]'), dt = e.target.closest('[data-dt]'), sh = e.target.closest('[data-dt-shift]');
     if (m) { state.cmp.mode = m.dataset.cm; store.set('cmpMode', state.cmp.mode); renderCmpFocus(); }
     else if (pk) { state.cmp.mode = 'one'; state.cmp.other = pk.dataset.pick; store.set('cmpMode', 'one'); store.set('cmpOther', state.cmp.other); renderCmpFocus(); $('#cmpFocus').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    else if (sh) setMissionTime('b', state.mission.b + (+sh.dataset.dtShift) * DAY, false);
+    else if (dt) {
+      const a = dt.dataset.dt;
+      if (a === 'setA') setMissionTime('landing', timeOf(state.cursor), false);
+      else if (a === 'addB') addDateB();
+      else if (a === 'better') showTab('plan');
+      else if (a === 'explore') showTab('3d');
+      else if (a === 'toScen') {
+        if (scenIsExample) scenarios = [];
+        const sB = (state.mission.bSite && site(state.mission.bSite)) || site(state.focus);
+        scenarios.push({ siteId: state.focus, t: state.mission.landing, days: state.mission.days }, { siteId: sB.id, t: state.mission.b, days: state.mission.days });
+        saveScen(); toast(t('dtAdded'));
+      }
+    }
   });
   $('#cmpFocus').addEventListener('change', e => {
     if (e.target.id === 'cmpOther') { state.cmp.other = e.target.value; store.set('cmpOther', state.cmp.other); renderCmpFocus(); }
+    else if (e.target.id === 'dtSiteB') { state.mission.bSite = e.target.value || null; saveMission(); renderCmpFocus(); }
   });
-  /* "Compare this site" asks: against all sites, or against one */
+  /* "Compare this site" asks: against all sites, against one, or the same site on another date */
   function openCmpDialog() {
     const A = site(state.focus); if (!A) return;
     $('#cmpDlgTitle').textContent = t('cdTitle').replace('{n}', A.name);
@@ -4342,7 +4442,8 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
       if (!selectSite(state.focus)) { state.selected.pop(); selectSite(state.focus); }
       store.set('selected', state.selected); computeSeries();
     }
-    $('#cmpDlg').close();
+    if (mode === 'dates' && missionIdx('b') == null) addDateB();
+    if ($('#cmpDlg').open) $('#cmpDlg').close();
     showTab('compare');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -4350,6 +4451,7 @@ body[data-mode="advanced"] .cf-row { grid-template-columns: 34px minmax(140px, 1
     if (e.target === $('#cmpDlg')) { $('#cmpDlg').close(); return; }
     const b = e.target.closest('[data-cd]'); if (!b) return;
     if (b.dataset.cd === 'all') goCompare('all');
+    else if (b.dataset.cd === 'dates') goCompare('dates');
     else { document.querySelectorAll('#cmpDlg [data-cd]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); $('#cdPick').hidden = false; $('#cdSite').focus(); }
   });
   $('#cdGo').addEventListener('click', () => goCompare('one', $('#cdSite').value));
