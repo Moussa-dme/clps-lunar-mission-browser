@@ -335,6 +335,7 @@
           <canvas id="cursorTrack" aria-hidden="true"></canvas>
           <input type="range" id="cursor" min="0" max="100" value="0" aria-label="Time cursor">
           <div class="lm" id="lmFlag" role="slider" tabindex="0" hidden></div>
+          <div class="lm lm-b" id="lmFlagB" role="slider" tabindex="0" hidden></div>
         </div>
         <button class="btn icon day" id="dayFwd" type="button" aria-label="+1 day" data-i18n-aria="dayFwd">›</button>
         <output id="cursorLabel" class="mono" hidden></output>
@@ -357,6 +358,7 @@
   <form method="dialog" id="cmpDlgForm">
     <h2 id="cmpDlgTitle"></h2>
     <button type="button" class="cd-opt" data-cd="all"><b data-i18n="cdAll">All sites</b><span data-i18n="cdAllSub">Rank every site against this one</span></button>
+    <button type="button" class="cd-opt" data-cd="dates"><b data-i18n="cdDates">Another date</b><span data-i18n="cdDatesSub">Same site: move a second flag to see the effect of a delay</span></button>
     <button type="button" class="cd-opt" data-cd="one"><b data-i18n="cdOne">One specific site</b><span data-i18n="cdOneSub">Side by side, with the reasons</span></button>
     <div class="cd-pick" id="cdPick" hidden>
       <select id="cdSite" aria-label="Site"></select>
