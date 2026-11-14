@@ -216,7 +216,7 @@
     [13, 3, 4.5, .6], [-21, -16, 9, .58], [-24, -39, 5.5, .66], [-10, -23, 4.5, .55], [-15, 34, 4.2, .6], [-4, 52, 8, .62], [17, 59, 5.2, .78],
     [-19, -93, 4, .55], [27, 148, 3.2, .55], [-34, 166, 3.2, .5], [2, 98, 3, .35], [-53, -169, 24, .2], [10, -20, 3, .0]
   ];
-  function moonTexture(basemap, meta, onReady) {
+  function moonTexture(basemap, meta, onReady, relief) {
     const W = 2048, H = 1024;
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const g = c.getContext('2d');
@@ -239,14 +239,29 @@
       if (d <= 0.01) continue;
       for (let j = 0; j < 4; j++) blobAt(la + (rnd() - .5) * r * .5, lo + (rnd() - .5) * r * .7, r * (0.55 + rnd() * 0.5), d * 0.55, 'rgba(48,50,56,A)');
     }
-    // craters (uniform on the sphere) and a few bright ray craters
-    for (let k = 0; k < 5200; k++) {
+    // no invented craters: relief is only shown where real LOLA data is baked in (the circled zones); a few real bright ray craters stay
+    for (let k = 0; k < 0; k++) {
       const lat = Math.asin(rnd() * 2 - 1) / D2R, lon = rnd() * 360 - 180, r = 0.25 + Math.pow(rnd(), 3) * 3.2;
       blobAt(lat, lon, r, 0.16, 'rgba(30,30,32,A)'); blobAt(lat + r * .18, lon - r * .18 / Math.max(.2, Math.cos(lat * D2R)), r * .7, 0.10, 'rgba(235,232,225,A)');
     }
     for (const [la, lo, r] of [[-43, -11, 3.2], [10, -20, 2.6], [8, -38, 2.2], [-9, -2, 2], [-44, 100, 2.4], [12, 51, 2]]) blobAt(la, lo, r, 0.55, 'rgba(250,248,240,A)');
     const tex = new THREE.CanvasTexture(c);
     tex.anisotropy = 4;
+    if (relief) {
+      /* coarse LOLA hill shading of the circled zones (tools/make_zone_relief.py): grey 128 = flat, alpha = the zone disc */
+      const bake = () => {
+        const rc = document.createElement('canvas'); rc.width = W; rc.height = H;
+        const rg = rc.getContext('2d'); rg.drawImage(relief, 0, 0, W, H);
+        const rd = rg.getImageData(0, 0, W, H).data, img = g.getImageData(0, 0, W, H), px = img.data;
+        for (let i = 0; i < W * H; i++) {
+          const a = rd[i * 4 + 3]; if (!a) continue;
+          const f = 1 + ((rd[i * 4] - 128) / 128 * 1.2) * (a / 255);
+          px[i * 4] *= f; px[i * 4 + 1] *= f; px[i * 4 + 2] *= f;
+        }
+        g.putImageData(img, 0, 0); tex.needsUpdate = true; if (onReady) onReady();
+      };
+      if (relief.complete && relief.naturalWidth) bake(); else relief.addEventListener('load', bake, { once: true });
+    }
     if (basemap) {
       const draw = () => {
         const half = meta.half_m, n = meta.n, S = 1024;
@@ -385,7 +400,7 @@
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
       geo.setIndex(idx); geo.computeBoundingSphere();
-      globeMat.uniforms.uTex.value = moonTexture(opts.basemap, opts.basemapMeta, invalidate);
+      globeMat.uniforms.uTex.value = moonTexture(opts.basemap, opts.basemapMeta, invalidate, opts.zoneRelief);
       globe = new THREE.Mesh(geo, globeMat); globe.frustumCulled = false; scene.add(globe);
     }
     const unitOf = (lat, lon) => [Math.cos(lat * D2R) * Math.cos(lon * D2R), Math.cos(lat * D2R) * Math.sin(lon * D2R), Math.sin(lat * D2R)];

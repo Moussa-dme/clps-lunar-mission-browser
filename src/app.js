@@ -93,7 +93,7 @@
       flatTag: 'Fictional lighting: real shadows and colours are hidden', scMoon: 'Whole Moon', scPole: 'South pole', v3dMoon: 'Whole Moon (overview)',
       lgMoon: 'Lit side = the real Sun at the cursor time. The surface texture is illustrative (maria positions approximate); the south pole cap is real LOLA relief. Discs = zones with sites; click one to zoom.',
       zPolar: 'South pole · Artemis & CLPS', zApollo: 'Apollo & SLIM · near side', zWest: 'Reiner Gamma & Chang’e 5 · west', zFar: 'Chang’e 4 & 6 · far side',
-      zoneTip: '{n} sites · click to zoom', zoneToast: '{z}: LOLA terrain only covers the south pole, so these sites use a smooth horizon (less precise). Click a marker for its profile.', hudSubSolar: 'Sun overhead',
+      zoneTip: '{n} sites · click to zoom', zoneToast: '{z}: LOLA terrain only covers the south pole, so these sites use a smooth horizon (less precise). Click a marker for its profile. Relief on the globe: coarse LOLA shading only (no shadows).', hudSubSolar: 'Sun overhead',
       secExplore: 'Explore', secCompare: 'Compare', secPlan: 'Plan mission', secLearn: 'Learn & Method',
       sub3d: 'Globe 3D', subMap: 'Map 2D', subSky: 'Horizon', subElev: 'Elevation', subSites: 'Sites', subScen: 'Scenarios', subLearn: 'Learn', subMethod: 'Method',
       spKicker: 'Selected site', spSun: 'Sun', spEarth: 'Earth', spLink: 'Direct link to Earth', spVisible: 'Visible', spHiddenM: 'Hidden', spHiddenF: 'Hidden',
@@ -225,7 +225,7 @@
       flatTag: 'Éclairage fictif : ombres et couleurs réelles masquées', scMoon: 'Toute la Lune', scPole: 'Pôle sud', v3dMoon: 'Toute la Lune (vue d’ensemble)',
       lgMoon: 'Côté éclairé = le vrai Soleil à l’heure du curseur. La texture de surface est illustrative (positions des mers approximatives) ; la calotte du pôle sud est le vrai relief LOLA. Disques = zones avec des sites ; cliquez pour zoomer.',
       zPolar: 'Pôle sud · Artemis et CLPS', zApollo: 'Apollo et SLIM · face visible', zWest: 'Reiner Gamma et Chang’e 5 · ouest', zFar: 'Chang’e 4 et 6 · face cachée',
-      zoneTip: '{n} sites · cliquer pour zoomer', zoneToast: '{z} : le relief LOLA ne couvre que le pôle sud, ces sites utilisent donc un horizon lisse (moins précis). Cliquez sur un marqueur pour son profil.', hudSubSolar: 'Soleil au zénith',
+      zoneTip: '{n} sites · cliquer pour zoomer', zoneToast: '{z} : le relief LOLA ne couvre que le pôle sud, ces sites utilisent donc un horizon lisse (moins précis). Cliquez sur un marqueur pour son profil. Relief du globe : ombrage LOLA grossier seulement (pas d’ombres).', hudSubSolar: 'Soleil au zénith',
       secExplore: 'Explorer', secCompare: 'Comparer', secPlan: 'Planifier la mission', secLearn: 'Comprendre et méthode',
       sub3d: 'Globe 3D', subMap: 'Carte 2D', subSky: 'Horizon', subElev: 'Élévation', subSites: 'Sites', subScen: 'Scénarios', subLearn: 'Comprendre', subMethod: 'Méthode',
       spKicker: 'Site sélectionné', spSun: 'Soleil', spEarth: 'Terre', spLink: 'Liaison directe avec la Terre', spVisible: 'Visible', spHiddenM: 'Caché', spHiddenF: 'Cachée',
@@ -1456,6 +1456,8 @@
   const baseImg = new Image();
   baseImg.onload = () => { if (state.tab === 'map') drawMap(); };
   baseImg.src = DATA.basemap;
+  const reliefImg = new Image();   // coarse LOLA shading of the three non-polar zones, baked on the globe
+  reliefImg.src = DATA.zoneRelief;
   const mapGeom = {};
   function drawMap() {
     const { ctx, w, h } = canvasSetup($('#map'));
@@ -1744,6 +1746,7 @@
           onHover: onSiteHover,
           onZone: openZone, onZoneHover,
           basemap: baseImg, basemapMeta: DATA.assets.basemap,
+          zoneRelief: reliefImg,
           onProgress: p => { $('#v3dStatus').textContent = p == null ? '' : `${t('averaging')} ${Math.round(p * 100)}%`; },
           onUserInput: () => { if (tour) stopTour(); const h = $('#v3dHint'); if (h) h.classList.add('gone'); }
         });
