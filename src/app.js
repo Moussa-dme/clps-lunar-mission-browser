@@ -122,6 +122,9 @@
       pzBest: 'Best days to land', pzUse: 'Use this date', pzNone: 'No safe landing date for this site in the selected period. Try another site or a longer period.',
       pzPlaced: 'Landing date set: {d}', pzAria: 'Quality of each landing day over the selected period; click to set the landing date',
       cbDateTip: 'Date, sunrise / sunset jumps and mission',
+      helpBtnLabel: 'Explain: click here, then click anything', chatBtnLabel: 'Assistant', helpBanner: 'Click anything to see what it does. Esc to stop.', helpOk: 'Got it', helpAsk: 'Ask the assistant', helpExit: 'Stop help',
+      chatTitle: 'Assistant', chatSub: 'Built-in help, no AI model', chatPh: 'Ask a question…', chatSend: 'Send', chatShow: 'Show me', chatClose: 'Close',
+      tourStopBtn: 'Stop',
       hintGlobe: 'Drag to rotate · scroll to zoom · click a site',
       lgSunset: 'Sunset (on the time bar)', lgEarthset: 'Earthset (on the time bar)', lgFlags: 'A and B: landing dates. The outlined band is the mission.',
       lgUp: 'Green arrow: better than your site', lgDown: 'Red arrow: worse than your site', lgGrade: 'Grade: share of the mission with power and a link (A is best). Not a landing-success probability.',
@@ -246,6 +249,9 @@
       pzBest: 'Meilleurs jours pour atterrir', pzUse: 'Utiliser cette date', pzNone: 'Aucune date d’atterrissage sûre pour ce site sur la période choisie. Essayez un autre site ou une période plus longue.',
       pzPlaced: 'Date d’atterrissage posée : {d}', pzAria: 'Qualité de chaque jour d’atterrissage sur la période choisie ; cliquez pour poser la date d’atterrissage',
       cbDateTip: 'Date, sauts lever / coucher et mission',
+      helpBtnLabel: 'Expliquer : cliquez ici, puis sur n’importe quoi', chatBtnLabel: 'Assistant', helpBanner: 'Cliquez sur n’importe quoi pour voir à quoi ça sert. Échap pour arrêter.', helpOk: 'Compris', helpAsk: 'Demander à l’assistant', helpExit: 'Arrêter l’aide',
+      chatTitle: 'Assistant', chatSub: 'Aide intégrée, sans modèle d’IA', chatPh: 'Posez une question…', chatSend: 'Envoyer', chatShow: 'Montre-moi', chatClose: 'Fermer',
+      tourStopBtn: 'Arrêter',
       hintGlobe: 'Glissez pour tourner · molette pour zoomer · cliquez sur un site',
       lgSunset: 'Coucher du Soleil (sur la barre de temps)', lgEarthset: 'Coucher de la Terre (sur la barre de temps)', lgFlags: 'A et B : dates d’atterrissage. La bande encadrée est la mission.',
       lgUp: 'Flèche verte : mieux que votre site', lgDown: 'Flèche rouge : moins bien que votre site', lgGrade: 'Note : part de la mission avec énergie et liaison (A est la meilleure). Pas une probabilité de réussite.',
@@ -2247,7 +2253,6 @@
     $('#v3dCaption').hidden = true; $('#v3dTour').textContent = t('vTour');
     setPlaying(false);
   }
-  $('#v3dTour').addEventListener('click', () => (tour ? stopTour() : startTour()));
 
   /* ---------- scenarios: site x touchdown x mission length */
   const SCEN_EXAMPLE = [
@@ -2520,6 +2525,7 @@
       ? `Part du temps au soleil sur la période, calculée avec le relief LOLA pour ${esc(P.name)} (centre) et 16 points à 250 m et 500 m. Au pôle, le Soleil est si bas qu’un petit relief voisin suffit à le cacher.`
       : `Share of the period in sunlight, computed with LOLA terrain at ${esc(P.name)} (centre) and 16 points 250 m and 500 m away. At the pole the Sun is so low that a small nearby rise is enough to hide it.`;
     const { ctx, w, h } = canvasSetup($('#lc5c'));
+    if (w < 70 || h < 70) return;   // the card is hidden or not laid out yet
     const cx = w / 2, cy = h / 2 + 2, R = Math.min(w, h) / 2 - 26, ramp = [cssv('--heat0'), cssv('--heat1'), cssv('--heat2'), cssv('--heat3')].map(hex2rgb);
     ctx.strokeStyle = cssv('--line'); ctx.lineWidth = 1;
     for (const r of [0.5, 1]) { ctx.beginPath(); ctx.arc(cx, cy, R * r, 0, 7); ctx.stroke(); }
@@ -2704,7 +2710,7 @@
     document.querySelectorAll('[data-i18n-title]').forEach(el => { const v = I18N[lang][el.dataset.i18nTitle]; if (v) el.title = v; });
     document.querySelectorAll('[data-i18n-aria]').forEach(el => { const v = I18N[lang][el.dataset.i18nAria]; if (v) { el.setAttribute('aria-label', v); el.title = v; } });
     $('#lang').textContent = lang === 'en' ? 'FR' : 'EN';
-    buildMethod(); renderMethod();
+    buildMethod(); renderMethod(); applyHelpI18n();
   }
   $('#lang').addEventListener('click', () => { lang = lang === 'en' ? 'fr' : 'en'; store.set('lang', lang); applyI18n(); renderAll(); });
   const reTheme = () => { refreshCss(); renderAll(); };
@@ -2712,6 +2718,434 @@
   new MutationObserver(reTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   let rz;
   new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { renderTab(); drawCursorTrack(); }, 80); }).observe(document.querySelector('.main'));
+
+  /* ---------- help: click-to-explain mode and a small built-in assistant (no AI model, no network) */
+  const HELP_TXT = {
+    en: {
+      mode: ['Simple / Advanced', 'Simple keeps the globe, the site card and the main choices. Advanced adds every graph, table, export and technical detail. Your site, date and flags stay when you switch.'],
+      lang: ['Language', 'Switches the whole interface between English and French.'],
+      search: ['Search a site', 'Type a name (Malapert, Apollo…) and pick a result: the site is selected and the globe turns to it.'],
+      ctx: ['Context strip', 'Always shows the active site, the date you are looking at, and whether the Sun and the Earth are visible from there. It follows the time bar. A 🚩 and a number of days appear when a landing flag is set.'],
+      sections: ['Four sections', 'Explore the Moon and one site · Compare sites or dates · Plan the best landing day · Learn the science and the method. You can move freely between them, and the arrow keys work too.'],
+      subnav: ['Views', 'A section can offer several views, for example the 3D globe or the 2D map. Advanced shows more of them.'],
+      scope: ['Whole Moon / South pole', 'Whole Moon shows all the sites on a globe lit by the real Sun. South pole shows the real LOLA terrain around the pole, where the Sun stays low and shadows decide everything.'],
+      view: ['Live / Heat map', 'Live shows the lighting at the chosen time. Heat map paints the terrain from red (poor) to blue (good) by the share of the mission window with power and an Earth link.'],
+      light: ['Light everywhere', 'Switches to a fictional, even light so you can see the terrain itself. It hides the real shadows and colours: it is not the real Sun.'],
+      best: ['Best site', 'Ranks the south-pole sites for your mission window and jumps to the best one.'],
+      tour: ['Guided tour', 'A short automatic tour of the main views, with captions.'],
+      overview: ['Overview', 'Puts the camera back to the default view.'],
+      sunview: ['Look toward the Sun', 'Moves the camera to see the terrain from the Sun side.'],
+      stand: ['Stand at the site', 'A first-person view from the surface of the chosen site, looking toward the Sun.'],
+      sitequick: ['Site list', 'Pick any site from the list: the globe and the card follow.'],
+      globe: ['The globe', 'Drag to rotate, scroll to zoom, click a dot to select a site, hover for its name and grade. Right-click the terrain to add your own site. A disc marks a zone with several sites: click it to zoom in.'],
+      spHead: ['Site card', 'The selected site and its grade (A to E). The round arrow folds the card to leave more room for the globe.'],
+      spRows: ['Sun, Earth, link', 'Is the Sun above the real horizon right now? Is the Earth? Can the site talk to a Deep Space Network antenna directly? Each line also says when it changes next.'],
+      spAnalyze: ['Analyze this site', 'Opens the site profile below: strengths, weaknesses and the hexagon of six scores.'],
+      spCompare: ['Compare this site', 'Asks what to compare it with: all sites, one site, or the same site on another date.'],
+      spAdv: ['Technical details', 'Advanced only: Sun and Earth heights and bearings, antennas in view, Earth phase and the window score.'],
+      flat: ['Fictional lighting', 'The terrain is drawn with an even, fictional light. Press "Light everywhere" again to return to the real Sun.'],
+      hint: ['Hint', 'How to move the globe. It fades after your first move.'],
+      legend3d: ['Colour legend', 'Explains the colours of the heat map: red is poor, blue is good.'],
+      profile: ['Site profile', 'Click the hexagon to see what each of the six scores means. Scores run from 0 to 100; higher is better.'],
+      flagA: ['Landing flag A', 'Your landing date. Drag it along the bar or use the arrow keys (Shift = 7 days). The outlined band is the mission window.'],
+      flagB: ['Date B', 'A second landing date to compare with A. Drag it to see how a delay changes the result.'],
+      track: ['Time bar', 'The coloured track shows the selected site over the whole period: green = power and link, yellow = Sun only, blue = link only, grey = dark. Triangles mark sunsets (top) and Earthsets (bottom). Click or drag to move in time.'],
+      play: ['Play', 'Plays time forward so you can watch the light move.'],
+      day: ['Day buttons', 'Move one day earlier or later.'],
+      date: ['Date menu', 'Opens the exact date, jumps to the next sunrise or sunset, and the mission controls: landing flag, length, shifts and date B.'],
+      cursorTime: ['Exact date', 'Type a UTC date and time to jump straight there.'],
+      jump: ['Sunrise / sunset jumps', 'Jumps to the next time the Sun rises or sets at the selected site.'],
+      msDays: ['Mission length', 'How many days the surface mission lasts. Grades, the heat map and the comparisons all use this window.'],
+      msSet: ['Set landing date', 'Drops flag A at the time you are looking at.'],
+      msAddB: ['Add date B', 'Adds a second flag a week after A so you can compare two dates.'],
+      msShift: ['Shift buttons', 'Move the landing date earlier or later by that many days.'],
+      msRes: ['Mission result', 'The share of the mission window with power and a direct link to the Earth.'],
+      cmpMode: ['Comparison mode', 'All sites ranks every site against yours. One site puts two side by side. Another date compares the same site on two landing dates.'],
+      cmpPin: ['Your site', 'The site you are comparing, with its rank and its numbers.'],
+      cmpList: ['Ranking', 'Every site with its numbers. A green ▲ means better than your site, a red ▼ worse. Click a row to compare side by side. ≈ marks a smooth horizon (less precise).'],
+      cmpTwo: ['Side by side', 'Each row is one measure for both sides; the last column is the difference.'],
+      cmpVerdict: ['Verdict', 'Which side keeps power and a link for longer. It is not an overall score: the lines below show the trade-offs.'],
+      cmpActions: ['Next steps', 'Look for a better landing date in Plan mission, or go back to explore the site.'],
+      pzStrip: ['Day-by-day strip', 'Every possible landing day for this site: green good, yellow fair, red poor, grey impossible. Click a day to place flag A there.'],
+      pzBest: ['Best days', 'The three best landing days. One click places the flag.'],
+      pzLeg: ['Strip legend', 'What the colours of the strip mean.'],
+      planAdv: ['Planner (Advanced)', 'A heat map and a table of landing opportunities for several sites, with your own rules.'],
+      accLegend: ['Legend', 'Explains the colours, triangles, flags, arrows and grades used in the tool.'],
+      accPeriod: ['Period', 'The first and last day the tool computes. The bar, the rankings and the plans all stay inside this period.'],
+      accRules: ['Constraints', 'Advanced: how much of the Sun must be visible, the Earth margin and the antenna elevation behind "lit" and "link".'],
+      accSites: ['Sites', 'Advanced: choose up to 8 sites for the tables, or add your own by coordinates.'],
+      learn: ['Learn', 'Six short explanations, computed live, about why the lunar south pole is hard.'],
+      method: ['Method', 'The data, the models, the validation and the limits of the tool.'],
+      timeline: ['Elevation view', 'Sun and Earth height above the real horizon over time.'],
+      sky: ['Horizon view', 'The 360° horizon seen from the site, with the paths of the Sun and the Earth.'],
+      map: ['Map 2D', 'Shaded relief of the pole with the sites; click to pick a place.'],
+      none: ['No help for this yet', 'This part has no explanation yet. Try the assistant (the robot button) or click another element.'],
+      f_hello: ['Assistant', 'Hello! I answer questions about this tool from its built-in help. Pick a question or type your own. I am not an AI model: I match your words to the help topics.'],
+      f_colours: ['Colours', 'The bar and the globe use four colours: green = Sun and a direct link to the Earth (the good case), yellow = Sun but no link, blue = link but in shadow, grey = dark and out of contact. The legend at the bottom of the page lists them all.'],
+      f_grade: ['The A to E grade', 'The grade is the share of the mission window with power and a link: A is 60% or more, B 45%, C 30%, D 15%, E below. It measures time, not the probability that a landing succeeds.'],
+      f_earth: ['Why the Earth disappears', 'Near the lunar south pole the Earth stays very low on the horizon. Hills can hide it, and as the Moon turns the Earth sinks behind the terrain: then there is no direct link. The Learn section shows it with live numbers.'],
+      f_flag: ['Set a landing date', 'Open the date menu on the time bar (the date button) and press "Set landing date". Then drag flag A along the bar, or use the arrow keys. The mission length is in the same menu.'],
+      f_compare: ['Compare', 'Press "Compare this site" on the site card, then choose: all sites, one site, or another date. In Compare you can also move date B to see how a delay changes the result.'],
+      f_plan: ['Best landing day', 'Open Plan mission: the strip shows every possible landing day for the site, and the three best days are buttons that place your landing flag.'],
+      f_addsite: ['Add a site', 'Right-click the terrain on the globe, name the place and add it. In Advanced you can also type coordinates in the Sites panel. Sites outside the south pole have no terrain data, so their horizon is smooth and less precise.'],
+      f_moon: ['Whole Moon', 'Whole Moon shows all sites on a globe lit by the real Sun, with discs on zones that hold several sites. The surface texture is illustrative; the south pole cap is real LOLA relief.'],
+      f_data: ['Data and sources', 'Terrain comes from NASA LRO LOLA. Sun, Earth and Moon positions come from an astronomy library checked against NASA JPL Horizons. The Method page lists data, models, validation and limits.'],
+      f_accuracy: ['How precise is it?', 'Positions match JPL Horizons to within 0.007°. Sites without LOLA data use a smooth horizon and are less precise (marked ≈).'],
+      f_export: ['Export', 'In Advanced, the Compare section has buttons to copy or download a CSV and a calendar (.ics) of the power-and-link windows.'],
+      f_dsn: ['Direct link', 'A direct link needs the Earth above the horizon with a safety margin, and at least one Deep Space Network antenna (Goldstone, Madrid or Canberra) seeing the Moon.'],
+      f_triangles: ['Triangles on the bar', 'On the time bar, a yellow ▼ marks a sunset and a blue ▲ an Earthset at the selected site.'],
+      f_unknown: ['I do not know that yet', 'I could not match your question to a help topic. Try one of the questions below, or click the pointer button and then any part of the page.']
+    },
+    fr: {
+      mode: ['Simple / Avancé', 'Simple garde le globe, la fiche du site et les choix principaux. Avancé ajoute tous les graphiques, tableaux, exports et détails techniques. Votre site, votre date et vos drapeaux restent quand vous changez.'],
+      lang: ['Langue', 'Passe toute l’interface de l’anglais au français, et inversement.'],
+      search: ['Chercher un site', 'Tapez un nom (Malapert, Apollo…) et choisissez un résultat : le site est sélectionné et le globe se tourne vers lui.'],
+      ctx: ['Bandeau de contexte', 'Montre toujours le site actif, la date regardée, et si le Soleil et la Terre sont visibles depuis ce site. Il suit la barre de temps. Un 🚩 et un nombre de jours apparaissent quand un drapeau d’atterrissage est posé.'],
+      sections: ['Quatre sections', 'Explorer la Lune et un site · Comparer des sites ou des dates · Planifier le meilleur jour d’atterrissage · Comprendre la science et la méthode. On passe librement de l’une à l’autre, les flèches du clavier aussi.'],
+      subnav: ['Vues', 'Une section peut proposer plusieurs vues, par exemple le globe 3D ou la carte 2D. Le mode Avancé en montre davantage.'],
+      scope: ['Toute la Lune / Pôle sud', 'Toute la Lune montre tous les sites sur un globe éclairé par le vrai Soleil. Pôle sud montre le vrai relief LOLA autour du pôle, où le Soleil reste bas et où les ombres décident de tout.'],
+      view: ['Direct / Carte thermique', 'Direct montre l’éclairage à l’heure choisie. La carte thermique colore le relief du rouge (mauvais) au bleu (bon) selon la part de la fenêtre de mission avec énergie et liaison.'],
+      light: ['Lumière partout', 'Passe à une lumière fictive et uniforme pour voir le relief lui-même. Cela masque les vraies ombres et couleurs : ce n’est pas le vrai Soleil.'],
+      best: ['Meilleur site', 'Classe les sites du pôle sud pour votre fenêtre de mission et saute au meilleur.'],
+      tour: ['Visite guidée', 'Un court tour automatique des vues principales, avec des légendes.'],
+      overview: ['Vue d’ensemble', 'Remet la caméra dans la vue par défaut.'],
+      sunview: ['Regarder vers le Soleil', 'Déplace la caméra pour voir le relief du côté du Soleil.'],
+      stand: ['Se placer sur le site', 'Une vue à la première personne depuis la surface du site choisi, tournée vers le Soleil.'],
+      sitequick: ['Liste des sites', 'Choisissez n’importe quel site : le globe et la fiche suivent.'],
+      globe: ['Le globe', 'Glissez pour tourner, molette pour zoomer, cliquez sur un point pour choisir un site, survolez-le pour voir son nom et sa note. Clic droit sur le relief pour ajouter votre site. Un disque marque une zone avec plusieurs sites : cliquez pour zoomer.'],
+      spHead: ['Fiche du site', 'Le site choisi et sa note (de A à E). La flèche ronde replie la fiche pour laisser de la place au globe.'],
+      spRows: ['Soleil, Terre, liaison', 'Le Soleil est-il au-dessus du vrai horizon en ce moment ? Et la Terre ? Le site peut-il parler directement à une antenne du Deep Space Network ? Chaque ligne dit aussi quand cela change.'],
+      spAnalyze: ['Analyser ce site', 'Ouvre le profil du site plus bas : points forts, points faibles et hexagone de six scores.'],
+      spCompare: ['Comparer ce site', 'Demande avec quoi le comparer : tous les sites, un site, ou le même site à une autre date.'],
+      spAdv: ['Détails techniques', 'Avancé seulement : hauteurs et azimuts du Soleil et de la Terre, antennes en vue, phase de la Terre et score de la fenêtre.'],
+      flat: ['Éclairage fictif', 'Le relief est dessiné avec une lumière uniforme et fictive. Appuyez de nouveau sur « Lumière partout » pour revenir au vrai Soleil.'],
+      hint: ['Astuce', 'Comment bouger le globe. Elle disparaît après votre premier geste.'],
+      legend3d: ['Légende des couleurs', 'Explique les couleurs de la carte thermique : rouge mauvais, bleu bon.'],
+      profile: ['Profil du site', 'Cliquez sur l’hexagone pour voir ce que veut dire chacun des six scores. Les scores vont de 0 à 100 ; plus c’est haut, mieux c’est.'],
+      flagA: ['Drapeau d’atterrissage A', 'Votre date d’atterrissage. Faites-le glisser sur la barre ou utilisez les flèches du clavier (Maj = 7 jours). La bande encadrée est la fenêtre de la mission.'],
+      flagB: ['Date B', 'Une seconde date d’atterrissage à comparer avec A. Faites-la glisser pour voir comment un retard change le résultat.'],
+      track: ['Barre de temps', 'La piste colorée montre le site choisi sur toute la période : vert = énergie et liaison, jaune = Soleil seul, bleu = liaison seule, gris = noir. Les triangles marquent les couchers du Soleil (en haut) et de la Terre (en bas). Cliquez ou glissez pour voyager dans le temps.'],
+      play: ['Lecture', 'Fait avancer le temps pour voir la lumière bouger.'],
+      day: ['Boutons jour', 'Reculent ou avancent d’un jour.'],
+      date: ['Menu de date', 'Ouvre la date exacte, les sauts vers le prochain lever ou coucher du Soleil, et les réglages de mission : drapeau, durée, décalages et date B.'],
+      cursorTime: ['Date exacte', 'Tapez une date et une heure UTC pour y aller directement.'],
+      jump: ['Sauts lever / coucher', 'Saute au prochain lever ou coucher du Soleil sur le site choisi.'],
+      msDays: ['Durée de la mission', 'Le nombre de jours de la mission en surface. Les notes, la carte thermique et les comparaisons utilisent cette fenêtre.'],
+      msSet: ['Poser la date d’atterrissage', 'Pose le drapeau A à l’instant que vous regardez.'],
+      msAddB: ['Ajouter la date B', 'Ajoute un second drapeau une semaine après A pour comparer deux dates.'],
+      msShift: ['Boutons de décalage', 'Décalent la date d’atterrissage de ce nombre de jours, avant ou après.'],
+      msRes: ['Résultat de la mission', 'La part de la fenêtre de mission avec énergie et liaison directe avec la Terre.'],
+      cmpMode: ['Mode de comparaison', 'Tous les sites classe chaque site par rapport au vôtre. Un site en met deux côte à côte. Autre date compare le même site à deux dates d’atterrissage.'],
+      cmpPin: ['Votre site', 'Le site que vous comparez, avec son rang et ses chiffres.'],
+      cmpList: ['Classement', 'Chaque site avec ses chiffres. ▲ vert veut dire mieux que votre site, ▼ rouge moins bien. Cliquez sur une ligne pour comparer côte à côte. ≈ marque un horizon lisse (moins précis).'],
+      cmpTwo: ['Côte à côte', 'Chaque ligne est une mesure pour les deux côtés ; la dernière colonne est l’écart.'],
+      cmpVerdict: ['Verdict', 'Quel côté garde énergie et liaison le plus longtemps. Ce n’est pas un score global : les lignes dessous montrent les compromis.'],
+      cmpActions: ['Étapes suivantes', 'Chercher une meilleure date dans Planifier la mission, ou retourner explorer le site.'],
+      pzStrip: ['Bande jour par jour', 'Chaque jour d’atterrissage possible pour ce site : vert bon, jaune moyen, rouge mauvais, gris impossible. Cliquez sur un jour pour y poser le drapeau A.'],
+      pzBest: ['Meilleurs jours', 'Les trois meilleurs jours d’atterrissage. Un clic pose le drapeau.'],
+      pzLeg: ['Légende de la bande', 'Ce que veulent dire les couleurs de la bande.'],
+      planAdv: ['Planificateur (Avancé)', 'Une carte thermique et un tableau des occasions d’atterrissage pour plusieurs sites, avec vos propres règles.'],
+      accLegend: ['Légende', 'Explique les couleurs, triangles, drapeaux, flèches et notes utilisés dans l’outil.'],
+      accPeriod: ['Période', 'Le premier et le dernier jour calculés. La barre, les classements et les plans restent dans cette période.'],
+      accRules: ['Contraintes', 'Avancé : la part du Soleil qui doit être visible, la marge sur la Terre et l’élévation d’antenne derrière « éclairé » et « liaison ».'],
+      accSites: ['Sites', 'Avancé : choisissez jusqu’à 8 sites pour les tableaux, ou ajoutez les vôtres par coordonnées.'],
+      learn: ['Comprendre', 'Six courtes explications, calculées en direct, sur la difficulté du pôle sud lunaire.'],
+      method: ['Méthode', 'Les données, les modèles, la validation et les limites de l’outil.'],
+      timeline: ['Vue Élévation', 'Hauteur du Soleil et de la Terre au-dessus du vrai horizon au fil du temps.'],
+      sky: ['Vue Horizon', 'L’horizon à 360° vu depuis le site, avec les trajectoires du Soleil et de la Terre.'],
+      map: ['Carte 2D', 'Relief ombré du pôle avec les sites ; cliquez pour choisir un endroit.'],
+      none: ['Pas encore d’aide ici', 'Cette partie n’a pas encore d’explication. Essayez l’assistant (le bouton robot) ou cliquez sur un autre élément.'],
+      f_hello: ['Assistant', 'Bonjour ! Je réponds aux questions sur cet outil à partir de son aide intégrée. Choisissez une question ou tapez la vôtre. Je ne suis pas un modèle d’IA : je rapproche vos mots des sujets d’aide.'],
+      f_colours: ['Les couleurs', 'La barre et le globe utilisent quatre couleurs : vert = Soleil et liaison directe avec la Terre (le bon cas), jaune = Soleil sans liaison, bleu = liaison mais dans l’ombre, gris = noir et sans contact. La légende en bas de page les liste toutes.'],
+      f_grade: ['La note de A à E', 'La note est la part de la fenêtre de mission avec énergie et liaison : A à 60 % ou plus, B 45 %, C 30 %, D 15 %, E en dessous. Elle mesure du temps, pas la probabilité de réussir un atterrissage.'],
+      f_earth: ['Pourquoi la Terre disparaît', 'Près du pôle sud lunaire, la Terre reste très basse sur l’horizon. Des reliefs peuvent la cacher, et quand la Lune tourne la Terre passe derrière le terrain : il n’y a alors plus de liaison directe. La section Comprendre le montre avec des chiffres en direct.'],
+      f_flag: ['Poser une date d’atterrissage', 'Ouvrez le menu de date sur la barre de temps (le bouton de date) et appuyez sur « Poser la date d’atterrissage ». Puis faites glisser le drapeau A sur la barre, ou utilisez les flèches du clavier. La durée de mission est dans le même menu.'],
+      f_compare: ['Comparer', 'Appuyez sur « Comparer ce site » sur la fiche du site, puis choisissez : tous les sites, un site, ou une autre date. Dans Comparer, vous pouvez aussi déplacer la date B pour voir comment un retard change le résultat.'],
+      f_plan: ['Meilleur jour d’atterrissage', 'Ouvrez Planifier la mission : la bande montre chaque jour d’atterrissage possible pour le site, et les trois meilleurs jours sont des boutons qui posent votre drapeau.'],
+      f_addsite: ['Ajouter un site', 'Faites un clic droit sur le relief du globe, nommez l’endroit et ajoutez-le. En Avancé, vous pouvez aussi saisir des coordonnées dans le panneau Sites. Hors du pôle sud il n’y a pas de données de relief : l’horizon est lisse et moins précis.'],
+      f_moon: ['Toute la Lune', 'Toute la Lune montre tous les sites sur un globe éclairé par le vrai Soleil, avec des disques sur les zones qui regroupent plusieurs sites. La texture de surface est illustrative ; la calotte du pôle sud est le vrai relief LOLA.'],
+      f_data: ['Données et sources', 'Le relief vient de LOLA (NASA LRO). Les positions du Soleil, de la Terre et de la Lune viennent d’une bibliothèque d’astronomie vérifiée contre JPL Horizons de la NASA. La page Méthode liste données, modèles, validation et limites.'],
+      f_accuracy: ['Quelle précision ?', 'Les positions concordent avec JPL Horizons à 0,007° près. Les sites sans données LOLA utilisent un horizon lisse et sont moins précis (marqués ≈).'],
+      f_export: ['Exporter', 'En Avancé, la section Comparer a des boutons pour copier ou télécharger un CSV et un calendrier (.ics) des fenêtres d’énergie et de liaison.'],
+      f_dsn: ['Liaison directe', 'Une liaison directe demande la Terre au-dessus de l’horizon avec une marge, et au moins une antenne du Deep Space Network (Goldstone, Madrid ou Canberra) qui voit la Lune.'],
+      f_triangles: ['Triangles sur la barre', 'Sur la barre de temps, un ▼ jaune marque un coucher du Soleil et un ▲ bleu un coucher de la Terre sur le site choisi.'],
+      f_unknown: ['Je ne sais pas encore', 'Je n’ai pas trouvé de sujet d’aide qui corresponde à votre question. Essayez une des questions ci-dessous, ou cliquez sur le bouton pointeur puis sur une partie de la page.']
+    }
+  };
+  /* what each part of the page is: first match wins, most specific first */
+  const HELP_MAP = [
+    ['#helpBtn, #chatBtn', 'none'], ['#modeSwitch', 'mode'], ['#lang', 'lang'], ['.search', 'search'], ['#ctxBar', 'ctx'], ['#sections', 'sections'], ['#subnav', 'subnav'],
+    ['#v3dScope', 'scope'], ['#v3dView', 'view'], ['#v3dLight', 'light'], ['#bestBtn', 'best'], ['#v3dTour', 'tour'], ['#v3dOverview', 'overview'], ['#v3dSunView', 'sunview'], ['#v3dStand', 'stand'], ['.site-quick', 'sitequick'],
+    ['[data-sp="analyze"]', 'spAnalyze'], ['[data-sp="compare"]', 'spCompare'], ['.sp-head', 'spHead'], ['.sp-row', 'spRows'], ['.sp-adv', 'spAdv'],
+    ['#v3dFlatTag', 'flat'], ['#v3dHint', 'hint'], ['#v3dLegend', 'legend3d'], ['#v3dStage', 'globe'], ['#accProfile', 'profile'],
+    ['#lmFlag', 'flagA'], ['#lmFlagB', 'flagB'], ['#play', 'play'], ['#dayBack, #dayFwd', 'day'], ['#cbDate', 'date'], ['#cursorTime', 'cursorTime'], ['#jumpSunrise, #jumpSunset', 'jump'],
+    ['#msDays, .ms-dur', 'msDays'], ['[data-ms="set"]', 'msSet'], ['[data-ms="addB"]', 'msAddB'], ['[data-ms-shift], [data-dt-shift]', 'msShift'], ['.ms-res', 'msRes'], ['#cbTrack', 'track'], ['.cursor-bar', 'track'],
+    ['#cmpFocus .seg', 'cmpMode'], ['.cf-pin', 'cmpPin'], ['.cf-list', 'cmpList'], ['.cf-two', 'cmpTwo'], ['.cf-verdict, .cf-why', 'cmpVerdict'], ['.cf-actions', 'cmpActions'],
+    ['.pz-strip', 'pzStrip'], ['.pz-best', 'pzBest'], ['.pz-leg', 'pzLeg'], ['#view-plan', 'planAdv'],
+    ['#accLegend', 'accLegend'], ['#accPeriod', 'accPeriod'], ['#accRules', 'accRules'], ['#accSites', 'accSites'],
+    ['#view-learn', 'learn'], ['#view-method', 'method'], ['#view-timeline', 'timeline'], ['#view-sky', 'sky'], ['#view-map', 'map']
+  ];
+  const helpOf = key => (HELP_TXT[lang] && HELP_TXT[lang][key]) || HELP_TXT.en[key] || HELP_TXT.en.none;
+  function helpKeyFor(el) {
+    for (const [sel, key] of HELP_MAP) { const m = el.closest(sel); if (m) return { el: m, key }; }
+    return null;
+  }
+  /* spotlight: everything dims except the part being explained, with a card next to it */
+  let helpOn = false, spotEl = null, spotEls = [], spotCenter = false;
+  function spotRect() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    if (spotCenter) return { left: vw / 2, top: vh / 2 - 60, right: vw / 2, bottom: vh / 2 - 60, width: 0, height: 0 };
+    const rs = (spotEls.length ? spotEls : [spotEl]).map(e => e.getBoundingClientRect()).filter(r => r.width || r.height);
+    if (!rs.length) return null;
+    const l = Math.min(...rs.map(r => r.left)), tp = Math.min(...rs.map(r => r.top)), rt = Math.max(...rs.map(r => r.right)), bt = Math.max(...rs.map(r => r.bottom));
+    return { left: l, top: tp, right: rt, bottom: bt, width: rt - l, height: bt - tp };
+  }
+  function placeSpot() {
+    const spot = $('#helpSpot'), card = $('#helpCard');
+    if (!spotEl || !document.body.contains(spotEl)) { spot.hidden = true; card.hidden = true; return; }
+    const r = spotRect(), pad = 6, vw = window.innerWidth, vh = window.innerHeight;
+    if (!r) { spot.hidden = true; card.hidden = true; return; }
+    Object.assign(spot.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + 2 * pad + 'px', height: r.height + 2 * pad + 'px' });
+    spot.hidden = false; card.hidden = false;
+    const cw = Math.min(tourOn() ? 400 : 340, vw - 24), ch = card.offsetHeight || 150;
+    card.style.width = cw + 'px';
+    if (r.height > vh * 0.5 && r.width > vw * 0.5) {   // a big part (the globe): put the card inside it, top right
+      card.style.top = Math.max(10, r.top + 16) + 'px';
+      card.style.left = Math.max(12, Math.min(vw - cw - 12, r.right - cw - 16)) + 'px';
+      return;
+    }
+    let top = r.bottom + 14;
+    if (top + ch > vh - 10) top = r.top - ch - 14;
+    if (top < 10) top = Math.max(10, Math.min(vh - ch - 10, r.top + 12));
+    card.style.top = top + 'px';
+    card.style.left = Math.max(12, Math.min(vw - cw - 12, r.left + r.width / 2 - cw / 2)) + 'px';
+  }
+  function showSpot(el, key) {
+    const [title, text] = helpOf(key);
+    spotEl = el; spotEls = []; spotCenter = false;
+    $('#helpCardTitle').textContent = title; $('#helpCardText').textContent = text;
+    $('#helpExit').hidden = !helpOn;
+    const b = $('#helpBanner'); b.hidden = true;
+    placeSpot();
+    $('#helpOk').focus({ preventScroll: true });
+  }
+  function hideSpot() { spotEl = null; spotEls = []; spotCenter = false; $('#helpSpot').hidden = true; $('#helpCard').hidden = true; if (helpOn) $('#helpBanner').hidden = false; }
+  function setHelp(on) {
+    helpOn = on; document.body.classList.toggle('help-on', on);
+    $('#helpBtn').setAttribute('aria-pressed', String(on));
+    spotEl = null; $('#helpSpot').hidden = true; $('#helpCard').hidden = true;
+    $('#helpBanner').hidden = !on; $('#helpBanner').textContent = t('helpBanner');
+    if (on) { $('#chat').hidden = true; $('#chatBtn').setAttribute('aria-expanded', 'false'); }
+  }
+  function helpBlock(e) {
+    if ((!helpOn && !tourOn()) || e.target.closest('#helpCard, #helpBanner, #helpBtn, #chat, #chatBtn, #v3dTour')) return;
+    if (tourOn() && !e.isTrusted) return;   // the tour drives the page itself
+    e.preventDefault(); e.stopPropagation();
+    if (e.type === 'click' && helpOn) {
+      const hit = helpKeyFor(e.target);
+      showSpot(hit ? hit.el : e.target, hit ? hit.key : 'none');
+    }
+  }
+  ['click', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'dblclick'].forEach(ev => document.addEventListener(ev, helpBlock, true));
+  $('#helpBtn').addEventListener('click', () => setHelp(!helpOn));
+  $('#helpOk').addEventListener('click', hideSpot);
+  $('#helpExit').addEventListener('click', () => setHelp(false));
+  $('#helpAsk').addEventListener('click', () => { const k = spotEl; hideSpot(); setHelp(false); openChat(); });
+  window.addEventListener('scroll', () => { if (spotEl) placeSpot(); }, { passive: true });
+  window.addEventListener('resize', () => { if (spotEl) placeSpot(); });
+  document.addEventListener('keydown', e => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || '')) || e.target.isContentEditable;
+    if (e.key === '?' && !typing && !tourOn()) { e.preventDefault(); setHelp(!helpOn); }
+    else if (e.key === 'Escape') {
+      if (tourOn()) endSiteTour(); else if (spotEl) hideSpot(); else if (helpOn) setHelp(false); else if (!$('#chat').hidden) closeChat();
+    }
+  });
+
+  /* ---------- site-wide guided tour: about 30 s, each stop dims the page and lights one part (made for a screen recording) */
+  const TOUR_TXT = {
+    en: {
+      sections: ['Four sections', 'Explore · Compare · Plan · Learn. From first look to a landing plan.'],
+      modes: ['Simple or Advanced', 'Simple for everyone. Advanced adds graphs, tables and exports.'],
+      moon: ['The whole Moon', 'Lit by the real Sun. 26 landing sites; hover one for its grade.'],
+      card: ['Sun, Earth, link', 'In plain words: is the Sun up, is the Earth visible, and when does it change?'],
+      heat: ['Heat map', 'Red is poor, blue is good: where a mission keeps power and a link.'],
+      light: ['Light everywhere', 'A fictional even light, to see the terrain itself.'],
+      bar: ['Time bar', 'Green: power and link. Triangles: sunsets. Press play to watch the light move.'],
+      flags: ['Landing dates', 'Drop flags A and B, drag them: the mission window updates live.'],
+      compare: ['Compare, with reasons', 'All sites, one site, or one site on two dates, with ▲ ▼ and why.'],
+      plan: ['Best landing day', 'Every possible day, green to red. One click sets the flag.'],
+      learn: ['Learn and Method', 'Why the pole is hard, and the data and limits behind every number.'],
+      help: ['Need help?', 'Click the pointer, then anything, for an explanation. Or ask the assistant.'],
+      end: ['CLPS Lunar Mission Browser', 'Compare lunar landing sites and dates, on real NASA terrain.']
+    },
+    fr: {
+      sections: ['Quatre sections', 'Explorer · Comparer · Planifier · Comprendre. Du premier regard au plan d’atterrissage.'],
+      modes: ['Simple ou Avancé', 'Simple pour tous. Avancé ajoute graphiques, tableaux et exports.'],
+      moon: ['Toute la Lune', 'Éclairée par le vrai Soleil. 26 sites ; survolez-en un pour sa note.'],
+      card: ['Soleil, Terre, liaison', 'En clair : le Soleil est-il levé, la Terre visible, et quand cela change-t-il ?'],
+      heat: ['Carte thermique', 'Rouge mauvais, bleu bon : où une mission garde énergie et liaison.'],
+      light: ['Lumière partout', 'Une lumière fictive et uniforme, pour voir le relief lui-même.'],
+      bar: ['Barre de temps', 'Vert : énergie et liaison. Triangles : couchers. Lecture pour voir la lumière bouger.'],
+      flags: ['Dates d’atterrissage', 'Posez les drapeaux A et B, faites-les glisser : la mission se met à jour.'],
+      compare: ['Comparer, avec les raisons', 'Tous les sites, un site, ou un site à deux dates, avec ▲ ▼ et pourquoi.'],
+      plan: ['Meilleur jour d’atterrissage', 'Chaque jour possible, du vert au rouge. Un clic pose le drapeau.'],
+      learn: ['Comprendre et méthode', 'Pourquoi le pôle est difficile, et les données et limites derrière chaque chiffre.'],
+      help: ['Besoin d’aide ?', 'Cliquez sur le pointeur, puis sur n’importe quoi, pour une explication. Ou demandez à l’assistant.'],
+      end: ['CLPS Lunar Mission Browser', 'Comparez des sites et des dates d’atterrissage lunaire, sur le vrai relief de la NASA.']
+    }
+  };
+  let siteTour = null;
+  const tourOn = () => !!siteTour;
+  /* one stop = what to do, what to light, how long to stay (settling time included) */
+  const TOUR_STEPS = [
+    { k: 'sections', ms: 2000, els: ['#sections'], pre: () => { showTab('3d'); } },
+    { k: 'modes', ms: 2100, els: ['#modeSwitch'] },
+    { k: 'moon', ms: 2600, els: ['#v3dStage'], pre: async () => { setRegionUI('moon'); if (v3d) v3d.view('overview', null, 1); } },
+    { k: 'card', ms: 2600, els: ['#sitePanel'], pre: () => { if (site('m1')) setFocus('m1'); spOpen = true; spLast = ''; update3D(); } },
+    { k: 'heat', ms: 2600, els: ['#v3dView'], pre: () => { setRegionUI('south'); if (v3d) v3d.view('overview', null, 1); const b = document.querySelector('#v3dView [data-view="heat"]'); if (b) b.click(); } },
+    { k: 'light', ms: 2100, els: ['#v3dLight'], pre: () => { const b = document.querySelector('#v3dView [data-view="live"]'); if (b) b.click(); if (!flat) $('#v3dLight').click(); } },
+    { k: 'bar', ms: 2600, els: ['#cbTrack'], pre: () => { if (flat) $('#v3dLight').click(); setPlaying(true); } },
+    { k: 'flags', ms: 2400, els: ['.cursor-bar'], pre: () => { setPlaying(false); setMissionTime('landing', timeOf(Math.min(state.grid.n - 2, Math.round(state.grid.n * 0.2))), true); addDateB(); } },
+    { k: 'compare', ms: 2600, els: ['#cmpFocus'], pre: () => { state.cmp.mode = 'dates'; showTab('compare'); renderCmpFocus(); } },
+    { k: 'plan', ms: 2200, els: ['#planEasy'], pre: () => { showTab('plan'); } },
+    { k: 'learn', ms: 2100, els: ['.learn-intro'], pre: () => { showTab('learn'); } },
+    { k: 'help', ms: 2000, els: ['#helpBtn', '#chatBtn'], pre: () => { showTab('3d'); } },
+    { k: 'end', ms: 1600, els: [], pre: () => { showTab('3d'); } }
+  ];
+  function endSiteTour() {
+    if (!siteTour) return;
+    const S = siteTour; siteTour = null; clearTimeout(S.timer);
+    document.body.classList.remove('tour-on');
+    $('#helpCard').classList.remove('tour'); hideSpot();
+    setPlaying(false);
+    // put everything back as the visitor had it
+    state.mission = S.snap.mission; saveMission();
+    if (S.snap.flat !== flat) $('#v3dLight').click();
+    const heatBtn = document.querySelector(`#v3dView [data-view="${S.snap.heat ? 'heat' : 'live'}"]`); if (heatBtn) heatBtn.click();
+    if (S.snap.mode !== mode) setMode(S.snap.mode);
+    setRegionUI(S.snap.region); spOpen = S.snap.spOpen; spLast = '';
+    state.cmp.mode = S.snap.cmp;
+    if (site(S.snap.focus)) setFocus(S.snap.focus);
+    setCursor(S.snap.cursor); showTab(S.snap.tab);
+    afterMissionChange();
+    $('#v3dTour').textContent = t('vTour');
+  }
+  function scrollForTour(el) {
+    const r = el.getBoundingClientRect(), vh = window.innerHeight;
+    if (r.top >= 70 && r.bottom <= vh - 10) return;
+    window.scrollBy(0, r.height > vh - 160 ? r.top - 110 : r.top + r.height / 2 - vh / 2);
+  }
+  async function tourStep(k) {
+    const S = siteTour; if (!S) return;
+    if (k >= TOUR_STEPS.length) { endSiteTour(); return; }
+    const st = TOUR_STEPS[k];
+    S.k = k;
+    window.scrollTo(0, 0);
+    try { if (st.pre) await st.pre(); } catch (e) { /* a step must never stop the tour */ }
+    if (!siteTour) return;
+    setTimeout(() => {
+      if (!siteTour || siteTour !== S || S.k !== k) return;
+      const els = st.els.map(s => document.querySelector(s)).filter(e => e && e.getBoundingClientRect().width);
+      if (els[0]) scrollForTour(els[0]);
+      const [title, text] = (TOUR_TXT[lang] || TOUR_TXT.en)[st.k];
+      spotEls = els; spotCenter = !els.length;
+      $('#helpCardTitle').textContent = title; $('#helpCardText').textContent = text;
+      $('#helpTourN').textContent = `${k + 1} / ${TOUR_STEPS.length}`;
+      spotEl = els[0] || document.body;
+      placeSpot();
+    }, 380);
+    S.timer = setTimeout(() => tourStep(k + 1), st.ms);
+  }
+  function startSiteTour() {
+    if (siteTour) return;
+    if (!state.grid) { toast(t('computing')); return; }
+    setHelp(false); $('#chat').hidden = true;
+    siteTour = { k: 0, timer: 0, snap: { mode, tab: state.tab, region: $('#v3dRegion').value, heat: heatWin, flat, mission: JSON.parse(JSON.stringify(state.mission)), cursor: state.cursor, focus: state.focus, spOpen, cmp: state.cmp.mode } };
+    document.body.classList.add('tour-on');
+    $('#helpCard').classList.add('tour'); $('#helpBanner').hidden = true;
+    $('#v3dTour').textContent = t('vTourStop');
+    if (mode !== 'simple') setMode('simple');
+    if (flat) $('#v3dLight').click();                      // start from the real Sun
+    if (heatWin) { const lv = document.querySelector('#v3dView [data-view="live"]'); if (lv) lv.click(); }
+    setCursor(0);
+    tourStep(0);
+  }
+  $('#v3dTour').addEventListener('click', () => (siteTour ? endSiteTour() : startSiteTour()));
+  $('#helpTourStop').addEventListener('click', endSiteTour);
+
+  /* the assistant: matches the words of a question to a help topic (works offline) */
+  const FAQ = [
+    { id: 'f_colours', kw: ['color', 'colour', 'couleur', 'legend', 'legende', 'green', 'vert', 'yellow', 'jaune', 'blue', 'bleu', 'grey', 'gray', 'gris', 'signifie', 'mean'], q: { en: 'What do the colours mean?', fr: 'Que veulent dire les couleurs ?' }, sel: '#accLegend' },
+    { id: 'f_grade', kw: ['grade', 'note', 'score', 'letter', 'lettre', 'probability', 'probabilite', 'success', 'reussite'], q: { en: 'What is the A to E grade?', fr: 'Que veut dire la note de A à E ?' }, sel: '.sp-head' },
+    { id: 'f_earth', kw: ['earth', 'terre', 'hidden', 'cache', 'disappear', 'disparait', 'horizon', 'visible', 'why', 'pourquoi', 'hide'], q: { en: 'Why does the Earth disappear?', fr: 'Pourquoi la Terre disparaît-elle ?' }, tab: 'learn' },
+    { id: 'f_flag', kw: ['flag', 'drapeau', 'landing', 'atterrissage', 'date', 'set', 'poser', 'duration', 'duree', 'length', 'mission', 'days', 'jours'], q: { en: 'How do I set a landing date?', fr: 'Comment poser une date d’atterrissage ?' }, sel: '#cbDate' },
+    { id: 'f_compare', kw: ['compare', 'comparer', 'comparison', 'comparaison', 'versus', 'two', 'deux', 'another', 'autre', 'difference', 'ecart'], q: { en: 'How do I compare sites or dates?', fr: 'Comment comparer des sites ou des dates ?' }, tab: 'compare', sel: '#cmpFocus' },
+    { id: 'f_plan', kw: ['best', 'meilleur', 'day', 'jour', 'plan', 'planifier', 'when', 'quand', 'land', 'atterrir', 'window', 'fenetre'], q: { en: 'What is the best day to land?', fr: 'Quel est le meilleur jour pour atterrir ?' }, tab: 'plan', sel: '#planEasy' },
+    { id: 'f_addsite', kw: ['add', 'ajouter', 'new', 'nouveau', 'site', 'right', 'droit', 'click', 'clic', 'coordinates', 'coordonnees', 'own', 'custom'], q: { en: 'How do I add my own site?', fr: 'Comment ajouter mon propre site ?' }, tab: '3d', sel: '#v3dStage' },
+    { id: 'f_moon', kw: ['moon', 'lune', 'globe', 'zone', 'disc', 'disque', 'whole', 'toute', 'texture'], q: { en: 'What does “Whole Moon” show?', fr: 'Que montre « Toute la Lune » ?' }, tab: '3d', sel: '#v3dScope' },
+    { id: 'f_data', kw: ['data', 'donnees', 'source', 'sources', 'lola', 'nasa', 'ephemeris', 'ephemerides', 'method', 'methode', 'where'], q: { en: 'Where does the data come from?', fr: 'D’où viennent les données ?' }, tab: 'method' },
+    { id: 'f_accuracy', kw: ['precise', 'precision', 'accurate', 'accuracy', 'fiable', 'reliable', 'validation', 'error', 'erreur', 'trust'], q: { en: 'How precise is it?', fr: 'Quelle précision ?' }, tab: 'method' },
+    { id: 'f_export', kw: ['export', 'csv', 'calendar', 'calendrier', 'ics', 'download', 'telecharger'], q: { en: 'Can I export the results?', fr: 'Puis-je exporter les résultats ?' } },
+    { id: 'f_dsn', kw: ['dsn', 'antenna', 'antenne', 'link', 'liaison', 'communication', 'radio', 'direct'], q: { en: 'What is the direct link?', fr: 'Qu’est-ce que la liaison directe ?' }, sel: '.sp-row' },
+    { id: 'f_triangles', kw: ['triangle', 'triangles', 'sunset', 'earthset', 'coucher', 'sunrise', 'lever', 'arrow', 'fleche', 'bar', 'barre'], q: { en: 'What are the triangles on the bar?', fr: 'À quoi servent les triangles de la barre ?' }, sel: '#cbTrack' },
+    { id: 'mode', kw: ['simple', 'advanced', 'avance', 'mode', 'expert'], q: { en: 'Simple or Advanced?', fr: 'Simple ou Avancé ?' }, sel: '#modeSwitch' },
+    { id: 'light', kw: ['light', 'lumiere', 'lighting', 'eclairage', 'fictional', 'fictif', 'shadow', 'ombre'], q: { en: 'What is “Light everywhere”?', fr: 'Que fait « Lumière partout » ?' }, sel: '#v3dLight' },
+    { id: 'view', kw: ['heat', 'thermique', 'red', 'rouge', 'carte'], q: { en: 'What is the heat map?', fr: 'Qu’est-ce que la carte thermique ?' }, tab: '3d', sel: '#v3dView' }
+  ];
+  const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function answerFor(text) {
+    const tok = norm(text).split(/[^a-z0-9]+/).filter(w => w.length >= 3);
+    if (!tok.length) return null;
+    let best = null, bs = 0;
+    for (const f of FAQ) {
+      let sc = 0;
+      for (const w of tok) if (f.kw.some(k => k === w || (w.length >= 5 && (k.startsWith(w) || w.startsWith(k) && k.length >= 5)))) sc++;
+      if (sc > bs) { bs = sc; best = f; }
+    }
+    return bs > 0 ? best : null;
+  }
+  let chatShown = false;
+  function chatAdd(who, html) {
+    const d = document.createElement('div'); d.className = 'ch-msg ' + who; d.innerHTML = html;
+    $('#chatLog').appendChild(d); $('#chatLog').scrollTop = $('#chatLog').scrollHeight; return d;
+  }
+  function chatReply(f) {
+    const id = f ? f.id : 'f_unknown', [title, text] = helpOf(id);
+    let html = `<b>${esc(title)}</b><br>${esc(text)}`;
+    if (f && (f.sel || f.tab)) html += `<br><button type="button" class="ch-show" data-faq="${esc(f.id)}">${t('chatShow')}</button>`;
+    chatAdd('bot', html);
+  }
+  function chatChips() {
+    $('#chatChips').innerHTML = FAQ.slice(0, 8).map(f => `<button type="button" class="ch-chip" data-faq="${f.id}">${esc(f.q[lang] || f.q.en)}</button>`).join('');
+  }
+  function openChat() {
+    setHelp(false);
+    $('#chat').hidden = false; $('#chatBtn').setAttribute('aria-expanded', 'true');
+    if (!chatShown) { chatShown = true; chatAdd('bot', `<b>${esc(helpOf('f_hello')[0])}</b><br>${esc(helpOf('f_hello')[1])}`); }
+    chatChips(); $('#chatIn').focus();
+  }
+  function closeChat() { $('#chat').hidden = true; $('#chatBtn').setAttribute('aria-expanded', 'false'); $('#chatBtn').focus(); }
+  $('#chatBtn').addEventListener('click', () => ($('#chat').hidden ? openChat() : closeChat()));
+  $('#chatClose').addEventListener('click', closeChat);
+  $('#chatForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = $('#chatIn').value.trim(); if (!v) return;
+    chatAdd('me', esc(v)); $('#chatIn').value = '';
+    chatReply(answerFor(v));
+  });
+  $('#chat').addEventListener('click', e => {
+    const chip = e.target.closest('.ch-chip'), show = e.target.closest('.ch-show');
+    if (chip) { const f = FAQ.find(x => x.id === chip.dataset.faq); chatAdd('me', esc(f.q[lang] || f.q.en)); chatReply(f); }
+    else if (show) {
+      const f = FAQ.find(x => x.id === show.dataset.faq); if (!f) return;
+      if (f.tab) showTab(f.tab);
+      setTimeout(() => {
+        const el = f.sel && document.querySelector(f.sel);
+        if (el && el.getBoundingClientRect().width) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => showSpot(el, f.id.startsWith('f_') ? f.id : f.id), 450); }
+      }, 400);
+    }
+  });
+  function applyHelpI18n() { chatChips(); if (helpOn) $('#helpBanner').textContent = t('helpBanner'); }
 
   /* ---------- boot */
   applyI18n();
