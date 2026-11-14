@@ -572,6 +572,19 @@ tr.click td, td.now { transition: background .2s ease; }
   .site-panel.collapsed .sp-rows, .site-panel.collapsed .sp-adv, .site-panel.collapsed .sp-actions { display: none; }
   .site-panel.collapsed .sp-head { margin-bottom: 0; }
 }
+/* View menu: scope, live / heat map and fictional light in one drop-down (Simple mode only; Advanced keeps its flat toolbar) */
+.v3d-viewmenu, .vm-body { display: contents; }
+.vm-head { display: none; }
+body[data-mode="simple"] .v3d-viewmenu { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+body[data-mode="simple"] .vm-head { display: inline-flex; align-items: center; gap: 8px; }
+body[data-mode="simple"] .vm-body { display: none; flex-direction: column; align-items: flex-end; gap: 8px; }
+body[data-mode="simple"] .v3d-viewmenu.open .vm-body, body[data-mode="simple"].tour-on .vm-body { display: flex; }   /* the guided tour and the demo need the options in view */
+.vm-chev { font-size: 11px; opacity: .8; }
+@media (min-width: 701px) { body[data-mode="simple"] .v3d-top .actions { margin-top: 6px; } }   /* Best site and Guided tour stay apart, under the menu */
+@media (max-width: 700px) {
+  body[data-mode="simple"] .v3d-viewmenu, body[data-mode="simple"] .vm-body { align-items: flex-start; }
+  .vm-body .seg { order: 0; }   /* the phone layout pushes .seg after the buttons; inside the menu keep the written order */
+}
 /* site insights: right-hand twin of the selected-site panel (same glass look), collapsible */
 .insights { overflow-y: auto; scrollbar-width: thin; position: absolute; right: 14px; top: 14px; z-index: 2; width: min(272px, calc(100% - 28px)); color: var(--space-ink); background: rgb(18 20 24 / .58); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid rgb(255 255 255 / .1); border-radius: 16px; padding: 10px 14px 12px; font-size: 13px; line-height: 1.35; }
 .insights:empty { display: none; }
@@ -929,16 +942,21 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
         <div class="v3d-top">
           <label class="site-quick adv-only"><span class="sr" data-i18n="siteLabel">Site</span>
             <select id="siteQuick" aria-label="Site"></select></label>
-          <div class="seg" id="v3dScope" role="group" aria-label="Scope">
-            <button type="button" data-scope="moon" aria-pressed="false" data-i18n="scMoon">Whole Moon</button>
-            <button type="button" data-scope="pole" aria-pressed="true" data-i18n="scPole">South pole</button>
-          </div>
-          <div class="seg" id="v3dView" role="group" aria-label="View">
-            <button type="button" data-view="live" aria-pressed="true" data-i18n="vwLive">Live</button>
-            <button type="button" data-view="heat" aria-pressed="false" data-i18n="vwHeat">Heat map</button>
+          <div class="v3d-viewmenu" id="v3dViewMenu">
+            <button type="button" class="btn vm-head" id="vmHead" aria-expanded="false" aria-controls="vmBody"><span data-i18n="vmTitle">View</span><span class="vm-chev" aria-hidden="true">▾</span></button>
+            <div class="vm-body" id="vmBody">
+              <div class="seg" id="v3dScope" role="group" aria-label="Scope">
+                <button type="button" data-scope="moon" aria-pressed="false" data-i18n="scMoon">Whole Moon</button>
+                <button type="button" data-scope="pole" aria-pressed="true" data-i18n="scPole">South pole</button>
+              </div>
+              <div class="seg" id="v3dView" role="group" aria-label="View">
+                <button type="button" data-view="live" aria-pressed="true" data-i18n="vwLive">Live</button>
+                <button type="button" data-view="heat" aria-pressed="false" data-i18n="vwHeat">Heat map</button>
+              </div>
+              <button class="btn toggle" type="button" id="v3dLight" aria-pressed="false" data-i18n="vwLight" data-i18n-title="lightTip">Light everywhere</button>
+            </div>
           </div>
           <div class="actions">
-            <button class="btn toggle" type="button" id="v3dLight" aria-pressed="false" data-i18n="vwLight" data-i18n-title="lightTip">Light everywhere</button>
             <button class="btn" type="button" id="bestBtn" data-i18n="bestBtn">Best site</button>
             <button class="btn ghost adv-only" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
             <button class="btn ghost adv-only" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
@@ -2801,7 +2819,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
       insFlag: 'Mission: {n} days from landing {t} UTC', insBar: 'Next {n} days from the time bar ({t} UTC)',
       insSunH: 'Sun above the horizon', insEarthH: 'Earth above the horizon', insOpsH: 'Sun up and Earth link together',
       insDteH: 'Earth up and a tracking antenna in view', insNightH: 'Longest stretch with no Sunlight', insGapH: 'Longest stretch with no direct link',
-      insOpsRunH: 'Longest stretch with power and a link', insNone: 'none', insWhole: 'whole period', insCompare: 'Compare…',
+      insOpsRunH: 'Longest stretch with power and a link', insNone: 'none', insWhole: 'whole period', insCompare: 'Compare…', vmTitle: 'View',
       spSunPos: 'Sun height / bearing', spEarthPos: 'Earth height / bearing', spState: 'State', spPole: 'At the pole: Sun / Earth',
       cdTitle: 'Compare {n} with…', cdAll: 'All sites', cdAllSub: 'Rank every site against this one', cdOne: 'One specific site', cdOneSub: 'Side by side, with the reasons', cdGo: 'Compare', cdCancel: 'Cancel',
       cfTitle: 'Comparing', cfWithAll: 'With all sites', cfWithOne: 'With one site', cfPeriod: 'From {a} to {b} (the selected period)', cfRank: '{n} ranks {r} of {t} sites for power + link',
@@ -2933,7 +2951,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
       insFlag: 'Mission : {n} jours depuis l’atterrissage {t} UTC', insBar: 'Les {n} prochains jours depuis la barre de temps ({t} UTC)',
       insSunH: 'Soleil au-dessus de l’horizon', insEarthH: 'Terre au-dessus de l’horizon', insOpsH: 'Soleil et liaison Terre ensemble',
       insDteH: 'Terre visible et antenne de suivi disponible', insNightH: 'Plus longue période sans Soleil', insGapH: 'Plus longue période sans liaison directe',
-      insOpsRunH: 'Plus longue période avec énergie et liaison', insNone: 'aucune', insWhole: 'toute la période', insCompare: 'Comparer…',
+      insOpsRunH: 'Plus longue période avec énergie et liaison', insNone: 'aucune', insWhole: 'toute la période', insCompare: 'Comparer…', vmTitle: 'Affichage',
       spSunPos: 'Soleil : hauteur / azimut', spEarthPos: 'Terre : hauteur / azimut', spState: 'État', spPole: 'Au pôle : Soleil / Terre',
       cdTitle: 'Comparer {n} avec…', cdAll: 'Tous les sites', cdAllSub: 'Classer tous les sites par rapport à celui-ci', cdOne: 'Un site précis', cdOneSub: 'Côte à côte, avec les raisons', cdGo: 'Comparer', cdCancel: 'Annuler',
       cfTitle: 'Comparaison', cfWithAll: 'Avec tous les sites', cfWithOne: 'Avec un site', cfPeriod: 'Du {a} au {b} (la période choisie)', cfRank: '{n} : n° {r} sur {t} sites pour énergie + liaison',
@@ -4738,7 +4756,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
 
   /* selected-site panel: plain-language state of the focused site at the cursor time */
   let spOpen = store.get('spOpen', null), spLast = '';
-  if (spOpen === null) spOpen = !(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+  if (spOpen === null) spOpen = false;   // everything starts folded: the Moon first
   function renderSitePanel(S) {
     const box = $('#sitePanel'), s = site(state.focus), ser = state.series[state.focus], g = state.grid;
     if (!box || !s || !ser || !g) { box.innerHTML = ''; spLast = ''; return; }
@@ -4782,7 +4800,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
   /* site insights: the mission window of the focused site at a glance (same engine call as the mission bar and Compare) */
   let insOpen = store.get('insOpen', null), insLast = '', insCache = null;
   const insNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
-  const insIsOpen = () => insOpen === null ? !insNarrow() : insOpen;
+  const insIsOpen = () => insOpen === true;
   function insSummary(ser, W) {
     const g = state.grid;
     if (insCache && insCache.ser === ser && insCache.i0 === W.i0 && insCache.i1 === W.i1) return insCache.m;
@@ -4831,6 +4849,19 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
     if (e.target.closest('[data-ins="compare"]')) openCmpDialog();
   });
   window.addEventListener('resize', placeInsights);
+  if (window.ResizeObserver) new ResizeObserver(placeInsights).observe(document.querySelector('.v3d-top'));   // the control column grows and shrinks with the View menu
+
+  /* "View" menu: scope, live / heat map and fictional light fold into one drop-down (Simple mode; Advanced keeps its toolbar) */
+  let vmOpen = store.get('vmOpen', false) === true;
+  function applyViewMenu() {
+    const box = $('#v3dViewMenu'), head = $('#vmHead'); if (!box) return;
+    box.classList.toggle('open', vmOpen);
+    head.setAttribute('aria-expanded', String(vmOpen));
+    head.querySelector('.vm-chev').textContent = vmOpen ? '▴' : '▾';
+    placeInsights();
+  }
+  $('#vmHead').addEventListener('click', () => { vmOpen = !vmOpen; store.set('vmOpen', vmOpen); applyViewMenu(); });
+  applyViewMenu();
   function update3D() {
     if (!v3d || !state.grid) return;
     if (heatOn()) scheduleHeat();

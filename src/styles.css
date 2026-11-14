@@ -565,6 +565,19 @@ tr.click td, td.now { transition: background .2s ease; }
   .site-panel.collapsed .sp-rows, .site-panel.collapsed .sp-adv, .site-panel.collapsed .sp-actions { display: none; }
   .site-panel.collapsed .sp-head { margin-bottom: 0; }
 }
+/* View menu: scope, live / heat map and fictional light in one drop-down (Simple mode only; Advanced keeps its flat toolbar) */
+.v3d-viewmenu, .vm-body { display: contents; }
+.vm-head { display: none; }
+body[data-mode="simple"] .v3d-viewmenu { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+body[data-mode="simple"] .vm-head { display: inline-flex; align-items: center; gap: 8px; }
+body[data-mode="simple"] .vm-body { display: none; flex-direction: column; align-items: flex-end; gap: 8px; }
+body[data-mode="simple"] .v3d-viewmenu.open .vm-body, body[data-mode="simple"].tour-on .vm-body { display: flex; }   /* the guided tour and the demo need the options in view */
+.vm-chev { font-size: 11px; opacity: .8; }
+@media (min-width: 701px) { body[data-mode="simple"] .v3d-top .actions { margin-top: 6px; } }   /* Best site and Guided tour stay apart, under the menu */
+@media (max-width: 700px) {
+  body[data-mode="simple"] .v3d-viewmenu, body[data-mode="simple"] .vm-body { align-items: flex-start; }
+  .vm-body .seg { order: 0; }   /* the phone layout pushes .seg after the buttons; inside the menu keep the written order */
+}
 /* site insights: right-hand twin of the selected-site panel (same glass look), collapsible */
 .insights { overflow-y: auto; scrollbar-width: thin; position: absolute; right: 14px; top: 14px; z-index: 2; width: min(272px, calc(100% - 28px)); color: var(--space-ink); background: rgb(18 20 24 / .58); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid rgb(255 255 255 / .1); border-radius: 16px; padding: 10px 14px 12px; font-size: 13px; line-height: 1.35; }
 .insights:empty { display: none; }
