@@ -116,6 +116,11 @@
       dtShift: 'Shift B:', dtToScen: 'Add A and B to my scenarios', dtBetter: 'Find a better landing date', dtExplore: 'Explore this site', dtAdded: 'Added to the scenario list',
       dtLen: 'Both missions last {days} days; change the length on the time bar.', cmLoss: 'Power + link last for', cmLossNow: 'lost at once',
       why_loss: '{n} keeps power and a link for longer (+{d})',
+      learnTitle: 'Why the lunar south pole is so hard', learnLead: 'Six facts, computed live from the same data as the rest of the tool. They explain why a few hundred metres or a few days can decide whether a lander survives.',
+      pzTitle: 'Which day is best to land?', pzSub: '{n}, for a {days}-day mission. Days are ranked by the time with power and a link; the landing itself must be in sunlight with an Earth link.',
+      pzGood: 'Good (60% or more)', pzFair: 'Fair (30 to 60%)', pzPoor: 'Poor (under 30%)', pzNo: 'Not possible (no sunlight or no link at touchdown)',
+      pzBest: 'Best days to land', pzUse: 'Use this date', pzNone: 'No safe landing date for this site in the selected period. Try another site or a longer period.',
+      pzPlaced: 'Landing date set: {d}', pzAria: 'Quality of each landing day over the selected period; click to set the landing date',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -231,6 +236,11 @@
       dtShift: 'Décaler B :', dtToScen: 'Ajouter A et B à mes scénarios', dtBetter: 'Trouver une meilleure date', dtExplore: 'Explorer ce site', dtAdded: 'Ajoutés à la liste des scénarios',
       dtLen: 'Les deux missions durent {days} jours ; changez la durée sur la barre de temps.', cmLoss: 'Énergie + liaison tiennent', cmLossNow: 'perdues aussitôt',
       why_loss: '{n} garde énergie et liaison plus longtemps (+{d})',
+      learnTitle: 'Pourquoi le pôle Sud lunaire est si difficile', learnLead: 'Six faits, calculés en direct à partir des mêmes données que le reste de l’outil. Ils expliquent pourquoi quelques centaines de mètres ou quelques jours peuvent décider du sort d’un atterrisseur.',
+      pzTitle: 'Quel est le meilleur jour pour atterrir ?', pzSub: '{n}, pour une mission de {days} jours. Les jours sont classés selon le temps avec énergie et liaison ; l’atterrissage lui-même doit se faire au soleil, avec une liaison avec la Terre.',
+      pzGood: 'Bon (60 % ou plus)', pzFair: 'Moyen (30 à 60 %)', pzPoor: 'Mauvais (moins de 30 %)', pzNo: 'Impossible (pas de soleil ou pas de liaison à l’atterrissage)',
+      pzBest: 'Meilleurs jours pour atterrir', pzUse: 'Utiliser cette date', pzNone: 'Aucune date d’atterrissage sûre pour ce site sur la période choisie. Essayez un autre site ou une période plus longue.',
+      pzPlaced: 'Date d’atterrissage posée : {d}', pzAria: 'Qualité de chaque jour d’atterrissage sur la période choisie ; cliquez pour poser la date d’atterrissage',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -608,6 +618,13 @@
   const ADV_VIEWS = ['timeline', 'sky'];               // angle and horizon graphs: Advanced only
   const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
   const lastView = store.get('views', {});
+  for (const nav of ['#sections', '#subnav']) document.querySelector(nav).addEventListener('keydown', e => {
+    const k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? 'first' : e.key === 'End' ? 'last' : 0; if (!k) return;
+    const btns = [...document.querySelectorAll(nav + ' button')].filter(b => !b.hidden), cur = btns.indexOf(document.activeElement); if (cur < 0) return;
+    e.preventDefault();
+    const nx = k === 'first' ? btns[0] : k === 'last' ? btns[btns.length - 1] : btns[(cur + k + btns.length) % btns.length];
+    nx.focus(); nx.click();
+  });
   document.querySelector('#sections').addEventListener('click', e => {
     const b = e.target.closest('[data-section]'); if (!b) return;
     const sec = b.dataset.section, v = lastView[sec];
@@ -727,7 +744,7 @@
     else if (state.tab === 'timeline') drawTimeline();
     else if (state.tab === 'sky') renderSky();
     else if (state.tab === 'map') drawMap();
-    else if (state.tab === 'plan') drawHeat();
+    else if (state.tab === 'plan') { if (mode === 'simple') drawPlanStrip(); else drawHeat(); }
     else if (state.tab === 'learn') renderLearn(true);
   }
   function renderTab() {
@@ -1263,7 +1280,58 @@
     state.plan = { P, win, cands, rows };
     return state.plan;
   }
+  /* Simple view: best landing days for the active site, in plain words */
+  let pzCells = [];
+  function renderPlanEasy() {
+    const box = $('#planEasy'), g = state.grid, s = site(state.focus);
+    if (!box) return;
+    if (!g || !s) { box.innerHTML = ''; return; }
+    const ser = state.series[state.focus] || anySeries(state.focus), days = state.mission.days;
+    pzCells = E.landingDates(ser, g, { days, goal: 'ops', sunlitAtTouchdown: true, linkAtTouchdown: true, minSunClearanceDeg: 0.5, candidateStepH: 6 });
+    const picked = [];
+    pzCells.filter(c => c.ok).sort((a, b) => b.score - a.score).forEach(c => {
+      if (picked.length < 3 && !picked.some(p => Math.abs(p.i - c.i) * g.stepMs < 3 * DAY)) picked.push(c);
+    });
+    const leg = `<div class="pz-leg"><span><i style="background:var(--ops)"></i>${t('pzGood')}</span><span><i style="background:var(--sun)"></i>${t('pzFair')}</span><span><i style="background:var(--danger)"></i>${t('pzPoor')}</span><span><i style="background:var(--none);opacity:.6"></i>${t('pzNo')}</span></div>`;
+    const best = picked.length ? picked.map((c, k) => `<button type="button" class="pz-best" data-ms="${c.time}"><span class="rk">${k + 1}</span><span><b>${utc(c.time)} UTC</b><small>${fmt(c.score, 0)}% ${t('msOpsWord')}</small></span><span class="go">🚩 ${t('pzUse')}</span></button>`).join('')
+      : `<p class="pz-none">${t('pzNone')}</p>`;
+    box.innerHTML = `<h2>${t('pzTitle')}</h2><p class="pz-sub">${t('pzSub').replace('{n}', esc(s.name)).replace('{days}', days)}</p>` +
+      `<div class="pz-strip"><canvas id="planStrip" role="img" aria-label="${t('pzAria')}"></canvas></div>${leg}` +
+      `<h3 class="pz-h">${t('pzBest')}</h3>${best}` +
+      `<div class="pz-actions"><button type="button" class="btn" data-pz="explore">${t('dtExplore')}</button><button type="button" class="btn ghost" data-pz="compare">${t('spCompare')}</button></div>`;
+    drawPlanStrip();
+  }
+  function drawPlanStrip() {
+    const cv = $('#planStrip'), g = state.grid; if (!cv || !g || !pzCells.length) return;
+    const { ctx, w, h } = canvasSetup(cv), x0 = 6, x1 = w - 6, y0 = 16, bh = 30, tEnd = timeOf(g.n - 1);
+    const XT = ms => x0 + (ms - g.start) / (tEnd - g.start) * (x1 - x0);
+    const cw = pzCells.length > 1 ? Math.max(1, XT(pzCells[1].time) - XT(pzCells[0].time)) : 4;
+    ctx.save(); ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, y0, x1 - x0, bh, 8) : ctx.rect(x0, y0, x1 - x0, bh); ctx.clip();
+    pzCells.forEach(c => {
+      ctx.globalAlpha = c.ok ? 1 : 0.45;
+      ctx.fillStyle = !c.ok ? cssv('--none') : c.score >= 60 ? cssv('--ops') : c.score >= 30 ? cssv('--sun') : cssv('--danger');
+      ctx.fillRect(XT(c.time), y0, cw + 0.5, bh);
+    });
+    ctx.restore(); ctx.globalAlpha = 1;
+    const mark = (ms, col, lab) => { const x = XT(ms); ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(x - 6, 2); ctx.lineTo(x + 6, 2); ctx.lineTo(x, 13); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = cssv('--fg'); ctx.font = '700 10px ' + cssv('--f-body'); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(lab, x, 1 + 0); };
+    if (missionIdx('landing') != null) mark(state.mission.landing, cssv('--accent'), '');
+    drawCursor(ctx, XT(timeOf(state.cursor)), y0 - 3, y0 + bh + 3);
+    ctx.font = '11px ' + cssv('--f-mono');
+    drawTimeAxis(ctx, x0, x1, y0 + bh + 6, g.start, tEnd);
+  }
+  $('#planEasy').addEventListener('click', e => {
+    const b = e.target.closest('.pz-best'), a = e.target.closest('[data-pz]'), cv = e.target.closest('#planStrip');
+    if (b) { setMissionTime('landing', +b.dataset.ms, true); renderPlanEasy(); toast(t('pzPlaced').replace('{d}', utc(+b.dataset.ms))); }
+    else if (a) { if (a.dataset.pz === 'explore') showTab('3d'); else openCmpDialog(); }
+    else if (cv && state.grid) {
+      const r = cv.getBoundingClientRect(), g = state.grid, ms = g.start + Math.max(0, Math.min(1, (e.clientX - r.left - 6) / (r.width - 12))) * (timeOf(g.n - 1) - g.start);
+      setMissionTime('landing', ms, true); renderPlanEasy();
+    }
+  });
   function renderPlan() {
+    renderPlanEasy();
+    if (mode === 'simple') return;
     if (!state.selected.length) { $('#bestTable').innerHTML = `<tr><td>${t('noSel')}</td></tr>`; canvasSetup($('#heat')); return; }
     const plan = computePlan();
     drawHeat();
@@ -1713,7 +1781,8 @@
   }
   function afterMissionChange() {
     renderMission(); drawCursorTrack(); renderCtx();
-    if (state.tab === '3d') { update3D(); renderProfile(); } else if (state.tab === 'compare') renderCmpFocus();
+    if (state.tab === '3d') { update3D(); renderProfile(); } else if (state.tab === 'compare') renderCmpFocus(); else if (state.tab === 'plan') renderPlanEasy();
+    try { $('#planDays').value = state.mission.days; } catch (e) { /* ignore */ }
   }
   function setMissionTime(key, ms, follow) {
     const g = state.grid; if (!g) return;
