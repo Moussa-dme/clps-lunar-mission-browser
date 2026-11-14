@@ -64,7 +64,7 @@
       </div>
     </details>
 
-    <details class="panel acc" id="accRules">
+    <details class="panel acc adv-only" id="accRules">
       <summary data-i18n="rules">Mission rules</summary>
       <label class="rule"><span data-i18n="sunRule">Counts as sunlit when</span>
         <select id="sunFrac">
@@ -91,16 +91,22 @@
   </aside>
 
   <main class="main">
-    <nav class="tabs" role="tablist" aria-label="Views">
-      <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
-      <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
-      <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-i18n="tScen">Scenarios</button>
-      <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
-      <button role="tab" id="tab-sky" aria-selected="false" data-tab="sky" data-i18n="tSky">Horizon view</button>
-      <button role="tab" id="tab-plan" aria-selected="false" data-tab="plan" data-i18n="tPlan">Pick a landing date</button>
-      <button role="tab" id="tab-map" aria-selected="false" data-tab="map" data-i18n="tMap">Map</button>
-      <button role="tab" id="tab-learn" aria-selected="false" data-tab="learn" data-i18n="tLearn">Why it’s hard</button>
-      <button role="tab" id="tab-method" aria-selected="false" data-tab="method" data-i18n="tMethod">Method</button>
+    <nav class="tabs" id="sections" role="tablist" aria-label="Sections">
+      <button role="tab" id="sec-explore" aria-selected="true" data-section="explore" data-i18n="secExplore">Explore</button>
+      <button role="tab" id="sec-compare" aria-selected="false" data-section="compare" data-i18n="secCompare">Compare</button>
+      <button role="tab" id="sec-plan" aria-selected="false" data-section="plan" data-i18n="secPlan">Plan mission</button>
+      <button role="tab" id="sec-learn" aria-selected="false" data-section="learn" data-i18n="secLearn">Learn &amp; Method</button>
+    </nav>
+    <nav class="subtabs" id="subnav" role="tablist" aria-label="Views">
+      <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-sec="explore" data-i18n="sub3d">Globe 3D</button>
+      <button role="tab" id="tab-map" aria-selected="false" data-tab="map" data-sec="explore" data-i18n="subMap">Map 2D</button>
+      <button role="tab" id="tab-sky" aria-selected="false" data-tab="sky" data-sec="explore" data-i18n="subSky">Horizon</button>
+      <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-sec="explore" data-i18n="subElev">Elevation</button>
+      <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-sec="compare" data-i18n="subSites">Sites</button>
+      <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-sec="compare" data-i18n="subScen">Scenarios</button>
+      <button role="tab" id="tab-plan" aria-selected="false" data-tab="plan" data-sec="plan" data-i18n="tPlan">Pick a landing date</button>
+      <button role="tab" id="tab-learn" aria-selected="false" data-tab="learn" data-sec="learn" data-i18n="subLearn">Learn</button>
+      <button role="tab" id="tab-method" aria-selected="false" data-tab="method" data-sec="learn" data-i18n="subMethod">Method</button>
     </nav>
 
     <!-- 3D -->
@@ -179,7 +185,7 @@
       <div class="panel">
         <div class="panel-head">
           <h2 data-i18n="cmpTitle">Site comparison over the selected period</h2>
-          <div class="actions">
+          <div class="actions adv-only">
             <button class="btn ghost" id="copyCsv" type="button" data-i18n="copyCsv">Copy CSV</button>
             <button class="btn ghost" id="dlCsv" type="button" data-i18n="dlCsv">Download CSV</button>
             <button class="btn ghost" id="copyIcs" type="button" data-i18n="copyIcs">Copy calendar (.ics)</button>

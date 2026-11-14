@@ -378,7 +378,7 @@ details.acc > summary .small { margin-left: auto; font-weight: 400; }
 .site { border-radius: 10px; }
 .tooltip { border-radius: 12px; }
 /* Simple mode: the 3D scene is the page */
-body[data-mode="simple"] .tabs { display: none; }
+body[data-mode="simple"] .adv-only { display: none !important; }
 body[data-mode="simple"] .layout { grid-template-columns: minmax(0, 1fr); max-width: 1180px; }
 body[data-mode="simple"] .main { order: 1; }
 body[data-mode="simple"] .side { order: 2; position: static; max-height: none; overflow: visible; }
@@ -534,6 +534,20 @@ tr.click td, td.now { transition: background .2s ease; }
   .v3d-top .seg button { padding: 5px 11px; font-size: 13px; }
 }
 
+/* ---- four sections + sub-views */
+#sections { margin-bottom: 8px; }
+#sections button { font-size: 14.5px; font-weight: 600; padding: 8px 18px; }
+.subtabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.subtabs[hidden] { display: none; }
+.subtabs button { border: 1px solid var(--line); background: transparent; color: var(--fg2); border-radius: 999px; padding: 4px 14px; font-size: 13px; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.subtabs button[hidden] { display: none; }
+.subtabs button:hover { color: var(--fg); border-color: var(--accent); }
+.subtabs button[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); border-color: var(--accent); color: var(--fg); font-weight: 600; }
+@media (max-width: 700px) {
+  #sections { display: grid; grid-template-columns: repeat(4, 1fr); align-self: stretch; }
+  #sections button { font-size: 12.5px; padding: 7px 4px; white-space: normal; text-align: center; line-height: 1.2; }
+}
+
 </style>
 
 <header class="topbar">
@@ -592,7 +606,7 @@ tr.click td, td.now { transition: background .2s ease; }
       </div>
     </details>
 
-    <details class="panel acc" id="accRules">
+    <details class="panel acc adv-only" id="accRules">
       <summary data-i18n="rules">Mission rules</summary>
       <label class="rule"><span data-i18n="sunRule">Counts as sunlit when</span>
         <select id="sunFrac">
@@ -619,16 +633,22 @@ tr.click td, td.now { transition: background .2s ease; }
   </aside>
 
   <main class="main">
-    <nav class="tabs" role="tablist" aria-label="Views">
-      <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-i18n="t3d">3D view</button>
-      <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-i18n="tCompare">Compare</button>
-      <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-i18n="tScen">Scenarios</button>
-      <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-i18n="tTimeline">Elevation</button>
-      <button role="tab" id="tab-sky" aria-selected="false" data-tab="sky" data-i18n="tSky">Horizon view</button>
-      <button role="tab" id="tab-plan" aria-selected="false" data-tab="plan" data-i18n="tPlan">Pick a landing date</button>
-      <button role="tab" id="tab-map" aria-selected="false" data-tab="map" data-i18n="tMap">Map</button>
-      <button role="tab" id="tab-learn" aria-selected="false" data-tab="learn" data-i18n="tLearn">Why it’s hard</button>
-      <button role="tab" id="tab-method" aria-selected="false" data-tab="method" data-i18n="tMethod">Method</button>
+    <nav class="tabs" id="sections" role="tablist" aria-label="Sections">
+      <button role="tab" id="sec-explore" aria-selected="true" data-section="explore" data-i18n="secExplore">Explore</button>
+      <button role="tab" id="sec-compare" aria-selected="false" data-section="compare" data-i18n="secCompare">Compare</button>
+      <button role="tab" id="sec-plan" aria-selected="false" data-section="plan" data-i18n="secPlan">Plan mission</button>
+      <button role="tab" id="sec-learn" aria-selected="false" data-section="learn" data-i18n="secLearn">Learn &amp; Method</button>
+    </nav>
+    <nav class="subtabs" id="subnav" role="tablist" aria-label="Views">
+      <button role="tab" id="tab-3d" aria-selected="true" data-tab="3d" data-sec="explore" data-i18n="sub3d">Globe 3D</button>
+      <button role="tab" id="tab-map" aria-selected="false" data-tab="map" data-sec="explore" data-i18n="subMap">Map 2D</button>
+      <button role="tab" id="tab-sky" aria-selected="false" data-tab="sky" data-sec="explore" data-i18n="subSky">Horizon</button>
+      <button role="tab" id="tab-timeline" aria-selected="false" data-tab="timeline" data-sec="explore" data-i18n="subElev">Elevation</button>
+      <button role="tab" id="tab-compare" aria-selected="false" data-tab="compare" data-sec="compare" data-i18n="subSites">Sites</button>
+      <button role="tab" id="tab-scen" aria-selected="false" data-tab="scen" data-sec="compare" data-i18n="subScen">Scenarios</button>
+      <button role="tab" id="tab-plan" aria-selected="false" data-tab="plan" data-sec="plan" data-i18n="tPlan">Pick a landing date</button>
+      <button role="tab" id="tab-learn" aria-selected="false" data-tab="learn" data-sec="learn" data-i18n="subLearn">Learn</button>
+      <button role="tab" id="tab-method" aria-selected="false" data-tab="method" data-sec="learn" data-i18n="subMethod">Method</button>
     </nav>
 
     <!-- 3D -->
@@ -707,7 +727,7 @@ tr.click td, td.now { transition: background .2s ease; }
       <div class="panel">
         <div class="panel-head">
           <h2 data-i18n="cmpTitle">Site comparison over the selected period</h2>
-          <div class="actions">
+          <div class="actions adv-only">
             <button class="btn ghost" id="copyCsv" type="button" data-i18n="copyCsv">Copy CSV</button>
             <button class="btn ghost" id="dlCsv" type="button" data-i18n="dlCsv">Download CSV</button>
             <button class="btn ghost" id="copyIcs" type="button" data-i18n="copyIcs">Copy calendar (.ics)</button>
@@ -2467,6 +2487,8 @@ tr.click td, td.now { transition: background .2s ease; }
       lgMoon: 'Lit side = the real Sun at the cursor time. The surface texture is illustrative (maria positions approximate); the south pole cap is real LOLA relief. Discs = zones with sites; click one to zoom.',
       zPolar: 'South pole · Artemis & CLPS', zApollo: 'Apollo & SLIM · near side', zWest: 'Reiner Gamma & Chang’e 5 · west', zFar: 'Chang’e 4 & 6 · far side',
       zoneTip: '{n} sites · click to zoom', zoneToast: '{z}: LOLA terrain only covers the south pole, so these sites use a smooth horizon (less precise). Click a marker for its profile.', hudSubSolar: 'Sun overhead',
+      secExplore: 'Explore', secCompare: 'Compare', secPlan: 'Plan mission', secLearn: 'Learn & Method',
+      sub3d: 'Globe 3D', subMap: 'Map 2D', subSky: 'Horizon', subElev: 'Elevation', subSites: 'Sites', subScen: 'Scenarios', subLearn: 'Learn', subMethod: 'Method',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -2560,6 +2582,8 @@ tr.click td, td.now { transition: background .2s ease; }
       lgMoon: 'Côté éclairé = le vrai Soleil à l’heure du curseur. La texture de surface est illustrative (positions des mers approximatives) ; la calotte du pôle sud est le vrai relief LOLA. Disques = zones avec des sites ; cliquez pour zoomer.',
       zPolar: 'Pôle sud · Artemis et CLPS', zApollo: 'Apollo et SLIM · face visible', zWest: 'Reiner Gamma et Chang’e 5 · ouest', zFar: 'Chang’e 4 et 6 · face cachée',
       zoneTip: '{n} sites · cliquer pour zoomer', zoneToast: '{z} : le relief LOLA ne couvre que le pôle sud, ces sites utilisent donc un horizon lisse (moins précis). Cliquez sur un marqueur pour son profil.', hudSubSolar: 'Soleil au zénith',
+      secExplore: 'Explorer', secCompare: 'Comparer', secPlan: 'Planifier la mission', secLearn: 'Comprendre et méthode',
+      sub3d: 'Globe 3D', subMap: 'Carte 2D', subSky: 'Horizon', subElev: 'Élévation', subSites: 'Sites', subScen: 'Scénarios', subLearn: 'Comprendre', subMethod: 'Méthode',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -2908,7 +2932,7 @@ tr.click td, td.now { transition: background .2s ease; }
   }
   function setMode(m) {
     mode = m; store.set('mode', m); applyMode();
-    showTab(m === 'advanced' ? store.get('tab', '3d') : '3d');
+    showTab(state.tab);   // same section and view (an Advanced-only view falls back to the globe); site, date and camera are untouched
   }
   $('#modeSwitch').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
 
@@ -2929,21 +2953,42 @@ tr.click td, td.now { transition: background .2s ease; }
     d._anim.onfinish = done; d._anim.oncancel = () => { d.style.overflow = ''; };
   });
 
-  /* tabs */
-  document.querySelector('.tabs').addEventListener('click', e => {
+  /* navigation: 4 sections, each with one or more views (the nine original views are kept) */
+  const SECTIONS = { explore: ['3d', 'map', 'sky', 'timeline'], compare: ['compare', 'scen'], plan: ['plan'], learn: ['learn', 'method'] };
+  const VIEW_SEC = {};
+  Object.keys(SECTIONS).forEach(sec => SECTIONS[sec].forEach(v => { VIEW_SEC[v] = sec; }));
+  const ADV_VIEWS = ['timeline'];                     // angle graphs: Advanced only
+  const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
+  const lastView = store.get('views', {});
+  document.querySelector('#sections').addEventListener('click', e => {
+    const b = e.target.closest('[data-section]'); if (!b) return;
+    const sec = b.dataset.section, v = lastView[sec];
+    showTab(v && SECTIONS[sec].includes(v) ? v : SECTIONS[sec][0]);
+  });
+  document.querySelector('#subnav').addEventListener('click', e => {
     const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab);
   });
   function showTab(tab) {
-    if (mode === 'simple') tab = '3d';
+    if (SECTIONS[tab] && !VIEW_SEC[tab]) tab = SECTIONS[tab][0];   // 'explore' -> first view
+    if (!allowedView(tab)) tab = '3d';
     state.tab = tab;
-    document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    const sec = VIEW_SEC[tab];
+    lastView[sec] = tab; store.set('views', lastView);
+    document.querySelectorAll('#sections [data-section]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.section === sec)));
+    let shown = 0;
+    document.querySelectorAll('#subnav [data-tab]').forEach(b => {
+      const vis = b.dataset.sec === sec && allowedView(b.dataset.tab);
+      b.hidden = !vis; if (vis) shown++;
+      b.setAttribute('aria-selected', String(b.dataset.tab === tab));
+    });
+    $('#subnav').hidden = shown < 2;
     document.querySelectorAll('.view').forEach(v => {
       const show = v.id === 'view-' + tab, was = !v.hidden;
       v.hidden = !show;
       if (show && !was) { v.classList.remove('view-in'); void v.offsetWidth; v.classList.add('view-in'); }
     });
     try { history.replaceState(null, '', '#' + tab); } catch (e) { /* ignore */ }
-    if (mode === 'advanced') store.set('tab', tab);
+    store.set('tab', tab);
     renderTab();
   }
 
@@ -4652,8 +4697,8 @@ tr.click td, td.now { transition: background .2s ease; }
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
-  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
-  if (hashTab && hashTab !== '3d' && okTabs.includes(hashTab)) mode = 'advanced';
+  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method', 'explore'];   // old view ids stay valid links
+  if (ADV_VIEWS.includes(hashTab)) mode = 'advanced';
   applyMode(true);
   document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');

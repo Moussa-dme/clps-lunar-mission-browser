@@ -363,7 +363,7 @@ details.acc > summary .small { margin-left: auto; font-weight: 400; }
 .site { border-radius: 10px; }
 .tooltip { border-radius: 12px; }
 /* Simple mode: the 3D scene is the page */
-body[data-mode="simple"] .tabs { display: none; }
+body[data-mode="simple"] .adv-only { display: none !important; }
 body[data-mode="simple"] .layout { grid-template-columns: minmax(0, 1fr); max-width: 1180px; }
 body[data-mode="simple"] .main { order: 1; }
 body[data-mode="simple"] .side { order: 2; position: static; max-height: none; overflow: visible; }
@@ -517,4 +517,18 @@ tr.click td, td.now { transition: background .2s ease; }
 @media (max-width: 700px) {
   .v3d-flat { display: none; }          /* the legend under the 3D view says the same thing */
   .v3d-top .seg button { padding: 5px 11px; font-size: 13px; }
+}
+
+/* ---- four sections + sub-views */
+#sections { margin-bottom: 8px; }
+#sections button { font-size: 14.5px; font-weight: 600; padding: 8px 18px; }
+.subtabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.subtabs[hidden] { display: none; }
+.subtabs button { border: 1px solid var(--line); background: transparent; color: var(--fg2); border-radius: 999px; padding: 4px 14px; font-size: 13px; cursor: pointer; transition: background .2s, color .2s, border-color .2s; }
+.subtabs button[hidden] { display: none; }
+.subtabs button:hover { color: var(--fg); border-color: var(--accent); }
+.subtabs button[aria-selected="true"] { background: color-mix(in srgb, var(--accent) 16%, var(--panel)); border-color: var(--accent); color: var(--fg); font-weight: 600; }
+@media (max-width: 700px) {
+  #sections { display: grid; grid-template-columns: repeat(4, 1fr); align-self: stretch; }
+  #sections button { font-size: 12.5px; padding: 7px 4px; white-space: normal; text-align: center; line-height: 1.2; }
 }
