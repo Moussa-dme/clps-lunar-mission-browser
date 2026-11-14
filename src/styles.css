@@ -729,6 +729,11 @@ body.help-on, body.help-on * { cursor: help !important; }
 .help-card.tour .hc-tour { display: flex; } .hc-tour .btn { padding: 2px 12px; min-height: 26px; font-size: 12px; }
 .help-card.tour h3 { font-size: 21px; margin-bottom: 8px; } .help-card.tour p { font-size: 16px; line-height: 1.45; color: var(--fg); margin-bottom: 10px; }
 body.tour-on, body.tour-on * { cursor: default !important; }
+/* story mode (#demo): multi-line closing card and a small honesty line along the bottom */
+.help-card.tour p { white-space: pre-line; }
+.demo-note { position: fixed; z-index: 1001; right: 16px; top: 56px; max-width: min(340px, calc(100% - 32px)); padding: 7px 13px; border-radius: 12px; background: rgb(18 20 24 / .82); color: #eceff4; font-size: 12px; line-height: 1.35; text-align: left; border: 1px solid rgb(255 255 255 / .14); pointer-events: none; }
+.demo-note[hidden] { display: none; }
+@media (max-width: 700px) { .demo-note { right: 8px; left: 8px; max-width: none; top: auto; bottom: 8px; font-size: 11px; text-align: center; } }
 /* ---- Simple mode: the globe is the page. Tools float on it, everything else is Advanced */
 .v3d-hint { position: absolute; left: 50%; bottom: 82px; transform: translateX(-50%); z-index: 2; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; color: var(--space-ink); background: rgb(18 20 24 / .55); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid rgb(255 255 255 / .1); pointer-events: none; white-space: nowrap; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; transition: opacity .6s ease; animation: hintOut 1s ease 9s forwards; }
 .v3d-hint.gone { opacity: 0; animation: none; }
@@ -762,3 +767,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
 }
 
 .legend .lg-sym { display: inline-block; min-width: 26px; text-align: center; font-weight: 700; font-size: 13px; margin-right: 8px; }
+/* header Demo button: play icon + short label */
+.demo-btn { display: inline-flex; align-items: center; gap: 6px; padding-inline: 12px; }
+.demo-btn svg { width: 14px; height: 14px; }
+.demo-btn[aria-pressed="true"] svg { display: none; }

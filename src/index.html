@@ -26,6 +26,7 @@
         <button type="button" data-mode="simple" aria-pressed="true" data-i18n="modeSimple">Simple</button>
         <button type="button" data-mode="advanced" aria-pressed="false" data-i18n="modeAdvanced">Advanced</button>
       </div>
+      <button class="btn primary demo-btn" id="demoBtn" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg><span data-i18n="demoBtn">Demo</span></button>
       <button class="btn ghost" id="lang" type="button" aria-label="Langue / Language">FR</button>
       <button class="btn icon" id="helpBtn" type="button" aria-pressed="false" data-i18n-aria="helpBtnLabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 10l10 4.5-4.2 1.4L11.6 20z" fill="currentColor" stroke-width="1.2"/><path d="M4.6 4.4a2.4 2.4 0 1 1 3.3 2.2c-.6.3-.9.7-.9 1.3"/><circle cx="7" cy="9.7" r=".5" fill="currentColor"/></svg></button>
       <button class="btn icon" id="chatBtn" type="button" aria-expanded="false" aria-controls="chat" data-i18n-aria="chatBtnLabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 8V5.5"/><circle cx="12" cy="4.3" r="1.1"/><circle cx="9" cy="13" r="1" fill="currentColor"/><circle cx="15" cy="13" r="1" fill="currentColor"/><path d="M9.5 16.3h5M2 12v3.2M22 12v3.2"/></svg></button>
@@ -386,6 +387,7 @@
   <div class="hc-actions"><button type="button" class="btn primary" id="helpOk" data-i18n="helpOk">Got it</button><button type="button" class="btn ghost" id="helpAsk" data-i18n="helpAsk">Ask the assistant</button><button type="button" class="btn ghost" id="helpExit" data-i18n="helpExit">Stop help</button></div>
 </div>
 <div class="help-banner" id="helpBanner" role="status" hidden></div>
+<div class="demo-note" id="demoNote" role="note" hidden></div>
 <section class="chat" id="chat" role="dialog" aria-labelledby="chatTitle" hidden>
   <header><div><b id="chatTitle" data-i18n="chatTitle">Assistant</b><small data-i18n="chatSub">Built-in help, no AI model</small></div><button type="button" class="btn icon" id="chatClose" aria-label="Close" data-i18n-aria="chatClose">×</button></header>
   <div class="ch-log" id="chatLog" aria-live="polite"></div>

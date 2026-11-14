@@ -122,7 +122,7 @@
       pzBest: 'Best days to land', pzUse: 'Use this date', pzNone: 'No safe landing date for this site in the selected period. Try another site or a longer period.',
       pzPlaced: 'Landing date set: {d}', pzAria: 'Quality of each landing day over the selected period; click to set the landing date',
       cbDateTip: 'Date, sunrise / sunset jumps and mission',
-      helpBtnLabel: 'Explain: click here, then click anything', chatBtnLabel: 'Assistant', helpBanner: 'Click anything to see what it does. Esc to stop.', helpOk: 'Got it', helpAsk: 'Ask the assistant', helpExit: 'Stop help',
+      helpBtnLabel: 'Explain: click here, then click anything', chatBtnLabel: 'Assistant', helpBanner: 'Click anything to see what it does. Esc to stop.', helpOk: 'Got it', helpAsk: 'Ask the assistant', helpExit: 'Stop help', demoBtn: 'Demo', demoStop: 'Stop',
       chatTitle: 'Assistant', chatSub: 'Built-in help, no AI model', chatPh: 'Ask a question…', chatSend: 'Send', chatShow: 'Show me', chatClose: 'Close',
       tourStopBtn: 'Stop',
       hintGlobe: 'Drag to rotate · scroll to zoom · click a site',
@@ -249,7 +249,7 @@
       pzBest: 'Meilleurs jours pour atterrir', pzUse: 'Utiliser cette date', pzNone: 'Aucune date d’atterrissage sûre pour ce site sur la période choisie. Essayez un autre site ou une période plus longue.',
       pzPlaced: 'Date d’atterrissage posée : {d}', pzAria: 'Qualité de chaque jour d’atterrissage sur la période choisie ; cliquez pour poser la date d’atterrissage',
       cbDateTip: 'Date, sauts lever / coucher et mission',
-      helpBtnLabel: 'Expliquer : cliquez ici, puis sur n’importe quoi', chatBtnLabel: 'Assistant', helpBanner: 'Cliquez sur n’importe quoi pour voir à quoi ça sert. Échap pour arrêter.', helpOk: 'Compris', helpAsk: 'Demander à l’assistant', helpExit: 'Arrêter l’aide',
+      helpBtnLabel: 'Expliquer : cliquez ici, puis sur n’importe quoi', chatBtnLabel: 'Assistant', helpBanner: 'Cliquez sur n’importe quoi pour voir à quoi ça sert. Échap pour arrêter.', helpOk: 'Compris', helpAsk: 'Demander à l’assistant', helpExit: 'Arrêter l’aide', demoBtn: 'Démo', demoStop: 'Arrêter',
       chatTitle: 'Assistant', chatSub: 'Aide intégrée, sans modèle d’IA', chatPh: 'Posez une question…', chatSend: 'Envoyer', chatShow: 'Montre-moi', chatClose: 'Fermer',
       tourStopBtn: 'Arrêter',
       hintGlobe: 'Glissez pour tourner · molette pour zoomer · cliquez sur un site',
@@ -636,7 +636,7 @@
   const VIEW_SEC = {};
   Object.keys(SECTIONS).forEach(sec => SECTIONS[sec].forEach(v => { VIEW_SEC[v] = sec; }));
   const ADV_VIEWS = ['timeline', 'sky', 'map', 'scen'];  // graphs, 2D map and the scenario table: Advanced only (old links still work)
-  const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
+  const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v) && !(v === 'sky' && document.body.classList.contains('demo-on')));   // the story demo shows the Horizon view in Simple too
   const lastView = store.get('views', {});
   for (const nav of ['#sections', '#subnav']) document.querySelector(nav).addEventListener('keydown', e => {
     const k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? 'first' : e.key === 'End' ? 'last' : 0; if (!k) return;
@@ -2733,6 +2733,7 @@
       light: ['Light everywhere', 'Switches to a fictional, even light so you can see the terrain itself. It hides the real shadows and colours: it is not the real Sun.'],
       best: ['Best site', 'Ranks the south-pole sites for your mission window and jumps to the best one.'],
       tour: ['Guided tour', 'A short automatic tour of the main views, with captions.'],
+      demo: ['Demo', 'Plays a 30-second story: a landing slips by 7 days and the power and link numbers change.'],
       overview: ['Overview', 'Puts the camera back to the default view.'],
       sunview: ['Look toward the Sun', 'Moves the camera to see the terrain from the Sun side.'],
       stand: ['Stand at the site', 'A first-person view from the surface of the chosen site, looking toward the Sun.'],
@@ -2808,6 +2809,7 @@
       light: ['Lumière partout', 'Passe à une lumière fictive et uniforme pour voir le relief lui-même. Cela masque les vraies ombres et couleurs : ce n’est pas le vrai Soleil.'],
       best: ['Meilleur site', 'Classe les sites du pôle sud pour votre fenêtre de mission et saute au meilleur.'],
       tour: ['Visite guidée', 'Un court tour automatique des vues principales, avec des légendes.'],
+      demo: ['Démo', 'Joue une histoire de 30 secondes : un atterrissage glisse de 7 jours et les chiffres d’énergie et de liaison changent.'],
       overview: ['Vue d’ensemble', 'Remet la caméra dans la vue par défaut.'],
       sunview: ['Regarder vers le Soleil', 'Déplace la caméra pour voir le relief du côté du Soleil.'],
       stand: ['Se placer sur le site', 'Une vue à la première personne depuis la surface du site choisi, tournée vers le Soleil.'],
@@ -2874,7 +2876,7 @@
   };
   /* what each part of the page is: first match wins, most specific first */
   const HELP_MAP = [
-    ['#helpBtn, #chatBtn', 'none'], ['#modeSwitch', 'mode'], ['#lang', 'lang'], ['.search', 'search'], ['#ctxBar', 'ctx'], ['#sections', 'sections'], ['#subnav', 'subnav'],
+    ['#demoBtn', 'demo'], ['#helpBtn, #chatBtn', 'none'], ['#modeSwitch', 'mode'], ['#lang', 'lang'], ['.search', 'search'], ['#ctxBar', 'ctx'], ['#sections', 'sections'], ['#subnav', 'subnav'],
     ['#v3dScope', 'scope'], ['#v3dView', 'view'], ['#v3dLight', 'light'], ['#bestBtn', 'best'], ['#v3dTour', 'tour'], ['#v3dOverview', 'overview'], ['#v3dSunView', 'sunview'], ['#v3dStand', 'stand'], ['.site-quick', 'sitequick'],
     ['[data-sp="analyze"]', 'spAnalyze'], ['[data-sp="compare"]', 'spCompare'], ['.sp-head', 'spHead'], ['.sp-row', 'spRows'], ['.sp-adv', 'spAdv'],
     ['#v3dFlatTag', 'flat'], ['#v3dHint', 'hint'], ['#v3dLegend', 'legend3d'], ['#v3dStage', 'globe'], ['#accProfile', 'profile'],
@@ -2907,7 +2909,7 @@
     if (!r) { spot.hidden = true; card.hidden = true; return; }
     Object.assign(spot.style, { left: r.left - pad + 'px', top: r.top - pad + 'px', width: r.width + 2 * pad + 'px', height: r.height + 2 * pad + 'px' });
     spot.hidden = false; card.hidden = false;
-    const cw = Math.min(tourOn() ? 400 : 340, vw - 24), ch = card.offsetHeight || 150;
+    const cw = Math.min(spotCenter ? 500 : tourOn() ? 400 : 340, vw - 24), ch = card.offsetHeight || 150;
     card.style.width = cw + 'px';
     if (r.height > vh * 0.5 && r.width > vw * 0.5) {   // a big part (the globe): put the card inside it, top right
       card.style.top = Math.max(10, r.top + 16) + 'px';
@@ -2938,7 +2940,7 @@
     if (on) { $('#chat').hidden = true; $('#chatBtn').setAttribute('aria-expanded', 'false'); }
   }
   function helpBlock(e) {
-    if ((!helpOn && !tourOn()) || e.target.closest('#helpCard, #helpBanner, #helpBtn, #chat, #chatBtn, #v3dTour')) return;
+    if ((!helpOn && !tourOn()) || e.target.closest('#helpCard, #helpBanner, #helpBtn, #chat, #chatBtn, #v3dTour') || (tourOn() && e.target.closest('#demoBtn'))) return;
     if (tourOn() && !e.isTrusted) return;   // the tour drives the page itself
     e.preventDefault(); e.stopPropagation();
     if (e.type === 'click' && helpOn) {
@@ -2976,7 +2978,23 @@
       plan: ['Best landing day', 'Every possible day, green to red. One click sets the flag.'],
       learn: ['Learn and Method', 'Why the pole is hard, and the data and limits behind every number.'],
       help: ['Need help?', 'Click the pointer, then anything, for an explanation. Or ask the assistant.'],
-      end: ['CLPS Lunar Mission Browser', 'Compare lunar landing sites and dates, on real NASA terrain.']
+      end: ['CLPS Lunar Mission Browser', 'Compare lunar landing sites and dates, on real NASA terrain.'],
+      /* story mode (#demo): "what if the landing slips by 7 days?" ; {tokens} are filled with the real computed numbers */
+      demoNote: 'Illustrative example, chosen for contrast. Geometry only: sunlight is not power, Earth in view is not a link.',
+      d_pole: ['Lunar south pole', 'Real NASA LOLA terrain, with the real Sun and Earth.'],
+      d_play: ['Watch the light move', 'Shadows sweep the relief as the days pass.'],
+      d_site: ['Pick a landing site', '{site}: Sun, Earth and link, in plain words.'],
+      d_land: ['Set the landing date', 'Flag A: {dA}, a {days}-day mission.'],
+      d_hz: ['Sun and Earth vs the horizon', 'Sun {sc}° and Earth {ec}° above the real LOLA terrain.'],
+      d_hz2: ['B, 3 days in', 'Sun {sc}° {sw} the terrain horizon.'],
+      d_slip: ['What if it slips 7 days?', 'Add date B = A + 7 days: {dB}.'],
+      d_cmp: ['Same site, two dates', 'Scenario A and B side by side.'],
+      d_ops: ['Power + link: {a}% → {b}%', 'A 7-day slip changes it by {d} points.'],
+      d_why: ['Why?', 'Sun {sa}% → {sb}%. Longest night {na} → {nb}.'],
+      d_honest: ['Geometry, not a guarantee', 'Sunlight is not power. Earth in view is not a link.'],
+      d_plan: ['Or find the best day', 'Every landing day, green to red. One click sets the flag.'],
+      d_all: ['Rank every site', 'Same period, all sites, with ▲ ▼ and the reasons.'],
+      d_end: ['CLPS Lunar Mission Browser', 'Explore · Compare · Plan\nReal NASA LOLA terrain, checked against JPL Horizons.\nmoussa-dme.github.io/clps-lunar-mission-browser']
     },
     fr: {
       sections: ['Quatre sections', 'Explorer · Comparer · Planifier · Comprendre. Du premier regard au plan d’atterrissage.'],
@@ -2991,7 +3009,22 @@
       plan: ['Meilleur jour d’atterrissage', 'Chaque jour possible, du vert au rouge. Un clic pose le drapeau.'],
       learn: ['Comprendre et méthode', 'Pourquoi le pôle est difficile, et les données et limites derrière chaque chiffre.'],
       help: ['Besoin d’aide ?', 'Cliquez sur le pointeur, puis sur n’importe quoi, pour une explication. Ou demandez à l’assistant.'],
-      end: ['CLPS Lunar Mission Browser', 'Comparez des sites et des dates d’atterrissage lunaire, sur le vrai relief de la NASA.']
+      end: ['CLPS Lunar Mission Browser', 'Comparez des sites et des dates d’atterrissage lunaire, sur le vrai relief de la NASA.'],
+      demoNote: 'Exemple illustratif, choisi pour le contraste. Géométrie seulement : Soleil visible n’est pas énergie, Terre visible n’est pas liaison.',
+      d_pole: ['Pôle Sud lunaire', 'Vrai relief LOLA de la NASA, avec le vrai Soleil et la vraie Terre.'],
+      d_play: ['La lumière bouge', 'Les ombres balaient le relief au fil des jours.'],
+      d_site: ['Choisir un site', '{site} : Soleil, Terre et liaison, en clair.'],
+      d_land: ['Fixer la date', 'Drapeau A : {dA}, mission de {days} jours.'],
+      d_hz: ['Soleil et Terre face à l’horizon', 'Soleil à {sc}° et Terre à {ec}° au-dessus du vrai relief LOLA.'],
+      d_hz2: ['B, 3 jours plus tard', 'Soleil à {sc}° {sw} l’horizon du relief.'],
+      d_slip: ['Et si elle glisse de 7 jours ?', 'Ajout de la date B = A + 7 jours : {dB}.'],
+      d_cmp: ['Même site, deux dates', 'Scénarios A et B côte à côte.'],
+      d_ops: ['Énergie + liaison : {a} % → {b} %', 'Un glissement de 7 jours change cela de {d} points.'],
+      d_why: ['Pourquoi ?', 'Soleil {sa} % → {sb} %. Plus longue nuit {na} → {nb}.'],
+      d_honest: ['Géométrie, pas garantie', 'Soleil visible n’est pas énergie. Terre visible n’est pas liaison.'],
+      d_plan: ['Ou trouver le meilleur jour', 'Chaque jour d’atterrissage, du vert au rouge. Un clic pose le drapeau.'],
+      d_all: ['Classer tous les sites', 'Même période, tous les sites, avec ▲ ▼ et les raisons.'],
+      d_end: ['CLPS Lunar Mission Browser', 'Explorer · Comparer · Planifier\nVrai relief LOLA de la NASA, vérifié contre JPL Horizons.\nmoussa-dme.github.io/clps-lunar-mission-browser']
     }
   };
   let siteTour = null;
@@ -3012,13 +3045,58 @@
     { k: 'help', ms: 2000, els: ['#helpBtn', '#chatBtn'], pre: () => { showTab('3d'); } },
     { k: 'end', ms: 1600, els: [], pre: () => { showTab('3d'); } }
   ];
+  /* story mode (open the page with #demo): one scenario told in 13 short stops, about 30 s, no voice-over.
+     Everything shown is computed live by the engine: the site and dates are only the choice of the example. */
+  function setDemoBtn(on) {
+    const b = $('#demoBtn'); b.setAttribute('aria-pressed', String(on));
+    b.querySelector('span').textContent = t(on ? 'demoStop' : 'demoBtn');
+  }
+  $('#demoBtn').addEventListener('click', () => (siteTour ? endSiteTour() : startSiteTour('story')));
+  const DEMO = { site: 'dg2', landing: Date.UTC(2026, 11, 16), cursor: Date.UTC(2026, 11, 12) };
+  function storyVars() {
+    const s = site(DEMO.site) || site(state.focus), m = state.mission, days = m.days, v = { days };
+    if (!s) return v;
+    v.site = s.name;
+    const ser = state.series[s.id] || anySeries(s.id);
+    if (ser && state.grid) { const c = ser.sunEl[state.cursor] - ser.sunHz[state.cursor]; v.sc = fmt(Math.abs(c), 1); v.ec = fmt(Math.abs(ser.earthEl[state.cursor] - ser.earthHz[state.cursor]), 1); v.sw = c >= 0 ? (lang === 'fr' ? 'au-dessus de' : 'above') : (lang === 'fr' ? 'sous' : 'below'); }
+    const pick = (r, p) => { v['a' + p] = fmt(r.opsPct, 0); v['s' + p] = fmt(r.litPct, 0); v['e' + p] = fmt(r.earthPct, 0); v['n' + p] = dur(r.longestNightH); };
+    if (m.landing != null) { v.dA = utc(m.landing, false); const r = scenRes(s.id, m.landing, days).summary; pick(r, 'A'); v.a = v.aA; v.sa = v.sA; v.ea = v.eA; v.na = v.nA; v.rA = r; }
+    if (m.landing != null && m.b != null) {
+      v.dB = utc(m.b, false); const r = scenRes(s.id, m.b, days).summary; pick(r, 'B'); v.b = v.aB; v.sb = v.sB; v.eb = v.eB; v.nb = v.nB;
+      const x = Math.round(r.opsPct - v.rA.opsPct); v.d = (x > 0 ? '+' : '−') + Math.abs(x);
+    }
+    return v;
+  }
+  const STORY_STEPS = [
+    { k: 'd_pole', ms: 2200, els: ['#v3dStage'], pre: () => {
+      setRegionUI('south'); if (flat) $('#v3dLight').click();
+      const lb = document.querySelector('#v3dView [data-view="live"]'); if (lb) lb.click();
+      state.mission.landing = null; state.mission.b = null; state.mission.bSite = null; state.mission.days = 10; afterMissionChange();
+      if (site(DEMO.site)) setFocus(DEMO.site);
+      spOpen = false; spLast = ''; setCursor(indexOf(DEMO.cursor)); showTab('3d'); if (v3d) v3d.view('overview', null, 1);
+    } },
+    { k: 'd_play', ms: 1800, els: ['#cbTrack'], pre: () => { setPlaying(true); } },
+    { k: 'd_site', ms: 2000, els: ['#sitePanel'], pre: () => { setPlaying(false); spOpen = true; spLast = ''; update3D(); } },
+    { k: 'd_land', ms: 1800, els: ['.cursor-bar'], pre: () => { setMissionTime('landing', DEMO.landing, true); } },
+    { k: 'd_hz', ms: 2800, right: true, els: ['#panoBox'], pre: () => { showTab('sky'); } },
+    { k: 'd_slip', ms: 2200, els: ['.cursor-bar'], pre: () => { showTab('3d'); addDateB(); } },
+    { k: 'd_cmp', ms: 1800, els: ['#cmpFocus'], pre: () => { state.cmp.mode = 'dates'; showTab('compare'); renderCmpFocus(); } },
+    { k: 'd_ops', ms: 2400, els: ['.cf-two'], pre: () => { } },
+    { k: 'd_why', ms: 2400, els: ['.cf-verdict', '.cf-why'], pre: () => { } },
+    { k: 'd_hz2', ms: 2600, right: true, els: ['#panoBox'], pre: () => { setCursor(indexOf(state.mission.b + 3 * DAY)); showTab('sky'); } },
+    { k: 'd_honest', ms: 2000, els: ['.cf-note'], pre: () => { state.cmp.mode = 'dates'; showTab('compare'); renderCmpFocus(); } },
+    { k: 'd_plan', ms: 1800, els: ['#planEasy'], pre: () => { showTab('plan'); } },
+    { k: 'd_all', ms: 1800, els: ['#cmpFocus'], pre: () => { state.cmp.mode = 'all'; showTab('compare'); renderCmpFocus(); } },
+    { k: 'd_end', ms: 2000, els: [], pre: () => { showTab('3d'); } }
+  ];
   function endSiteTour() {
     if (!siteTour) return;
     const S = siteTour; siteTour = null; clearTimeout(S.timer);
-    document.body.classList.remove('tour-on');
+    document.body.classList.remove('tour-on', 'demo-on'); $('#demoNote').hidden = true; setDemoBtn(false);
     $('#helpCard').classList.remove('tour'); hideSpot();
     setPlaying(false);
     // put everything back as the visitor had it
+    if (S.snap.lang !== lang) { lang = S.snap.lang; applyI18n(); renderAll(); }
     state.mission = S.snap.mission; saveMission();
     if (S.snap.flat !== flat) $('#v3dLight').click();
     const heatBtn = document.querySelector(`#v3dView [data-view="${S.snap.heat ? 'heat' : 'live'}"]`); if (heatBtn) heatBtn.click();
@@ -3037,8 +3115,8 @@
   }
   async function tourStep(k) {
     const S = siteTour; if (!S) return;
-    if (k >= TOUR_STEPS.length) { endSiteTour(); return; }
-    const st = TOUR_STEPS[k];
+    if (k >= S.steps.length) { endSiteTour(); return; }
+    const st = S.steps[k];
     S.k = k;
     window.scrollTo(0, 0);
     try { if (st.pre) await st.pre(); } catch (e) { /* a step must never stop the tour */ }
@@ -3047,21 +3125,34 @@
       if (!siteTour || siteTour !== S || S.k !== k) return;
       const els = st.els.map(s => document.querySelector(s)).filter(e => e && e.getBoundingClientRect().width);
       if (els[0]) scrollForTour(els[0]);
-      const [title, text] = (TOUR_TXT[lang] || TOUR_TXT.en)[st.k];
+      let [title, text] = (TOUR_TXT[lang] || TOUR_TXT.en)[st.k];
+      if (S.kind === 'story') {
+        let V = {}; try { V = storyVars(); } catch (e) { /* the numbers are a bonus, the stop must still show */ }
+        const fill = s => s.replace(/\{(\w+)\}/g, (m, key) => (V[key] != null ? V[key] : m));
+        title = fill(title); text = fill(text);
+      }
       spotEls = els; spotCenter = !els.length;
       $('#helpCardTitle').textContent = title; $('#helpCardText').textContent = text;
-      $('#helpTourN').textContent = `${k + 1} / ${TOUR_STEPS.length}`;
+      $('#helpTourN').textContent = `${k + 1} / ${S.steps.length}`;
       spotEl = els[0] || document.body;
       placeSpot();
+      if (st.right) { const cw = parseFloat($('#helpCard').style.width) || 400; $('#helpCard').style.left = Math.max(12, window.innerWidth - cw - 16) + 'px'; }   // keep the readouts on the left visible
     }, 380);
     S.timer = setTimeout(() => tourStep(k + 1), st.ms);
   }
-  function startSiteTour() {
+  function startSiteTour(kind) {
     if (siteTour) return;
     if (!state.grid) { toast(t('computing')); return; }
     setHelp(false); $('#chat').hidden = true;
-    siteTour = { k: 0, timer: 0, snap: { mode, tab: state.tab, region: $('#v3dRegion').value, heat: heatWin, flat, mission: JSON.parse(JSON.stringify(state.mission)), cursor: state.cursor, focus: state.focus, spOpen, cmp: state.cmp.mode } };
+    kind = kind === 'story' ? 'story' : 'site';
+    siteTour = { k: 0, timer: 0, kind, steps: kind === 'story' ? STORY_STEPS : TOUR_STEPS, snap: { mode, tab: state.tab, region: $('#v3dRegion').value, heat: heatWin, flat, mission: JSON.parse(JSON.stringify(state.mission)), cursor: state.cursor, focus: state.focus, spOpen, cmp: state.cmp.mode, lang } };
+    if (kind === 'story' && lang !== 'en') { lang = 'en'; applyI18n(); renderAll(); }   // the demo always plays in English (not saved: the visitor's language comes back at the end)
     document.body.classList.add('tour-on');
+    if (kind === 'story') {
+      setDemoBtn(true);
+      document.body.classList.add('demo-on');
+      const n = $('#demoNote'); n.textContent = (TOUR_TXT[lang] || TOUR_TXT.en).demoNote; n.hidden = false;
+    }
     $('#helpCard').classList.add('tour'); $('#helpBanner').hidden = true;
     $('#v3dTour').textContent = t('vTourStop');
     if (mode !== 'simple') setMode('simple');
@@ -3071,6 +3162,15 @@
     tourStep(0);
   }
   $('#v3dTour').addEventListener('click', () => (siteTour ? endSiteTour() : startSiteTour()));
+  /* page.html#demo starts the story as soon as the numbers are ready (for the screen recording) */
+  function demoWhenReady() {
+    let tries = 0;
+    const wait = setInterval(() => {
+      if (siteTour || ++tries > 300) { clearInterval(wait); return; }
+      if (state.grid && state.series[state.focus] && v3d && $('#progress').hidden) { clearInterval(wait); setTimeout(() => startSiteTour('story'), 600); }
+    }, 200);
+  }
+  window.addEventListener('hashchange', () => { if (location.hash === '#demo') demoWhenReady(); });
   $('#helpTourStop').addEventListener('click', endSiteTour);
 
   /* the assistant: matches the words of a question to a help topic (works offline) */
@@ -3160,4 +3260,5 @@
   $('#accProfile').open = mode === 'advanced';
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
   computeGrid();
+  if (hashTab === 'demo') demoWhenReady();   // read before showTab() rewrites the hash
 })();
