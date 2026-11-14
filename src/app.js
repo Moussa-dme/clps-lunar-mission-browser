@@ -94,6 +94,8 @@
       lgMoon: 'Lit side = the real Sun at the cursor time. The surface texture is illustrative (maria positions approximate); the south pole cap is real LOLA relief. Discs = zones with sites; click one to zoom.',
       zPolar: 'South pole · Artemis & CLPS', zApollo: 'Apollo & SLIM · near side', zWest: 'Reiner Gamma & Chang’e 5 · west', zFar: 'Chang’e 4 & 6 · far side',
       zoneTip: '{n} sites · click to zoom', zoneToast: '{z}: LOLA terrain only covers the south pole, so these sites use a smooth horizon (less precise). Click a marker for its profile.', hudSubSolar: 'Sun overhead',
+      secExplore: 'Explore', secCompare: 'Compare', secPlan: 'Plan mission', secLearn: 'Learn & Method',
+      sub3d: 'Globe 3D', subMap: 'Map 2D', subSky: 'Horizon', subElev: 'Elevation', subSites: 'Sites', subScen: 'Scenarios', subLearn: 'Learn', subMethod: 'Method',
       hudSun: 'Sun at the pole', hudEarth: 'Earth at the pole', hudLon: 'toward', averaging: 'Averaging over the period…',
       lgReal: 'Rendered as a camera would see it, with shadows lifted slightly so the terrain stays readable.',
       ofPeriod: 'of the period', noWebGL: 'The 3D view needs WebGL, which this browser or device does not provide.',
@@ -187,6 +189,8 @@
       lgMoon: 'Côté éclairé = le vrai Soleil à l’heure du curseur. La texture de surface est illustrative (positions des mers approximatives) ; la calotte du pôle sud est le vrai relief LOLA. Disques = zones avec des sites ; cliquez pour zoomer.',
       zPolar: 'Pôle sud · Artemis et CLPS', zApollo: 'Apollo et SLIM · face visible', zWest: 'Reiner Gamma et Chang’e 5 · ouest', zFar: 'Chang’e 4 et 6 · face cachée',
       zoneTip: '{n} sites · cliquer pour zoomer', zoneToast: '{z} : le relief LOLA ne couvre que le pôle sud, ces sites utilisent donc un horizon lisse (moins précis). Cliquez sur un marqueur pour son profil.', hudSubSolar: 'Soleil au zénith',
+      secExplore: 'Explorer', secCompare: 'Comparer', secPlan: 'Planifier la mission', secLearn: 'Comprendre et méthode',
+      sub3d: 'Globe 3D', subMap: 'Carte 2D', subSky: 'Horizon', subElev: 'Élévation', subSites: 'Sites', subScen: 'Scénarios', subLearn: 'Comprendre', subMethod: 'Méthode',
       hudSun: 'Soleil au pôle', hudEarth: 'Terre au pôle', hudLon: 'vers', averaging: 'Moyenne sur la période…',
       lgReal: 'Rendu comme le verrait une caméra, avec les ombres légèrement éclaircies pour garder le relief lisible.',
       ofPeriod: 'de la période', noWebGL: 'La vue 3D a besoin de WebGL, que ce navigateur ou cet appareil ne fournit pas.',
@@ -535,7 +539,7 @@
   }
   function setMode(m) {
     mode = m; store.set('mode', m); applyMode();
-    showTab(m === 'advanced' ? store.get('tab', '3d') : '3d');
+    showTab(state.tab);   // same section and view (an Advanced-only view falls back to the globe); site, date and camera are untouched
   }
   $('#modeSwitch').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
 
@@ -556,21 +560,42 @@
     d._anim.onfinish = done; d._anim.oncancel = () => { d.style.overflow = ''; };
   });
 
-  /* tabs */
-  document.querySelector('.tabs').addEventListener('click', e => {
+  /* navigation: 4 sections, each with one or more views (the nine original views are kept) */
+  const SECTIONS = { explore: ['3d', 'map', 'sky', 'timeline'], compare: ['compare', 'scen'], plan: ['plan'], learn: ['learn', 'method'] };
+  const VIEW_SEC = {};
+  Object.keys(SECTIONS).forEach(sec => SECTIONS[sec].forEach(v => { VIEW_SEC[v] = sec; }));
+  const ADV_VIEWS = ['timeline'];                     // angle graphs: Advanced only
+  const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
+  const lastView = store.get('views', {});
+  document.querySelector('#sections').addEventListener('click', e => {
+    const b = e.target.closest('[data-section]'); if (!b) return;
+    const sec = b.dataset.section, v = lastView[sec];
+    showTab(v && SECTIONS[sec].includes(v) ? v : SECTIONS[sec][0]);
+  });
+  document.querySelector('#subnav').addEventListener('click', e => {
     const b = e.target.closest('[data-tab]'); if (b) showTab(b.dataset.tab);
   });
   function showTab(tab) {
-    if (mode === 'simple') tab = '3d';
+    if (SECTIONS[tab] && !VIEW_SEC[tab]) tab = SECTIONS[tab][0];   // 'explore' -> first view
+    if (!allowedView(tab)) tab = '3d';
     state.tab = tab;
-    document.querySelectorAll('.tabs [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+    const sec = VIEW_SEC[tab];
+    lastView[sec] = tab; store.set('views', lastView);
+    document.querySelectorAll('#sections [data-section]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.section === sec)));
+    let shown = 0;
+    document.querySelectorAll('#subnav [data-tab]').forEach(b => {
+      const vis = b.dataset.sec === sec && allowedView(b.dataset.tab);
+      b.hidden = !vis; if (vis) shown++;
+      b.setAttribute('aria-selected', String(b.dataset.tab === tab));
+    });
+    $('#subnav').hidden = shown < 2;
     document.querySelectorAll('.view').forEach(v => {
       const show = v.id === 'view-' + tab, was = !v.hidden;
       v.hidden = !show;
       if (show && !was) { v.classList.remove('view-in'); void v.offsetWidth; v.classList.add('view-in'); }
     });
     try { history.replaceState(null, '', '#' + tab); } catch (e) { /* ignore */ }
-    if (mode === 'advanced') store.set('tab', tab);
+    store.set('tab', tab);
     renderTab();
   }
 
@@ -2279,8 +2304,8 @@
   initRange();
   renderSiteList();
   const hashTab = (location.hash || '').slice(1);
-  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method'];
-  if (hashTab && hashTab !== '3d' && okTabs.includes(hashTab)) mode = 'advanced';
+  const okTabs = ['3d', 'compare', 'scen', 'timeline', 'sky', 'plan', 'map', 'learn', 'method', 'explore'];   // old view ids stay valid links
+  if (ADV_VIEWS.includes(hashTab)) mode = 'advanced';
   applyMode(true);
   document.querySelectorAll('.side details.acc').forEach(d => { d.open = mode === 'advanced'; });
   showTab(okTabs.includes(hashTab) ? hashTab : '3d');
