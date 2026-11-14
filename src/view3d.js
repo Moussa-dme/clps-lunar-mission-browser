@@ -530,8 +530,9 @@
         const base = sitePos(s, 0), top = sitePos(s, pinH);
         const col = new THREE.Color(s.color);
         const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([base, top]), new THREE.LineBasicMaterial({ color: col }));
-        const head = new THREE.Mesh(new THREE.SphereGeometry(headR * (s.focus ? 1.5 : 1), 20, 14), new THREE.MeshBasicMaterial({ color: col }));
-        const halo = new THREE.Mesh(new THREE.SphereGeometry(headR * (s.focus ? 1.5 : 1) * 1.45, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide }));
+        const big = s.focus ? 2 : 1;   // the selected site (also the one "Best site" picks) reads at a glance
+        const head = new THREE.Mesh(new THREE.SphereGeometry(headR * big, 20, 14), new THREE.MeshBasicMaterial({ color: col }));
+        const halo = new THREE.Mesh(new THREE.SphereGeometry(headR * big * 1.45, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.BackSide }));
         head.add(halo);
         head.position.copy(top); head.userData.site = s; head.scale.setScalar((st.msc || 1) * (st.hover === s.id ? 1.6 : 1));
         line.visible = head.visible = !st.fp || st.fp.site.id !== s.id;
