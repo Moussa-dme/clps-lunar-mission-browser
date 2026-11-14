@@ -3313,7 +3313,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
   const VIEW_SEC = {};
   Object.keys(SECTIONS).forEach(sec => SECTIONS[sec].forEach(v => { VIEW_SEC[v] = sec; }));
   const ADV_VIEWS = ['timeline', 'sky', 'map', 'scen'];  // graphs, 2D map and the scenario table: Advanced only (old links still work)
-  const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v));
+  const allowedView = v => !!VIEW_SEC[v] && !(mode === 'simple' && ADV_VIEWS.includes(v) && !(v === 'sky' && document.body.classList.contains('demo-on')));   // the story demo shows the Horizon view in Simple too
   const lastView = store.get('views', {});
   for (const nav of ['#sections', '#subnav']) document.querySelector(nav).addEventListener('keydown', e => {
     const k = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : e.key === 'Home' ? 'first' : e.key === 'End' ? 'last' : 0; if (!k) return;
@@ -5662,7 +5662,8 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
       d_play: ['Watch the light move', 'Shadows sweep the relief as the days pass.'],
       d_site: ['Pick a landing site', '{site}: Sun, Earth and link, in plain words.'],
       d_land: ['Set the landing date', 'Flag A: {dA}, a {days}-day mission.'],
-      d_good: ['On that date: all good', 'Sun and Earth in view. Power and link {a}% of the mission.'],
+      d_hz: ['Sun and Earth vs the horizon', 'Sun {sc}° and Earth {ec}° above the real LOLA terrain.'],
+      d_hz2: ['B, 3 days in', 'Sun {sc}° {sw} the terrain horizon.'],
       d_slip: ['What if it slips 7 days?', 'Add date B = A + 7 days: {dB}.'],
       d_cmp: ['Same site, two dates', 'Scenario A and B side by side.'],
       d_ops: ['Power + link: {a}% → {b}%', 'A 7-day slip changes it by {d} points.'],
@@ -5691,7 +5692,8 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
       d_play: ['La lumière bouge', 'Les ombres balaient le relief au fil des jours.'],
       d_site: ['Choisir un site', '{site} : Soleil, Terre et liaison, en clair.'],
       d_land: ['Fixer la date', 'Drapeau A : {dA}, mission de {days} jours.'],
-      d_good: ['Ce jour-là : tout va bien', 'Soleil et Terre visibles. Énergie et liaison {a} % de la mission.'],
+      d_hz: ['Soleil et Terre face à l’horizon', 'Soleil à {sc}° et Terre à {ec}° au-dessus du vrai relief LOLA.'],
+      d_hz2: ['B, 3 jours plus tard', 'Soleil à {sc}° {sw} l’horizon du relief.'],
       d_slip: ['Et si elle glisse de 7 jours ?', 'Ajout de la date B = A + 7 jours : {dB}.'],
       d_cmp: ['Même site, deux dates', 'Scénarios A et B côte à côte.'],
       d_ops: ['Énergie + liaison : {a} % → {b} %', 'Un glissement de 7 jours change cela de {d} points.'],
@@ -5732,6 +5734,8 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
     const s = site(DEMO.site) || site(state.focus), m = state.mission, days = m.days, v = { days };
     if (!s) return v;
     v.site = s.name;
+    const ser = state.series[s.id] || anySeries(s.id);
+    if (ser && state.grid) { const c = ser.sunEl[state.cursor] - ser.sunHz[state.cursor]; v.sc = fmt(Math.abs(c), 1); v.ec = fmt(Math.abs(ser.earthEl[state.cursor] - ser.earthHz[state.cursor]), 1); v.sw = c >= 0 ? (lang === 'fr' ? 'au-dessus de' : 'above') : (lang === 'fr' ? 'sous' : 'below'); }
     const pick = (r, p) => { v['a' + p] = fmt(r.opsPct, 0); v['s' + p] = fmt(r.litPct, 0); v['e' + p] = fmt(r.earthPct, 0); v['n' + p] = dur(r.longestNightH); };
     if (m.landing != null) { v.dA = utc(m.landing, false); const r = scenRes(s.id, m.landing, days).summary; pick(r, 'A'); v.a = v.aA; v.sa = v.sA; v.ea = v.eA; v.na = v.nA; v.rA = r; }
     if (m.landing != null && m.b != null) {
@@ -5748,18 +5752,19 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
       if (site(DEMO.site)) setFocus(DEMO.site);
       spOpen = false; spLast = ''; setCursor(indexOf(DEMO.cursor)); showTab('3d'); if (v3d) v3d.view('overview', null, 1);
     } },
-    { k: 'd_play', ms: 2200, els: ['#cbTrack'], pre: () => { setPlaying(true); } },
-    { k: 'd_site', ms: 2300, els: ['#sitePanel'], pre: () => { setPlaying(false); spOpen = true; spLast = ''; update3D(); } },
-    { k: 'd_land', ms: 2200, els: ['.cursor-bar'], pre: () => { setMissionTime('landing', DEMO.landing, true); } },
-    { k: 'd_good', ms: 2300, els: ['#ctxBar'], pre: () => { renderCtx(); } },
-    { k: 'd_slip', ms: 2300, els: ['.cursor-bar'], pre: () => { addDateB(); } },
-    { k: 'd_cmp', ms: 2200, els: ['#cmpFocus'], pre: () => { state.cmp.mode = 'dates'; showTab('compare'); renderCmpFocus(); } },
-    { k: 'd_ops', ms: 2500, els: ['.cf-two'], pre: () => { } },
-    { k: 'd_why', ms: 2500, els: ['.cf-verdict', '.cf-why'], pre: () => { } },
-    { k: 'd_honest', ms: 2200, els: ['.cf-note'], pre: () => { } },
-    { k: 'd_plan', ms: 2200, els: ['#planEasy'], pre: () => { showTab('plan'); } },
-    { k: 'd_all', ms: 2200, els: ['#cmpFocus'], pre: () => { state.cmp.mode = 'all'; showTab('compare'); renderCmpFocus(); } },
-    { k: 'd_end', ms: 2100, els: [], pre: () => { showTab('3d'); } }
+    { k: 'd_play', ms: 1800, els: ['#cbTrack'], pre: () => { setPlaying(true); } },
+    { k: 'd_site', ms: 2000, els: ['#sitePanel'], pre: () => { setPlaying(false); spOpen = true; spLast = ''; update3D(); } },
+    { k: 'd_land', ms: 1800, els: ['.cursor-bar'], pre: () => { setMissionTime('landing', DEMO.landing, true); } },
+    { k: 'd_hz', ms: 2800, right: true, els: ['#panoBox'], pre: () => { showTab('sky'); } },
+    { k: 'd_slip', ms: 2200, els: ['.cursor-bar'], pre: () => { showTab('3d'); addDateB(); } },
+    { k: 'd_cmp', ms: 1800, els: ['#cmpFocus'], pre: () => { state.cmp.mode = 'dates'; showTab('compare'); renderCmpFocus(); } },
+    { k: 'd_ops', ms: 2400, els: ['.cf-two'], pre: () => { } },
+    { k: 'd_why', ms: 2400, els: ['.cf-verdict', '.cf-why'], pre: () => { } },
+    { k: 'd_hz2', ms: 2600, right: true, els: ['#panoBox'], pre: () => { setCursor(indexOf(state.mission.b + 3 * DAY)); showTab('sky'); } },
+    { k: 'd_honest', ms: 2000, els: ['.cf-note'], pre: () => { state.cmp.mode = 'dates'; showTab('compare'); renderCmpFocus(); } },
+    { k: 'd_plan', ms: 1800, els: ['#planEasy'], pre: () => { showTab('plan'); } },
+    { k: 'd_all', ms: 1800, els: ['#cmpFocus'], pre: () => { state.cmp.mode = 'all'; showTab('compare'); renderCmpFocus(); } },
+    { k: 'd_end', ms: 2000, els: [], pre: () => { showTab('3d'); } }
   ];
   function endSiteTour() {
     if (!siteTour) return;
@@ -5808,6 +5813,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
       $('#helpTourN').textContent = `${k + 1} / ${S.steps.length}`;
       spotEl = els[0] || document.body;
       placeSpot();
+      if (st.right) { const cw = parseFloat($('#helpCard').style.width) || 400; $('#helpCard').style.left = Math.max(12, window.innerWidth - cw - 16) + 'px'; }   // keep the readouts on the left visible
     }, 380);
     S.timer = setTimeout(() => tourStep(k + 1), st.ms);
   }
