@@ -102,7 +102,7 @@
       insFlag: 'Mission: {n} days from landing {t} UTC', insBar: 'Next {n} days from the time bar ({t} UTC)',
       insSunH: 'Sun above the horizon', insEarthH: 'Earth above the horizon', insOpsH: 'Sun up and Earth link together',
       insDteH: 'Earth up and a tracking antenna in view', insNightH: 'Longest stretch with no Sunlight', insGapH: 'Longest stretch with no direct link',
-      insOpsRunH: 'Longest stretch with power and a link', insNone: 'none', insWhole: 'whole period', insCompare: 'Compare…',
+      insOpsRunH: 'Longest stretch with power and a link', insNone: 'none', insWhole: 'whole period', insCompare: 'Compare…', vmTitle: 'View',
       spSunPos: 'Sun height / bearing', spEarthPos: 'Earth height / bearing', spState: 'State', spPole: 'At the pole: Sun / Earth',
       cdTitle: 'Compare {n} with…', cdAll: 'All sites', cdAllSub: 'Rank every site against this one', cdOne: 'One specific site', cdOneSub: 'Side by side, with the reasons', cdGo: 'Compare', cdCancel: 'Cancel',
       cfTitle: 'Comparing', cfWithAll: 'With all sites', cfWithOne: 'With one site', cfPeriod: 'From {a} to {b} (the selected period)', cfRank: '{n} ranks {r} of {t} sites for power + link',
@@ -234,7 +234,7 @@
       insFlag: 'Mission : {n} jours depuis l’atterrissage {t} UTC', insBar: 'Les {n} prochains jours depuis la barre de temps ({t} UTC)',
       insSunH: 'Soleil au-dessus de l’horizon', insEarthH: 'Terre au-dessus de l’horizon', insOpsH: 'Soleil et liaison Terre ensemble',
       insDteH: 'Terre visible et antenne de suivi disponible', insNightH: 'Plus longue période sans Soleil', insGapH: 'Plus longue période sans liaison directe',
-      insOpsRunH: 'Plus longue période avec énergie et liaison', insNone: 'aucune', insWhole: 'toute la période', insCompare: 'Comparer…',
+      insOpsRunH: 'Plus longue période avec énergie et liaison', insNone: 'aucune', insWhole: 'toute la période', insCompare: 'Comparer…', vmTitle: 'Affichage',
       spSunPos: 'Soleil : hauteur / azimut', spEarthPos: 'Terre : hauteur / azimut', spState: 'État', spPole: 'Au pôle : Soleil / Terre',
       cdTitle: 'Comparer {n} avec…', cdAll: 'Tous les sites', cdAllSub: 'Classer tous les sites par rapport à celui-ci', cdOne: 'Un site précis', cdOneSub: 'Côte à côte, avec les raisons', cdGo: 'Comparer', cdCancel: 'Annuler',
       cfTitle: 'Comparaison', cfWithAll: 'Avec tous les sites', cfWithOne: 'Avec un site', cfPeriod: 'Du {a} au {b} (la période choisie)', cfRank: '{n} : n° {r} sur {t} sites pour énergie + liaison',
@@ -2039,7 +2039,7 @@
 
   /* selected-site panel: plain-language state of the focused site at the cursor time */
   let spOpen = store.get('spOpen', null), spLast = '';
-  if (spOpen === null) spOpen = !(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
+  if (spOpen === null) spOpen = false;   // everything starts folded: the Moon first
   function renderSitePanel(S) {
     const box = $('#sitePanel'), s = site(state.focus), ser = state.series[state.focus], g = state.grid;
     if (!box || !s || !ser || !g) { box.innerHTML = ''; spLast = ''; return; }
@@ -2083,7 +2083,7 @@
   /* site insights: the mission window of the focused site at a glance (same engine call as the mission bar and Compare) */
   let insOpen = store.get('insOpen', null), insLast = '', insCache = null;
   const insNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
-  const insIsOpen = () => insOpen === null ? !insNarrow() : insOpen;
+  const insIsOpen = () => insOpen === true;
   function insSummary(ser, W) {
     const g = state.grid;
     if (insCache && insCache.ser === ser && insCache.i0 === W.i0 && insCache.i1 === W.i1) return insCache.m;
@@ -2132,6 +2132,19 @@
     if (e.target.closest('[data-ins="compare"]')) openCmpDialog();
   });
   window.addEventListener('resize', placeInsights);
+  if (window.ResizeObserver) new ResizeObserver(placeInsights).observe(document.querySelector('.v3d-top'));   // the control column grows and shrinks with the View menu
+
+  /* "View" menu: scope, live / heat map and fictional light fold into one drop-down (Simple mode; Advanced keeps its toolbar) */
+  let vmOpen = store.get('vmOpen', false) === true;
+  function applyViewMenu() {
+    const box = $('#v3dViewMenu'), head = $('#vmHead'); if (!box) return;
+    box.classList.toggle('open', vmOpen);
+    head.setAttribute('aria-expanded', String(vmOpen));
+    head.querySelector('.vm-chev').textContent = vmOpen ? '▴' : '▾';
+    placeInsights();
+  }
+  $('#vmHead').addEventListener('click', () => { vmOpen = !vmOpen; store.set('vmOpen', vmOpen); applyViewMenu(); });
+  applyViewMenu();
   function update3D() {
     if (!v3d || !state.grid) return;
     if (heatOn()) scheduleHeat();
