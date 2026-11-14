@@ -98,11 +98,11 @@
       sub3d: 'Globe 3D', subMap: 'Map 2D', subSky: 'Horizon', subElev: 'Elevation', subSites: 'Sites', subScen: 'Scenarios', subLearn: 'Learn', subMethod: 'Method',
       spKicker: 'Selected site', spSun: 'Sun', spEarth: 'Earth', spLink: 'Direct link to Earth', spVisible: 'Visible', spHiddenM: 'Hidden', spHiddenF: 'Hidden',
       spAvail: 'Available', spUnavail: 'Unavailable', spAnalyze: 'Analyze this site', spCompare: 'Compare this site',
-      insKick: 'Site insights', insOpen: 'Show site insights', insClose: 'Hide site insights',
+      spFig: 'Mission figures',
       insFlag: 'Mission: {n} days from landing {t} UTC', insBar: 'Next {n} days from the time bar ({t} UTC)',
       insSunH: 'Sun above the horizon', insEarthH: 'Earth above the horizon', insOpsH: 'Sun up and Earth link together',
       insDteH: 'Earth up and a tracking antenna in view', insNightH: 'Longest stretch with no Sunlight', insGapH: 'Longest stretch with no direct link',
-      insOpsRunH: 'Longest stretch with power and a link', insNone: 'none', insWhole: 'whole period', insCompare: 'Compare…', vmTitle: 'View',
+      insOpsRunH: 'Longest stretch with power and a link', insNone: 'none', insWhole: 'whole period', vmTitle: 'View',
       spSunPos: 'Sun height / bearing', spEarthPos: 'Earth height / bearing', spState: 'State', spPole: 'At the pole: Sun / Earth',
       cdTitle: 'Compare {n} with…', cdAll: 'All sites', cdAllSub: 'Rank every site against this one', cdOne: 'One specific site', cdOneSub: 'Side by side, with the reasons', cdGo: 'Compare', cdCancel: 'Cancel',
       cfTitle: 'Comparing', cfWithAll: 'With all sites', cfWithOne: 'With one site', cfPeriod: 'From {a} to {b} (the selected period)', cfRank: '{n} ranks {r} of {t} sites for power + link',
@@ -230,11 +230,11 @@
       sub3d: 'Globe 3D', subMap: 'Carte 2D', subSky: 'Horizon', subElev: 'Élévation', subSites: 'Sites', subScen: 'Scénarios', subLearn: 'Comprendre', subMethod: 'Méthode',
       spKicker: 'Site sélectionné', spSun: 'Soleil', spEarth: 'Terre', spLink: 'Liaison directe avec la Terre', spVisible: 'Visible', spHiddenM: 'Caché', spHiddenF: 'Cachée',
       spAvail: 'Disponible', spUnavail: 'Indisponible', spAnalyze: 'Analyser ce site', spCompare: 'Comparer ce site',
-      insKick: 'Analyse du site', insOpen: 'Afficher l’analyse du site', insClose: 'Masquer l’analyse du site',
+      spFig: 'Chiffres de la mission',
       insFlag: 'Mission : {n} jours depuis l’atterrissage {t} UTC', insBar: 'Les {n} prochains jours depuis la barre de temps ({t} UTC)',
       insSunH: 'Soleil au-dessus de l’horizon', insEarthH: 'Terre au-dessus de l’horizon', insOpsH: 'Soleil et liaison Terre ensemble',
       insDteH: 'Terre visible et antenne de suivi disponible', insNightH: 'Plus longue période sans Soleil', insGapH: 'Plus longue période sans liaison directe',
-      insOpsRunH: 'Plus longue période avec énergie et liaison', insNone: 'aucune', insWhole: 'toute la période', insCompare: 'Comparer…', vmTitle: 'Affichage',
+      insOpsRunH: 'Plus longue période avec énergie et liaison', insNone: 'aucune', insWhole: 'toute la période', vmTitle: 'Affichage',
       spSunPos: 'Soleil : hauteur / azimut', spEarthPos: 'Terre : hauteur / azimut', spState: 'État', spPole: 'Au pôle : Soleil / Terre',
       cdTitle: 'Comparer {n} avec…', cdAll: 'Tous les sites', cdAllSub: 'Classer tous les sites par rapport à celui-ci', cdOne: 'Un site précis', cdOneSub: 'Côte à côte, avec les raisons', cdGo: 'Comparer', cdCancel: 'Annuler',
       cfTitle: 'Comparaison', cfWithAll: 'Avec tous les sites', cfWithOne: 'Avec un site', cfPeriod: 'Du {a} au {b} (la période choisie)', cfRank: '{n} : n° {r} sur {t} sites pour énergie + liaison',
@@ -2040,6 +2040,25 @@
   /* selected-site panel: plain-language state of the focused site at the cursor time */
   let spOpen = store.get('spOpen', null), spLast = '';
   if (spOpen === null) spOpen = false;   // everything starts folded: the Moon first
+  /* mission figures: the window of the focused site (same engine call as the mission bar and Compare), shown on demand inside this panel */
+  let spFig = store.get('spFig', false) === true, figCache = null;
+  function missionFigures(ser) {
+    const g = state.grid, W = missionWindow();
+    let m;
+    if (figCache && figCache.ser === ser && figCache.i0 === W.i0 && figCache.i1 === W.i1) m = figCache.m;
+    else { m = E.summarize(ser, g, W.i0, W.i1); figCache = { ser, i0: W.i0, i1: W.i1, m }; }
+    const H = (W.i1 - W.i0) * g.stepMs / 3600000;
+    const period = t(W.set ? 'insFlag' : 'insBar').replace('{n}', W.days).replace('{t}', utc(timeOf(W.i0)));
+    const bar = (cm, sub, cls) => `<div class="ins-row ${cls}" title="${esc(t(sub))}"><div class="ins-line"><span class="ins-ico" aria-hidden="true">${cm.ico}</span><span class="ins-lab">${t(cm.l)}</span><span class="ins-num">${fmt(m[cm.k], 0)}%</span></div><div class="ins-bar" aria-hidden="true"><i style="width:${Math.max(0, Math.min(100, m[cm.k]))}%"></i></div><div class="ins-sub">${t(sub)}</div></div>`;
+    const hours = v => v <= 0 ? t('insNone') : v >= H * 0.98 ? `${dur(v)} · ${t('insWhole')}` : dur(v);
+    const card = (cm, sub, v) => `<div class="ins-card" title="${esc(t(sub))}"><span class="ins-ico" aria-hidden="true">${cm.ico}</span><span class="ins-lab">${t(cm.l)}</span><span class="ins-big">${hours(v)}</span></div>`;
+    const cmOf = k => CM.find(c => c.k === k);
+    return `<div class="sp-fig"><div class="ins-period">${esc(period)}</div>` +
+      bar(cmOf('litPct'), 'insSunH', 'sun') + bar(cmOf('earthPct'), 'insEarthH', 'earth') + bar(cmOf('opsPct'), 'insOpsH', 'ops') +
+      `<div class="adv-only">${bar(cmOf('dtePct'), 'insDteH', 'dte')}</div>` +
+      `<div class="ins-cards">${card(cmOf('longestNightH'), 'insNightH', m.longestNightH)}${card(cmOf('longestBlackoutH'), 'insGapH', m.longestBlackoutH)}</div>` +
+      `<div class="ins-adv adv-only"><span>⚡ ${t('insOpsRunH')}</span><b>${hours(m.longestOpsH)}</b></div></div>`;
+  }
   function renderSitePanel(S) {
     const box = $('#sitePanel'), s = site(state.focus), ser = state.series[state.focus], g = state.grid;
     if (!box || !s || !ser || !g) { box.innerHTML = ''; spLast = ''; return; }
@@ -2061,78 +2080,22 @@
       `<div class="sp-rows">` +
       row('☀️', t('spSun'), flag(c.sunlit, 'spVisible', 'spHiddenM'), `${a1.label} ${a1.val}`) +
       row('🌍', t('spEarth'), flag(c.earthUp, 'spVisible', 'spHiddenF'), `${a2.label} ${a2.val}`) +
-      row('📡', t('spLink'), flag(c.link, 'spAvail', 'spUnavail'), `${a3.label} ${a3.val}`) + `</div>` + adv +
+      row('📡', t('spLink'), flag(c.link, 'spAvail', 'spUnavail'), `${a3.label} ${a3.val}`) + `</div>` +
+      `<button type="button" class="sp-fig-toggle" id="spFigBtn" aria-expanded="${spFig}"><span>${t('spFig')}</span><span class="sp-chev" aria-hidden="true">${spFig ? '▴' : '▾'}</span></button>` + (spFig ? missionFigures(ser) : '') + adv +
       `<div class="sp-actions"><button type="button" class="sp-btn main" data-sp="analyze">${t('spAnalyze')}</button><button type="button" class="sp-btn" data-sp="compare">${t('spCompare')}</button></div>`;
     const cls = 'site-panel' + (spOpen ? '' : ' collapsed'), key = cls + html;
     if (key === spLast) return;
     spLast = key; box.className = cls; box.innerHTML = html;
   }
   $('#sitePanel').addEventListener('click', e => {
-    if (e.target.closest('#spHead')) {
-      spOpen = !spOpen; store.set('spOpen', spOpen); spLast = '';
-      if (spOpen && insNarrow() && insIsOpen()) { insOpen = false; store.set('insOpen', false); insLast = ''; renderInsights(); }   // one panel at a time on a phone
-      renderSitePanel(v3dStateAt(state.cursor)); return;
-    }
+    if (e.target.closest('#spHead')) { spOpen = !spOpen; store.set('spOpen', spOpen); spLast = ''; renderSitePanel(v3dStateAt(state.cursor)); return; }
+    if (e.target.closest('#spFigBtn')) { spFig = !spFig; store.set('spFig', spFig); spLast = ''; renderSitePanel(v3dStateAt(state.cursor)); return; }
     const b = e.target.closest('[data-sp]'); if (!b) return;
     if (b.dataset.sp === 'analyze') {
       const acc = $('#accProfile'); acc.open = true;
       acc.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else openCmpDialog();
   });
-
-  /* site insights: the mission window of the focused site at a glance (same engine call as the mission bar and Compare) */
-  let insOpen = store.get('insOpen', null), insLast = '', insCache = null;
-  const insNarrow = () => !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches);
-  const insIsOpen = () => insOpen === true;
-  function insSummary(ser, W) {
-    const g = state.grid;
-    if (insCache && insCache.ser === ser && insCache.i0 === W.i0 && insCache.i1 === W.i1) return insCache.m;
-    const m = E.summarize(ser, g, W.i0, W.i1);
-    insCache = { ser, i0: W.i0, i1: W.i1, m };
-    return m;
-  }
-  /* in Simple mode on a wide screen the control column sits over the top right of the stage: start below it */
-  function placeInsights() {
-    const box = $('#insights'), stage = $('#v3dStage'), top = document.querySelector('.v3d-top');
-    if (!box || !stage || !top) return;
-    let y = 14;
-    if (mode === 'simple' && !insNarrow()) y = Math.max(14, Math.round(top.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + 10));
-    box.style.top = y + 'px';
-    box.style.maxHeight = insNarrow() ? '' : Math.max(160, stage.clientHeight - y - 16) + 'px';
-  }
-  function renderInsights() {
-    const box = $('#insights'), g = state.grid; if (!box) return;
-    const s = site(state.focus), ser = s && (state.series[state.focus] || anySeries(state.focus));
-    if (!s || !ser || !g) { box.innerHTML = ''; insLast = ''; return; }
-    const open = insIsOpen(), W = missionWindow(), m = insSummary(ser, W);
-    const H = (W.i1 - W.i0) * g.stepMs / 3600000;
-    const when = utc(timeOf(W.i0));
-    const period = t(W.set ? 'insFlag' : 'insBar').replace('{n}', W.days).replace('{t}', when);
-    const bar = (cm, sub, cls) => `<div class="ins-row ${cls}" title="${esc(t(sub))}"><div class="ins-line"><span class="ins-ico" aria-hidden="true">${cm.ico}</span><span class="ins-lab">${t(cm.l)}</span><span class="ins-num">${fmt(m[cm.k], 0)}%</span></div><div class="ins-bar" aria-hidden="true"><i style="width:${Math.max(0, Math.min(100, m[cm.k]))}%"></i></div><div class="ins-sub">${t(sub)}</div></div>`;
-    const hours = v => v <= 0 ? t('insNone') : v >= H * 0.98 ? `${dur(v)} · ${t('insWhole')}` : dur(v);
-    const card = (cm, sub, v) => `<div class="ins-card" title="${esc(t(sub))}"><span class="ins-ico" aria-hidden="true">${cm.ico}</span><span class="ins-lab">${t(cm.l)}</span><span class="ins-big">${hours(v)}</span></div>`;
-    const cmOf = k => CM.find(c => c.k === k);
-    const html = `<button type="button" class="ins-head" id="insHead" aria-expanded="${open}" title="${t(open ? 'insClose' : 'insOpen')}"><span class="ins-kick">${t('insKick')}</span><span class="sp-chev" aria-hidden="true">${open ? '▸' : '◂'}</span></button>` +
-      `<div class="ins-body"><div class="ins-period">${esc(period)}</div>` +
-      bar(cmOf('litPct'), 'insSunH', 'sun') + bar(cmOf('earthPct'), 'insEarthH', 'earth') + bar(cmOf('opsPct'), 'insOpsH', 'ops') +
-      `<div class="adv-only">${bar(cmOf('dtePct'), 'insDteH', 'dte')}</div>` +
-      `<div class="ins-cards">${card(cmOf('longestNightH'), 'insNightH', m.longestNightH)}${card(cmOf('longestBlackoutH'), 'insGapH', m.longestBlackoutH)}</div>` +
-      `<div class="ins-adv adv-only"><span>⚡ ${t('insOpsRunH')}</span><b>${hours(m.longestOpsH)}</b></div>` +
-      `<button type="button" class="sp-btn ins-cmp" data-ins="compare">${t('insCompare')}</button></div>`;
-    const cls = 'insights' + (open ? '' : ' collapsed'), key = cls + html;
-    if (key !== insLast) { insLast = key; box.className = cls; box.innerHTML = html; }
-    placeInsights();   // also after a mode change: the Simple-mode control column is not there in Advanced
-  }
-  $('#insights').addEventListener('click', e => {
-    if (e.target.closest('#insHead')) {
-      insOpen = !insIsOpen(); store.set('insOpen', insOpen); insLast = '';
-      if (insOpen && insNarrow() && spOpen) { spOpen = false; store.set('spOpen', false); spLast = ''; }   // one panel at a time on a phone
-      renderInsights(); renderSitePanel(v3dStateAt(state.cursor)); return;
-    }
-    if (e.target.closest('[data-ins="compare"]')) openCmpDialog();
-  });
-  window.addEventListener('resize', placeInsights);
-  if (window.ResizeObserver) new ResizeObserver(placeInsights).observe(document.querySelector('.v3d-top'));   // the control column grows and shrinks with the View menu
 
   /* "View" menu: scope, live / heat map and fictional light fold into one drop-down (Simple mode; Advanced keeps its toolbar) */
   let vmOpen = store.get('vmOpen', false) === true;
@@ -2141,7 +2104,6 @@
     box.classList.toggle('open', vmOpen);
     head.setAttribute('aria-expanded', String(vmOpen));
     head.querySelector('.vm-chev').textContent = vmOpen ? '▴' : '▾';
-    placeInsights();
   }
   $('#vmHead').addEventListener('click', () => { vmOpen = !vmOpen; store.set('vmOpen', vmOpen); applyViewMenu(); });
   applyViewMenu();
@@ -2156,7 +2118,6 @@
     v3d.setState(S);
     renderLegend();
     renderSitePanel(S);
-    renderInsights();
   }
   /* region / scope: 'moon' = whole Moon, 'south' (75-90 S) and 'pole' (87.5-90 S) = LOLA terrain */
   function syncScope() {
