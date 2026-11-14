@@ -271,7 +271,8 @@
 
     <!-- PLAN -->
     <section class="view" id="view-plan" role="tabpanel" aria-labelledby="tab-plan" hidden>
-      <div class="panel">
+      <div class="panel plan-easy" id="planEasy"></div>
+      <div class="panel adv-only">
         <h2 data-i18n="planTitle">Find the best landing date for each site</h2>
         <form class="plan-form" id="planForm" novalidate>
           <label><span data-i18n="duration">Surface mission (days)</span><input id="planDays" type="number" min="1" max="60" step="1" value="10"></label>
@@ -288,7 +289,7 @@
         <div class="canvas-box" id="heatBox"><canvas id="heat"></canvas></div>
         <div class="heat-legend" id="heatLegend"></div>
       </div>
-      <div class="panel">
+      <div class="panel adv-only">
         <h2 data-i18n="bestTitle">Best landing opportunities</h2>
         <div class="table-scroll"><table class="cmp" id="bestTable"></table></div>
         <p class="muted small" data-i18n="bestHelp">Click a row to move the time cursor to that touchdown.</p>
