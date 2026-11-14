@@ -565,6 +565,37 @@ tr.click td, td.now { transition: background .2s ease; }
   .site-panel.collapsed .sp-rows, .site-panel.collapsed .sp-adv, .site-panel.collapsed .sp-actions { display: none; }
   .site-panel.collapsed .sp-head { margin-bottom: 0; }
 }
+/* site insights: right-hand twin of the selected-site panel (same glass look), collapsible */
+.insights { overflow-y: auto; scrollbar-width: thin; position: absolute; right: 14px; top: 14px; z-index: 2; width: min(272px, calc(100% - 28px)); color: var(--space-ink); background: rgb(18 20 24 / .58); -webkit-backdrop-filter: blur(16px) saturate(1.4); backdrop-filter: blur(16px) saturate(1.4); border: 1px solid rgb(255 255 255 / .1); border-radius: 16px; padding: 10px 14px 12px; font-size: 13px; line-height: 1.35; }
+.insights:empty { display: none; }
+.ins-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin: 0 0 6px; padding: 0; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.ins-kick { font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--space-mut); }
+.ins-head:hover .sp-chev { background: rgb(255 255 255 / .22); }
+.insights.collapsed { width: auto; padding: 7px 8px 7px 14px; border-radius: 999px; }
+.insights.collapsed .ins-body { display: none; }
+.insights.collapsed .ins-head { margin: 0; gap: 12px; }
+.ins-period { font-size: 11.5px; color: var(--space-mut); margin-bottom: 8px; line-height: 1.3; }
+.ins-row { margin-bottom: 7px; }
+.ins-line { display: grid; grid-template-columns: 22px 1fr auto; align-items: baseline; gap: 0 4px; }
+.ins-ico { font-size: 15px; line-height: 1.1; }
+.ins-lab { font-size: 12.5px; color: var(--space-mut); }
+.ins-num { font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.ins-bar { height: 5px; margin: 4px 0 2px; border-radius: 99px; background: rgb(255 255 255 / .12); overflow: hidden; }
+.ins-bar i { display: block; height: 100%; border-radius: 99px; background: var(--ins-c, #7be0b4); transition: width .3s ease; }
+.ins-row.sun { --ins-c: #f3c45f; } .ins-row.earth { --ins-c: #6db3f2; } .ins-row.ops { --ins-c: #7be0b4; } .ins-row.dte { --ins-c: #b7a0f5; }
+.ins-sub { display: block; font-size: 11.5px; color: var(--space-mut); }
+body[data-mode="advanced"] .ins-sub { display: none; }
+.ins-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0 0; }
+.ins-card { display: grid; gap: 1px; padding: 7px 9px; border-radius: 11px; background: rgb(255 255 255 / .07); border: 1px solid rgb(255 255 255 / .08); align-content: start; }
+.ins-card .ins-lab { font-size: 11.5px; line-height: 1.25; }
+.ins-big { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+.ins-adv { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; padding-top: 7px; border-top: 1px solid rgb(255 255 255 / .12); font-size: 12px; color: var(--space-mut); }
+.ins-adv b { color: var(--space-ink); white-space: nowrap; }
+.ins-cmp { display: block; width: 100%; margin-top: 9px; }
+@media (max-width: 700px) {
+  .insights { top: 84px !important; left: 14px; right: 14px; width: auto; max-height: min(400px, calc(100% - 190px)); overflow: auto; }   /* under the (collapsed) selected-site header; the time bar floats at the bottom */
+  .insights.collapsed { left: auto; max-height: none; }
+}
 /* Simple mode: the panel carries the details, so drop the duplicated chips and the technical drop-down */
 body[data-mode="simple"] #cursorChips { display: none; }
 
@@ -757,7 +788,7 @@ body[data-mode="simple"] #v3dLegend:not(.is-heat) { display: none; }
 }
 @media (min-width: 701px) {
   body[data-mode="simple"] .v3d-flat { top: auto; right: auto; left: 14px; bottom: 82px; max-width: 260px; }
-  body[data-mode="simple"] .v3d-hint { left: auto; right: 14px; transform: none; }
+  body[data-mode="simple"] .v3d-hint { left: auto; right: 300px; transform: none; }   /* clear of the insights panel */
 }
 @media (max-width: 700px) {
   body[data-mode="simple"] .v3d-top { gap: 6px 8px; justify-content: flex-start; }
