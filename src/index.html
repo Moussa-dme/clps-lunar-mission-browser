@@ -127,14 +127,14 @@
             <button class="btn toggle" type="button" id="v3dLight" aria-pressed="false" data-i18n="vwLight" data-i18n-title="lightTip">Light everywhere</button>
             <button class="btn" type="button" id="bestBtn" data-i18n="bestBtn">Best site</button>
             <button class="btn ghost" type="button" id="v3dOverview" data-i18n="vOverview">Overview</button>
-            <button class="btn ghost" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
+            <button class="btn ghost adv-only" type="button" id="v3dSunView" data-i18n="vSun">Look toward the Sun</button>
             <button class="btn ghost" type="button" id="v3dStand"></button>
             <button class="btn primary" type="button" id="v3dTour" data-i18n="vTour">Guided tour</button>
           </div>
         </div>
         <div class="v3d-stage" id="v3dStage">
           <canvas class="v3d-labels" id="v3dLabels" aria-hidden="true"></canvas>
-          <div class="v3d-hud mono" id="v3dHud"></div>
+          <aside class="site-panel" id="sitePanel" aria-live="polite"></aside>
           <div class="v3d-status" id="v3dStatus" role="status"></div>
           <div class="v3d-flat" id="v3dFlatTag" hidden data-i18n="flatTag">Fictional lighting: real shadows and colours are hidden</div>
           <div class="v3d-caption" id="v3dCaption" hidden></div>
@@ -152,7 +152,7 @@
         <div class="prof" id="prof"></div>
       </details>
 
-      <details class="panel acc" id="accView">
+      <details class="panel acc adv-only" id="accView">
         <summary data-i18n="viewOpts">View options</summary>
         <div class="v3d-toolbar">
           <label><span data-i18n="v3dRegion">Area</span>
@@ -182,7 +182,8 @@
 
     <!-- COMPARE -->
     <section class="view" id="view-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
-      <div class="panel">
+      <div class="panel cmp-focus" id="cmpFocus" aria-live="polite"></div>
+      <div class="panel adv-only">
         <div class="panel-head">
           <h2 data-i18n="cmpTitle">Site comparison over the selected period</h2>
           <div class="actions adv-only">
@@ -197,7 +198,7 @@
         </div>
         <p class="muted small" id="cmpNote"></p>
       </div>
-      <div class="panel">
+      <div class="panel adv-only">
         <div class="panel-head">
           <h2 data-i18n="stripTitle">When each site has power and a link to Earth</h2>
         </div>
@@ -349,6 +350,18 @@
   </main>
 </div>
 
+<dialog class="cmp-dlg" id="cmpDlg" aria-labelledby="cmpDlgTitle">
+  <form method="dialog" id="cmpDlgForm">
+    <h2 id="cmpDlgTitle"></h2>
+    <button type="button" class="cd-opt" data-cd="all"><b data-i18n="cdAll">All sites</b><span data-i18n="cdAllSub">Rank every site against this one</span></button>
+    <button type="button" class="cd-opt" data-cd="one"><b data-i18n="cdOne">One specific site</b><span data-i18n="cdOneSub">Side by side, with the reasons</span></button>
+    <div class="cd-pick" id="cdPick" hidden>
+      <select id="cdSite" aria-label="Site"></select>
+      <button type="button" class="btn primary" id="cdGo" data-i18n="cdGo">Compare</button>
+    </div>
+    <button type="submit" class="cd-cancel" data-i18n="cdCancel">Cancel</button>
+  </form>
+</dialog>
 <div class="addpop" id="addPop" role="dialog" hidden>
   <b data-i18n="popTitle">New site here</b>
   <span class="mono muted small" id="addPopCoords"></span>
